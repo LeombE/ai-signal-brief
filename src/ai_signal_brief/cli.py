@@ -6,6 +6,7 @@ import platform
 from pathlib import Path
 
 from . import __version__
+from .rendering import RenderError, render_markdown_from_path, render_telegram_from_path, write_text_output
 from .validation import (
     ValidationResult,
     load_source_registry,
@@ -94,6 +95,28 @@ def list_source_priorities(path: str | Path | None = None) -> int:
     return 0
 
 
+def render_markdown_command(path: str, output_path: str) -> int:
+    try:
+        rendered = render_markdown_from_path(path)
+        written = write_text_output(rendered, output_path)
+    except RenderError as exc:
+        print(f"Markdown render failed: {exc}")
+        return 1
+    print(f"Markdown render written: {written}")
+    return 0
+
+
+def render_telegram_command(path: str, output_path: str) -> int:
+    try:
+        rendered = render_telegram_from_path(path)
+        written = write_text_output(rendered, output_path)
+    except RenderError as exc:
+        print(f"Telegram preview render failed: {exc}")
+        return 1
+    print(f"Telegram preview written: {written}")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="ai-signal-brief",
@@ -118,6 +141,14 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Optional source registry path. Defaults to config/sources.example.json.",
     )
+
+    markdown_parser = subparsers.add_parser("render-markdown", help="Render a validated report JSON to Markdown.")
+    markdown_parser.add_argument("path", help="Path to report JSON.")
+    markdown_parser.add_argument("--out", required=True, help="Output Markdown path.")
+
+    telegram_parser = subparsers.add_parser("render-telegram", help="Render a Telegram text preview without sending it.")
+    telegram_parser.add_argument("path", help="Path to report JSON.")
+    telegram_parser.add_argument("--out", required=True, help="Output text path.")
 
     return parser
 
@@ -144,6 +175,12 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "list-source-priorities":
         return list_source_priorities(args.path)
+
+    if args.command == "render-markdown":
+        return render_markdown_command(args.path, args.out)
+
+    if args.command == "render-telegram":
+        return render_telegram_command(args.path, args.out)
 
     parser.print_help()
     return 0

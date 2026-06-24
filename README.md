@@ -12,7 +12,7 @@ AI news moves quickly and is often repeated across vendors, model releases, benc
 
 ## Current Status
 
-Phase 3 adds an offline source registry and stdlib-only validation for source configuration. The repository is still a local public skeleton; no live ingestion, delivery, or publishing automation is implemented yet.
+Phase 4 adds offline Markdown and Telegram-preview renderers that operate only on validated canonical report JSON. The repository is still local-first; no live ingestion, delivery, or publishing automation is implemented yet.
 
 Not implemented yet:
 
@@ -51,10 +51,11 @@ Readable documentation lives in:
 - `docs/report-schema.md`
 - `docs/run-schema.md`
 - `docs/source-registry.md`
+- `docs/offline-rendering.md`
 
 ## Local Development
 
-Phase 3 uses only the Python standard library.
+Phase 4 uses only the Python standard library.
 
 ```powershell
 $env:PYTHONPATH = (Resolve-Path .\src).Path
@@ -65,9 +66,9 @@ python -m ai_signal_brief validate-run examples/run.example.json
 python -m unittest discover -s tests
 ```
 
-No package installation is required for Phase 3.
+No package installation is required for Phase 4.
 
-Validation currently checks required fields, duplicate IDs, source references, ISO-8601 timestamps with timezones, English-language report output, source registry priority rules, official-source-first policy, and secret-like values in report/run/source JSON.
+Validation currently checks required fields, duplicate IDs, source references, ISO-8601 timestamps with timezones, English-language report output, source registry priority rules, official-source-first policy, and secret-like values in report/run/source JSON. Rendering refuses invalid reports and writes offline preview files only.
 
 ## Example Files
 
