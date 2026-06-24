@@ -1,0 +1,16 @@
+{
+  "timezone": "Asia/Kuala_Lumpur",
+  "language": "en",
+  "default_report_time": "04:00",
+  "output": {
+    "write_markdown": false,
+    "write_html": false,
+    "write_docx": false
+  },
+  "delivery": {
+    "telegram": {
+      "enabled": false,
+      "send_docx": false
+    }
+  }
+}

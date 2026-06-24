@@ -1,0 +1,51 @@
+# Local secrets
+.env
+.env.*
+*.env
+*.env.*
+!.env.example
+*.token
+*.secret
+*.key
+*.pem
+*.p12
+*.pfx
+secrets.*
+credentials.*
+
+# Local outputs and generated artifacts
+outputs/
+reports/
+site/dist/
+artifacts/
+*.docx
+*.pdf
+*.html
+
+# Python caches and builds
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.cache/
+.venv/
+venv/
+dist/
+build/
+*.egg-info/
+
+# Node caches and builds
+node_modules/
+.pnpm-store/
+
+# OS and editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Office temporary files
+~$*.docx

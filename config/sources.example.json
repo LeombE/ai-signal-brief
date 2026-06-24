@@ -1,0 +1,35 @@
+{
+  "source_policy": "official_sources_first",
+  "categories": [
+    {
+      "id": "official",
+      "priority": 1,
+      "description": "Vendor blogs, release notes, documentation, changelogs, and official announcements."
+    },
+    {
+      "id": "paper",
+      "priority": 2,
+      "description": "Research papers, technical reports, and peer-reviewed or preprint material."
+    },
+    {
+      "id": "repository",
+      "priority": 3,
+      "description": "Public code repositories and release artifacts."
+    },
+    {
+      "id": "regulatory",
+      "priority": 4,
+      "description": "Government, standards, legal, and regulatory sources."
+    },
+    {
+      "id": "news",
+      "priority": 5,
+      "description": "Credible news coverage used for context, not as the sole source for technical claims when a primary source exists."
+    },
+    {
+      "id": "social",
+      "priority": 6,
+      "description": "Public social posts used carefully and attributed explicitly."
+    }
+  ]
+}

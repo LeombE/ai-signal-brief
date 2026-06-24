@@ -1,0 +1,61 @@
+{
+  "schema_version": "1.0.0",
+  "report_id": "2026-06-24",
+  "report_date": "2026-06-24",
+  "generated_at": "2026-06-24T04:00:00+08:00",
+  "timezone": "Asia/Kuala_Lumpur",
+  "language": "en",
+  "title": "AI Signal Brief - 2026-06-24",
+  "summary": {
+    "top_stories": [
+      {
+        "story_id": "story-001",
+        "rank": 1,
+        "headline": "Example model platform update",
+        "why_it_matters": "This placeholder shows how the top story summary links to a canonical story record."
+      }
+    ]
+  },
+  "stories": [
+    {
+      "id": "story-001",
+      "rank": 1,
+      "title": "Example model platform update",
+      "status": "new",
+      "importance": {
+        "score": 4,
+        "rationale": "The example demonstrates the importance scoring shape without making a live news claim."
+      },
+      "companies": ["Example AI Lab"],
+      "models": ["Example Model"],
+      "regions": ["Global"],
+      "claims": [
+        {
+          "id": "claim-001",
+          "text": "This is a placeholder claim used only to demonstrate schema shape.",
+          "source_ids": ["source-001"],
+          "verification_status": "supported",
+          "confidence": "high"
+        }
+      ],
+      "source_ids": ["source-001"],
+      "analysis": "This is placeholder analysis for schema demonstration only."
+    }
+  ],
+  "sources": [
+    {
+      "id": "source-001",
+      "title": "Example Official Announcement",
+      "publisher": "Example AI Lab",
+      "url": "https://example.com/official-announcement",
+      "source_type": "official",
+      "published_at": "2026-06-24T00:00:00+08:00",
+      "retrieved_at": "2026-06-24T04:00:00+08:00"
+    }
+  ],
+  "assets": [],
+  "provenance": {
+    "created_by": "example",
+    "review_status": "example_only"
+  }
+}
