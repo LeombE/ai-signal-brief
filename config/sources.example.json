@@ -1,35 +1,26 @@
 {
+  "schema_version": "1.0.0",
   "source_policy": "official_sources_first",
+  "allowed_source_types": ["official", "paper", "repository", "regulatory", "news", "social", "other"],
   "categories": [
-    {
-      "id": "official",
-      "priority": 1,
-      "description": "Vendor blogs, release notes, documentation, changelogs, and official announcements."
-    },
-    {
-      "id": "paper",
-      "priority": 2,
-      "description": "Research papers, technical reports, and peer-reviewed or preprint material."
-    },
-    {
-      "id": "repository",
-      "priority": 3,
-      "description": "Public code repositories and release artifacts."
-    },
-    {
-      "id": "regulatory",
-      "priority": 4,
-      "description": "Government, standards, legal, and regulatory sources."
-    },
-    {
-      "id": "news",
-      "priority": 5,
-      "description": "Credible news coverage used for context, not as the sole source for technical claims when a primary source exists."
-    },
-    {
-      "id": "social",
-      "priority": 6,
-      "description": "Public social posts used carefully and attributed explicitly."
-    }
+    {"id": "official", "priority": 1, "description": "Vendor blogs, release notes, documentation, changelogs, and official announcements."},
+    {"id": "paper", "priority": 2, "description": "Research papers, technical reports, and peer-reviewed or preprint material."},
+    {"id": "repository", "priority": 3, "description": "Public code repositories and release artifacts."},
+    {"id": "regulatory", "priority": 4, "description": "Government, standards, legal, and regulatory sources."},
+    {"id": "news", "priority": 5, "description": "Credible news coverage used for context, not as the sole source for technical claims when a primary source exists."},
+    {"id": "social", "priority": 6, "description": "Public social posts used carefully and attributed explicitly."},
+    {"id": "other", "priority": 7, "description": "Other public sources that pass attribution, safety, and relevance review."}
+  ],
+  "sources": [
+    {"id": "openai-news", "title": "OpenAI News", "publisher": "OpenAI", "url": "https://openai.com/news/", "source_type": "official", "category_id": "official", "priority": 1},
+    {"id": "anthropic-news", "title": "Anthropic News", "publisher": "Anthropic", "url": "https://www.anthropic.com/news", "source_type": "official", "category_id": "official", "priority": 1},
+    {"id": "google-ai-blog", "title": "Google AI Blog", "publisher": "Google", "url": "https://blog.google/technology/ai/", "source_type": "official", "category_id": "official", "priority": 1},
+    {"id": "google-deepmind-blog", "title": "Google DeepMind Blog", "publisher": "Google DeepMind", "url": "https://deepmind.google/discover/blog/", "source_type": "official", "category_id": "official", "priority": 1},
+    {"id": "mistral-news", "title": "Mistral AI News", "publisher": "Mistral AI", "url": "https://mistral.ai/news", "source_type": "official", "category_id": "official", "priority": 1},
+    {"id": "meta-ai-blog", "title": "Meta AI Blog", "publisher": "Meta AI", "url": "https://ai.meta.com/blog/", "source_type": "official", "category_id": "official", "priority": 1},
+    {"id": "qwen-blog", "title": "Qwen Blog", "publisher": "Qwen", "url": "https://qwenlm.github.io/blog/", "source_type": "official", "category_id": "official", "priority": 1},
+    {"id": "arxiv-cs-ai-recent", "title": "arXiv cs.AI Recent Submissions", "publisher": "arXiv", "url": "https://arxiv.org/list/cs.AI/recent", "source_type": "paper", "category_id": "paper", "priority": 2},
+    {"id": "github-releases", "title": "GitHub Releases", "publisher": "GitHub", "url": "https://github.com/", "source_type": "repository", "category_id": "repository", "priority": 3},
+    {"id": "eu-ai-act-policy", "title": "European Commission AI Act Policy", "publisher": "European Commission", "url": "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai", "source_type": "regulatory", "category_id": "regulatory", "priority": 4}
   ]
 }

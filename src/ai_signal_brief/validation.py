@@ -5,12 +5,16 @@ import json
 import re
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 
 ISO_8601_WITH_TIMEZONE = re.compile(
     r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$"
 )
 DATE_ONLY = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+WINDOWS_PATH = re.compile(r"\b[A-Za-z]:\\")
+PRIVATE_HOST = re.compile(r"(?i)^(localhost|127\.0\.0\.1|0\.0\.0\.0|10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)")
+PRIVATE_MIGRATION_MARKER = re.compile(r"AI\u65e5\u62a5")
 
 SECRET_VALUE_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("telegram token", re.compile(r"\b\d{6,}:[A-Za-z0-9_-]{20,}\b")),
@@ -358,3 +362,177 @@ def _iter_string_values(value: Any, path: str = "$") -> list[tuple[str, str]]:
         for index, child in enumerate(value):
             items.extend(_iter_string_values(child, f"{path}[{index}]"))
     return items
+SOURCE_REGISTRY_REQUIRED_FIELDS = (
+    "schema_version",
+    "source_policy",
+    "allowed_source_types",
+    "categories",
+    "sources",
+)
+SOURCE_CATEGORY_REQUIRED_FIELDS = ("id", "priority", "description")
+SOURCE_ENTRY_REQUIRED_FIELDS = ("id", "title", "publisher", "url", "source_type", "category_id", "priority")
+PUBLIC_SAFETY_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
+    ("windows local path", WINDOWS_PATH),
+    ("private migration marker", PRIVATE_MIGRATION_MARKER),
+)
+
+
+def validate_sources_path(path: str | Path) -> ValidationResult:
+    sources_path = Path(path)
+    data, errors = _load_json(sources_path)
+    if errors:
+        return ValidationResult(sources_path, tuple(errors))
+    errors.extend(validate_source_registry(data))
+    errors.extend(find_secret_like_values(data))
+    errors.extend(find_public_safety_issues(data))
+    return ValidationResult(sources_path, tuple(errors))
+
+
+def load_source_registry(path: str | Path) -> dict[str, Any]:
+    data, errors = _load_json(Path(path))
+    if errors:
+        raise ValueError("; ".join(errors))
+    if not isinstance(data, dict):
+        raise ValueError("source registry must be a JSON object")
+    return data
+
+
+def source_priorities(data: dict[str, Any]) -> list[dict[str, Any]]:
+    categories = data.get("categories")
+    if not isinstance(categories, list):
+        return []
+    valid_categories = [category for category in categories if isinstance(category, dict)]
+    return sorted(valid_categories, key=lambda category: category.get("priority", 9999))
+
+
+def validate_source_registry(data: Any) -> list[str]:
+    errors: list[str] = []
+    if not isinstance(data, dict):
+        return ["$ must be an object"]
+
+    _require_fields(data, SOURCE_REGISTRY_REQUIRED_FIELDS, "$", errors)
+    if data.get("source_policy") != "official_sources_first":
+        errors.append("$.source_policy must be 'official_sources_first'")
+
+    allowed_source_types = data.get("allowed_source_types")
+    if not isinstance(allowed_source_types, list):
+        errors.append("$.allowed_source_types must be an array")
+        allowed_types: set[str] = set()
+    else:
+        allowed_types = set()
+        for index, source_type in enumerate(allowed_source_types):
+            source_type_path = f"$.allowed_source_types[{index}]"
+            if not isinstance(source_type, str):
+                errors.append(f"{source_type_path} must be a string")
+                continue
+            if source_type not in SOURCE_TYPES:
+                errors.append(f"{source_type_path} must be compatible with report source_type values")
+            allowed_types.add(source_type)
+        missing_types = SOURCE_TYPES - allowed_types
+        if missing_types:
+            errors.append(f"$.allowed_source_types is missing: {', '.join(sorted(missing_types))}")
+
+    categories = data.get("categories")
+    category_ids: set[str] = set()
+    category_priorities: dict[str, int] = {}
+    if not isinstance(categories, list):
+        errors.append("$.categories must be an array")
+    else:
+        for index, category in enumerate(categories):
+            _validate_source_category(category, index, category_ids, category_priorities, errors)
+
+    _validate_official_source_first(category_priorities, errors)
+
+    sources = data.get("sources")
+    source_ids: set[str] = set()
+    if not isinstance(sources, list):
+        errors.append("$.sources must be an array")
+    else:
+        for index, source in enumerate(sources):
+            _validate_source_entry(source, index, category_ids, category_priorities, allowed_types, source_ids, errors)
+
+    return errors
+
+
+def find_public_safety_issues(data: Any) -> list[str]:
+    errors: list[str] = []
+    for path, value in _iter_string_values(data):
+        for label, pattern in PUBLIC_SAFETY_PATTERNS:
+            if pattern.search(value):
+                errors.append(f"{path} contains private reference: {label}")
+        if path.endswith(".url") and _url_has_private_location(value):
+            errors.append(f"{path} contains private or non-public URL")
+    return errors
+
+
+def _validate_source_category(category: Any, index: int, category_ids: set[str], category_priorities: dict[str, int], errors: list[str]) -> None:
+    category_path = f"$.categories[{index}]"
+    if not isinstance(category, dict):
+        errors.append(f"{category_path} must be an object")
+        return
+    _require_fields(category, SOURCE_CATEGORY_REQUIRED_FIELDS, category_path, errors)
+    category_id = _string_id(category, "id", category_path, errors)
+    if category_id:
+        if category_id in category_ids:
+            errors.append(f"{category_path}.id duplicates category id '{category_id}'")
+        category_ids.add(category_id)
+    priority = category.get("priority")
+    if not isinstance(priority, int) or priority < 1:
+        errors.append(f"{category_path}.priority must be a positive integer")
+    elif category_id:
+        category_priorities[category_id] = priority
+
+
+def _validate_official_source_first(category_priorities: dict[str, int], errors: list[str]) -> None:
+    official_priority = category_priorities.get("official")
+    if official_priority != 1:
+        errors.append("official category must exist with priority 1")
+    if category_priorities:
+        minimum_priority = min(category_priorities.values())
+        if official_priority is not None and official_priority != minimum_priority:
+            errors.append("official category must have the highest priority")
+
+
+def _validate_source_entry(source: Any, index: int, category_ids: set[str], category_priorities: dict[str, int], allowed_types: set[str], source_ids: set[str], errors: list[str]) -> None:
+    source_path = f"$.sources[{index}]"
+    if not isinstance(source, dict):
+        errors.append(f"{source_path} must be an object")
+        return
+    _require_fields(source, SOURCE_ENTRY_REQUIRED_FIELDS, source_path, errors)
+    source_id = _string_id(source, "id", source_path, errors)
+    if source_id:
+        if source_id in source_ids:
+            errors.append(f"{source_path}.id duplicates source id '{source_id}'")
+        source_ids.add(source_id)
+    source_type = source.get("source_type")
+    if source_type not in SOURCE_TYPES:
+        errors.append(f"{source_path}.source_type must be compatible with report source_type values")
+    elif allowed_types and source_type not in allowed_types:
+        errors.append(f"{source_path}.source_type is not listed in allowed_source_types")
+    category_id = source.get("category_id")
+    if not isinstance(category_id, str) or not category_id:
+        errors.append(f"{source_path}.category_id must be a non-empty string")
+    elif category_id not in category_ids:
+        errors.append(f"{source_path}.category_id references unknown category id '{category_id}'")
+    priority = source.get("priority")
+    if not isinstance(priority, int) or priority < 1:
+        errors.append(f"{source_path}.priority must be a positive integer")
+    elif isinstance(category_id, str) and category_id in category_priorities and priority != category_priorities[category_id]:
+        errors.append(f"{source_path}.priority must match category priority {category_priorities[category_id]}")
+    if isinstance(category_id, str) and category_id in SOURCE_TYPES and source_type in SOURCE_TYPES and category_id != source_type:
+        errors.append(f"{source_path}.source_type must match category_id '{category_id}'")
+    url = source.get("url")
+    if not isinstance(url, str) or not url:
+        errors.append(f"{source_path}.url must be a non-empty string")
+    elif _url_has_private_location(url):
+        errors.append(f"{source_path}.url must be public HTTPS and not local/private")
+
+
+def _url_has_private_location(value: str) -> bool:
+    if WINDOWS_PATH.search(value):
+        return True
+    parsed = urlparse(value)
+    if parsed.scheme != "https":
+        return True
+    host = parsed.hostname or ""
+    return bool(PRIVATE_HOST.search(host))

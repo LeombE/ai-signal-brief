@@ -6,7 +6,14 @@ import platform
 from pathlib import Path
 
 from . import __version__
-from .validation import ValidationResult, validate_report_path, validate_run_path
+from .validation import (
+    ValidationResult,
+    load_source_registry,
+    source_priorities,
+    validate_report_path,
+    validate_run_path,
+    validate_sources_path,
+)
 
 
 REQUIRED_PROJECT_FILES = (
@@ -14,6 +21,7 @@ REQUIRED_PROJECT_FILES = (
     "schemas/run.schema.json",
     "examples/report.example.json",
     "examples/run.example.json",
+    "config/sources.example.json",
 )
 
 
@@ -73,6 +81,19 @@ def print_validation_result(label: str, result: ValidationResult) -> int:
     return 1
 
 
+def list_source_priorities(path: str | Path | None = None) -> int:
+    registry_path = Path(path) if path else project_root() / "config" / "sources.example.json"
+    validation_result = validate_sources_path(registry_path)
+    if not validation_result.ok:
+        return print_validation_result("Source registry", validation_result)
+
+    registry = load_source_registry(registry_path)
+    print(f"Source priorities: {registry_path}")
+    for category in source_priorities(registry):
+        print(f"{category['priority']}. {category['id']} - {category['description']}")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="ai-signal-brief",
@@ -87,6 +108,16 @@ def build_parser() -> argparse.ArgumentParser:
 
     run_parser = subparsers.add_parser("validate-run", help="Validate a run.json file.")
     run_parser.add_argument("path", help="Path to run metadata JSON.")
+
+    sources_parser = subparsers.add_parser("validate-sources", help="Validate a source registry JSON file.")
+    sources_parser.add_argument("path", help="Path to source registry JSON.")
+
+    priorities_parser = subparsers.add_parser("list-source-priorities", help="List source category priorities.")
+    priorities_parser.add_argument(
+        "--path",
+        default=None,
+        help="Optional source registry path. Defaults to config/sources.example.json.",
+    )
 
     return parser
 
@@ -107,6 +138,12 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "validate-run":
         return print_validation_result("Run", validate_run_path(args.path))
+
+    if args.command == "validate-sources":
+        return print_validation_result("Source registry", validate_sources_path(args.path))
+
+    if args.command == "list-source-priorities":
+        return list_source_priorities(args.path)
 
     parser.print_help()
     return 0

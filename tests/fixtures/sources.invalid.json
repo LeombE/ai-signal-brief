@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0.0",
+  "source_policy": "news_first",
+  "allowed_source_types": ["official", "paper", "repository", "regulatory", "news", "social", "blog"],
+  "categories": [
+    {"id": "official", "priority": 2, "description": "Official sources intentionally not first."},
+    {"id": "news", "priority": 5, "description": "News category for duplicate coverage."},
+    {"id": "news", "priority": 0, "description": "Duplicate category ID with invalid priority."}
+  ],
+  "sources": [
+    {"id": "duplicate-source", "title": "Invalid local source", "publisher": "Local Fixture", "url": "file:///tmp/source.html", "source_type": "blog", "category_id": "unknown-category", "priority": 0},
+    {"id": "duplicate-source", "title": "Invalid private source", "publisher": "Local Fixture", "url": "https://localhost/private", "source_type": "news", "category_id": "official", "priority": 5, "notes": "token=secret-like-value-for-test"},
+    {"id": "windows-path-source", "title": "Windows path source", "publisher": "Local Fixture", "url": "C:\\local\\private.html", "source_type": "official", "category_id": "official", "priority": 2}
+  ]
+}
