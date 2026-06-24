@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0.0",
+  "report_id": "missing-required-example",
+  "report_date": "2026-06-24",
+  "generated_at": "2026-06-24T04:00:00+08:00",
+  "timezone": "Asia/Kuala_Lumpur",
+  "language": "en",
+  "title": "Missing Required Fields Example",
+  "summary": {
+    "top_stories": []
+  },
+  "sources": [],
+  "assets": [],
+  "provenance": {}
+}

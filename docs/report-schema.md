@@ -42,3 +42,10 @@ Claims must be mapped to one or more source IDs and marked with verification sta
 ## Source Records
 
 Sources should prefer official and primary material. News and social sources are allowed when clearly attributed and used appropriately.
+## Validation Command
+
+```powershell
+python -m ai_signal_brief validate-report examples/report.example.json
+```
+
+The Phase 2 validator checks required report fields, required story/source/claim fields, duplicate story/source/claim IDs, story and claim source references, ISO-8601 timestamps with timezones, English-language output, and secret-like values.

@@ -12,7 +12,7 @@ AI news moves quickly and is often repeated across vendors, model releases, benc
 
 ## Current Status
 
-Phase 1 is a clean local public repository skeleton only.
+Phase 2 adds offline, stdlib-only validation for canonical report and run JSON files. The repository is still a local public skeleton; no live ingestion, delivery, or publishing automation is implemented yet.
 
 Not implemented yet:
 
@@ -59,10 +59,14 @@ Phase 1 uses only the Python standard library.
 $env:PYTHONPATH = (Resolve-Path .\src).Path
 python -m ai_signal_brief --version
 python -m ai_signal_brief doctor
+python -m ai_signal_brief validate-report examples/report.example.json
+python -m ai_signal_brief validate-run examples/run.example.json
 python -m unittest discover -s tests
 ```
 
-No package installation is required for Phase 1.
+No package installation is required for Phase 2.
+
+Validation currently checks required fields, duplicate IDs, source references, ISO-8601 timestamps with timezones, English-language report output, and secret-like values in report/run JSON.
 
 ## Example Files
 

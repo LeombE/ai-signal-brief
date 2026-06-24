@@ -1,0 +1,83 @@
+{
+  "schema_version": "1.0.0",
+  "report_id": "invalid-report-example",
+  "report_date": "2026-06-24",
+  "generated_at": "2026-06-24T04:00:00",
+  "timezone": "Asia/Kuala_Lumpur",
+  "language": "zh",
+  "title": "Invalid Report Example",
+  "summary": {
+    "top_stories": []
+  },
+  "stories": [
+    {
+      "id": "story-001",
+      "rank": 1,
+      "title": "Invalid story",
+      "status": "new",
+      "importance": {
+        "score": 6,
+        "rationale": "Invalid score for fixture coverage."
+      },
+      "companies": [],
+      "models": [],
+      "regions": [],
+      "claims": [
+        {
+          "id": "claim-001",
+          "text": "This claim references a missing source.",
+          "source_ids": ["missing-source"],
+          "verification_status": "supported",
+          "confidence": "high"
+        },
+        {
+          "id": "claim-001",
+          "text": "This duplicate claim ID is intentional.",
+          "source_ids": ["source-001"],
+          "verification_status": "unsupported",
+          "confidence": "certain"
+        }
+      ],
+      "source_ids": ["missing-source"],
+      "analysis": "token=secret-like-value-for-test"
+    },
+    {
+      "id": "story-001",
+      "rank": 2,
+      "title": "Duplicate story",
+      "status": "unknown",
+      "importance": {
+        "score": 3,
+        "rationale": "Duplicate story ID for fixture coverage."
+      },
+      "companies": [],
+      "models": [],
+      "regions": [],
+      "claims": [],
+      "source_ids": ["source-001"],
+      "analysis": "Duplicate story ID fixture."
+    }
+  ],
+  "sources": [
+    {
+      "id": "source-001",
+      "title": "Example Source",
+      "publisher": "Example Publisher",
+      "url": "https://example.com/source",
+      "source_type": "official",
+      "published_at": "2026-06-24T00:00:00+08:00",
+      "retrieved_at": "2026-06-24T04:00:00+08:00"
+    },
+    {
+      "id": "source-001",
+      "title": "Duplicate Source",
+      "publisher": "Example Publisher",
+      "url": "https://example.com/source-duplicate",
+      "source_type": "blog",
+      "published_at": "2026-06-24T00:00:00",
+      "retrieved_at": "2026-06-24T04:00:00+08:00"
+    }
+  ],
+  "assets": [],
+  "provenance": {}
+}

@@ -24,3 +24,10 @@ Run metadata should make automation auditable without exposing secrets. It recor
 ## Secret Rule
 
 Run metadata must never contain API keys, Telegram tokens, chat IDs, private env content, or raw external service responses containing sensitive data.
+## Validation Command
+
+```powershell
+python -m ai_signal_brief validate-run examples/run.example.json
+```
+
+The Phase 2 validator checks required run fields, ISO-8601 timestamps with timezones, allowed status/mode/environment values, artifact shape, list fields, and secret-like values.

@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0.0",
+  "run_id": "invalid-run-example",
+  "started_at": "2026-06-24T04:00:00",
+  "ended_at": "2026-06-24T04:01:00",
+  "timezone": "Asia/Kuala_Lumpur",
+  "status": "done",
+  "mode": "automatic",
+  "environment": "desktop",
+  "artifacts": [
+    {
+      "kind": "report_json"
+    }
+  ],
+  "delivery": {
+    "telegram": "token=secret-like-value-for-test"
+  },
+  "warnings": "not-an-array",
+  "errors": []
+}
