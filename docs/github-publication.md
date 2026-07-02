@@ -1,6 +1,6 @@
-﻿# GitHub Publication Plan
+# GitHub Publication Plan
 
-This repository is prepared for future publication as `spaceleoch/ai-signal-brief`.
+This repository is prepared for future publication as `LeombE/ai-signal-brief`.
 
 Phase 11A is a final pre-push audit and command-preparation phase only. It does not create a GitHub remote, create a GitHub repository, push commits, enable GitHub Pages, add production delivery, configure API keys, or migrate historical reports.
 
@@ -23,7 +23,7 @@ Current status:
 Target repository:
 
 ```text
-spaceleoch/ai-signal-brief
+LeombE/ai-signal-brief
 ```
 
 The current local repository should remain the source for a clean first push only after manual review.
@@ -44,13 +44,13 @@ Before creating or pushing to the public repository:
 10. Confirm no OpenAI API key is present.
 11. Confirm no chat identifier is present.
 12. Confirm no historical reports have been migrated without review.
-13. Confirm the intended owner and repository name are `spaceleoch/ai-signal-brief`.
+13. Confirm the intended owner and repository name are `LeombE/ai-signal-brief`.
 
 ## First Push Checklist
 
 Complete these steps manually before the first push:
 
-1. Create an empty GitHub repository named `ai-signal-brief` under `spaceleoch`.
+1. Create an empty GitHub repository named `ai-signal-brief` under `LeombE`.
 2. Do not initialize the GitHub repository with a README, license, gitignore, or workflow files.
 3. Re-run the final local audit commands.
 4. Add the remote only after the empty repository exists.
@@ -63,7 +63,7 @@ Complete these steps manually before the first push:
 Run these only after explicit approval:
 
 ```powershell
-git remote add origin https://github.com/spaceleoch/ai-signal-brief.git
+git remote add origin https://github.com/LeombE/ai-signal-brief.git
 git remote -v
 git push -u origin main
 ```

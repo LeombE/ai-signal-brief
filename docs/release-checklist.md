@@ -1,10 +1,10 @@
-﻿# Release Checklist
+# Release Checklist
 
 Use this checklist before creating the public GitHub repository or pushing local commits.
 
 ## Repository Target
 
-- [ ] Confirm public owner and repository name: `spaceleoch/ai-signal-brief`.
+- [ ] Confirm public owner and repository name: `LeombE/ai-signal-brief`.
 - [ ] Confirm no GitHub remote is configured unless explicitly intended.
 - [ ] Confirm the current branch is `main`.
 - [ ] Confirm the working tree is clean.
@@ -43,7 +43,7 @@ python -m unittest discover -s tests
 
 ## First Push Checklist
 
-- [ ] Create an empty GitHub repository at `spaceleoch/ai-signal-brief`.
+- [ ] Create an empty GitHub repository at `LeombE/ai-signal-brief`.
 - [ ] Do not initialize the remote repository with generated files.
 - [ ] Run `git branch --show-current` and confirm `main`.
 - [ ] Run `git status --short` and confirm no output.
@@ -59,7 +59,7 @@ python -m unittest discover -s tests
 Run these only after explicit approval:
 
 ```powershell
-git remote add origin https://github.com/spaceleoch/ai-signal-brief.git
+git remote add origin https://github.com/LeombE/ai-signal-brief.git
 git remote -v
 git push -u origin main
 ```

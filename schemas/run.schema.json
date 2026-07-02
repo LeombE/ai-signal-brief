@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://spaceleoch.github.io/ai-signal-brief/schemas/run.schema.json",
+  "$id": "https://leombe.github.io/ai-signal-brief/schemas/run.schema.json",
   "title": "AI Signal Brief Run Metadata",
   "type": "object",
   "additionalProperties": false,

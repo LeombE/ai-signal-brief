@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "MIT" }
 authors = [
-  { name = "spaceleoch" }
+  { name = "LeombE" }
 ]
 keywords = ["ai", "news", "reports", "provenance", "automation"]
 classifiers = [

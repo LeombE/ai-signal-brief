@@ -1,4 +1,4 @@
-﻿# AI Signal Brief
+# AI Signal Brief
 
 ## What This Project Does
 
@@ -41,7 +41,7 @@ Not implemented yet:
 
 ## GitHub Publication Status
 
-The intended future public repository is `spaceleoch/ai-signal-brief`.
+The intended future public repository is `LeombE/ai-signal-brief`.
 
 Current publication boundary:
 
