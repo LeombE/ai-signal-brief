@@ -12,14 +12,15 @@ ROOT = Path(__file__).resolve().parents[1]
 REPORT = ROOT / "examples" / "report.example.json"
 RUN = ROOT / "examples" / "run.example.json"
 SOURCES = ROOT / "config" / "sources.example.json"
+TEST_OUTPUT_ROOT = ROOT / "outputs" / "test-static-site-builder"
 
 
 class StaticSiteBuilderTests(unittest.TestCase):
     def test_successful_site_generation_from_valid_archive(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            repo_root = Path(directory)
-            archive_root = _build_sample_archive(repo_root)
-            result = build_site(archive_root, repo_root / "site", repo_root=repo_root)
+        with _temporary_workspace() as directory:
+            workspace = Path(directory)
+            archive_root = _build_sample_archive(workspace)
+            result = build_site(archive_root, _repo_relative(workspace / "site"), repo_root=ROOT)
 
             self.assertTrue(result.homepage_path.exists())
             self.assertTrue(result.stylesheet_path.exists())
@@ -27,67 +28,66 @@ class StaticSiteBuilderTests(unittest.TestCase):
             self.assertEqual(len(result.report_pages), 1)
 
     def test_homepage_exists(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            repo_root = Path(directory)
-            archive_root = _build_sample_archive(repo_root)
-            result = build_site(archive_root, repo_root / "site", repo_root=repo_root)
+        with _temporary_workspace() as directory:
+            workspace = Path(directory)
+            archive_root = _build_sample_archive(workspace)
+            result = build_site(archive_root, _repo_relative(workspace / "site"), repo_root=ROOT)
 
             self.assertTrue((result.site_root / "index.html").exists())
 
     def test_per_report_page_exists(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            repo_root = Path(directory)
-            archive_root = _build_sample_archive(repo_root)
-            result = build_site(archive_root, repo_root / "site", repo_root=repo_root)
+        with _temporary_workspace() as directory:
+            workspace = Path(directory)
+            archive_root = _build_sample_archive(workspace)
+            result = build_site(archive_root, _repo_relative(workspace / "site"), repo_root=ROOT)
 
             self.assertTrue((result.site_root / "2026" / "06" / "24" / "index.html").exists())
 
     def test_reports_sorted_descending(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            repo_root = Path(directory)
-            archive_root = repo_root / "archive"
-            build_archive(REPORT, RUN, SOURCES, archive_root, repo_root=repo_root)
-            report_two, run_two = _write_report_and_run_pair(repo_root, "2026-06-25", "Later report")
-            build_archive(report_two, run_two, SOURCES, archive_root, repo_root=repo_root)
-            result = build_site(archive_root, repo_root / "site", repo_root=repo_root)
+        with _temporary_workspace() as directory:
+            workspace = Path(directory)
+            archive_root = _repo_relative(workspace / "archive")
+            build_archive(REPORT, RUN, SOURCES, archive_root, repo_root=ROOT)
+            report_two, run_two = _write_report_and_run_pair(workspace, "2026-06-25", "Later report")
+            build_archive(report_two, run_two, SOURCES, archive_root, repo_root=ROOT)
+            result = build_site(archive_root, _repo_relative(workspace / "site"), repo_root=ROOT)
             homepage = result.homepage_path.read_text(encoding="utf-8")
 
             self.assertLess(homepage.index("2026-06-25"), homepage.index("2026-06-24"))
 
     def test_generated_html_escapes_unsafe_content(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            repo_root = Path(directory)
-            report_path, run_path = _write_report_and_run_pair(repo_root, "2026-06-26", "<script>alert(1)</script>")
-            archive_root = repo_root / "archive"
-            build_archive(report_path, run_path, SOURCES, archive_root, repo_root=repo_root)
-            result = build_site(archive_root, repo_root / "site", repo_root=repo_root)
+        with _temporary_workspace() as directory:
+            workspace = Path(directory)
+            report_path, run_path = _write_report_and_run_pair(workspace, "2026-06-26", "<script>alert(1)</script>")
+            archive_root = _repo_relative(workspace / "archive")
+            build_archive(report_path, run_path, SOURCES, archive_root, repo_root=ROOT)
+            result = build_site(archive_root, _repo_relative(workspace / "site"), repo_root=ROOT)
             page = (result.site_root / "2026" / "06" / "26" / "index.html").read_text(encoding="utf-8")
 
             self.assertIn("&lt;script&gt;alert(1)&lt;/script&gt;", page)
             self.assertNotIn("<script>alert(1)</script>", page)
 
     def test_unsafe_archive_path_is_rejected(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            repo_root = Path(directory)
-            outside_archive = repo_root.parent / "outside-archive"
+        with _temporary_workspace() as directory:
+            workspace = Path(directory)
 
             with self.assertRaises(SiteBuildError):
-                build_site(outside_archive, repo_root / "site", repo_root=repo_root)
+                build_site(Path("..") / "outside-archive", _repo_relative(workspace / "site"), repo_root=ROOT)
 
     def test_missing_archive_index_is_rejected(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            repo_root = Path(directory)
-            archive_root = repo_root / "archive"
-            archive_root.mkdir()
+        with _temporary_workspace() as directory:
+            workspace = Path(directory)
+            archive_root = _repo_relative(workspace / "archive")
+            (ROOT / archive_root).mkdir(parents=True)
 
             with self.assertRaises(SiteBuildError):
-                build_site(archive_root, repo_root / "site", repo_root=repo_root)
+                build_site(archive_root, _repo_relative(workspace / "site"), repo_root=ROOT)
 
     def test_generated_site_contains_no_secret_like_values(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            repo_root = Path(directory)
-            archive_root = _build_sample_archive(repo_root)
-            result = build_site(archive_root, repo_root / "site", repo_root=repo_root)
+        with _temporary_workspace() as directory:
+            workspace = Path(directory)
+            archive_root = _build_sample_archive(workspace)
+            result = build_site(archive_root, _repo_relative(workspace / "site"), repo_root=ROOT)
 
             findings: list[str] = []
             for path in result.site_root.rglob("*"):
@@ -96,10 +96,10 @@ class StaticSiteBuilderTests(unittest.TestCase):
             self.assertEqual(findings, [])
 
     def test_generated_site_contains_no_mistaken_prompt_references(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            repo_root = Path(directory)
-            archive_root = _build_sample_archive(repo_root)
-            result = build_site(archive_root, repo_root / "site", repo_root=repo_root)
+        with _temporary_workspace() as directory:
+            workspace = Path(directory)
+            archive_root = _build_sample_archive(workspace)
+            result = build_site(archive_root, _repo_relative(workspace / "site"), repo_root=ROOT)
             combined = _read_site(result.site_root).lower()
 
             mistaken_project = "github" + "-daily" + "-intelligence"
@@ -108,19 +108,28 @@ class StaticSiteBuilderTests(unittest.TestCase):
             self.assertNotIn(("feat/public-" + mistaken_project), combined)
 
     def test_generated_site_contains_no_private_ai_source_path(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            repo_root = Path(directory)
-            archive_root = _build_sample_archive(repo_root)
-            result = build_site(archive_root, repo_root / "site", repo_root=repo_root)
+        with _temporary_workspace() as directory:
+            workspace = Path(directory)
+            archive_root = _build_sample_archive(workspace)
+            result = build_site(archive_root, _repo_relative(workspace / "site"), repo_root=ROOT)
             combined = _read_site(result.site_root)
 
             self.assertNotIn(("AI" + "\u65e5\u62a5"), combined)
             self.assertNotIn(("C:" + "\\\\" + "Users" + "\\\\" + "Admin" + "\\\\" + "OneDrive" + "\\\\" + "Documents"), combined)
 
 
-def _build_sample_archive(repo_root: Path) -> Path:
-    archive_root = repo_root / "archive"
-    build_archive(REPORT, RUN, SOURCES, archive_root, repo_root=repo_root)
+def _temporary_workspace() -> tempfile.TemporaryDirectory[str]:
+    TEST_OUTPUT_ROOT.mkdir(parents=True, exist_ok=True)
+    return tempfile.TemporaryDirectory(prefix="case-", dir=TEST_OUTPUT_ROOT)
+
+
+def _repo_relative(path: Path) -> Path:
+    return path.resolve().relative_to(ROOT.resolve())
+
+
+def _build_sample_archive(workspace: Path) -> Path:
+    archive_root = _repo_relative(workspace / "archive")
+    build_archive(REPORT, RUN, SOURCES, archive_root, repo_root=ROOT)
     return archive_root
 
 
