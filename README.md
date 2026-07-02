@@ -14,7 +14,7 @@ AI news moves quickly and is often repeated across vendors, model releases, benc
 
 The repository is now public at `https://github.com/LeombE/ai-signal-brief`, and the latest GitHub Actions CI run is passing.
 
-The project is still offline-first: no live ingestion, delivery, scheduled automation, external API usage, image generation, DOCX generation, historical migration, production GitHub Pages automation, or Telegram delivery is active.
+The project is still offline-first: no live ingestion, delivery, scheduled automation, external API usage, image generation, DOCX generation, historical migration, production daily Pages automation, or Telegram delivery is active. GitHub Pages sample preview is live at `https://leombe.github.io/ai-signal-brief/` and currently uses sample/example data only.
 
 Implemented so far:
 
@@ -50,7 +50,7 @@ Current publication boundary:
 
 - repository is public
 - latest GitHub Actions CI is passing
-- GitHub Pages is not enabled yet
+- GitHub Pages sample preview is live: `https://leombe.github.io/ai-signal-brief/`
 - manual Pages Preview workflow exists and publishes sample data only when run manually
 - Telegram delivery is not connected
 - OpenAI Image API is not configured
@@ -97,7 +97,7 @@ The Pages Preview workflow:
 - does not generate images or DOCX files
 - does not commit generated outputs to Git
 
-GitHub Pages must be configured in repository Settings before or during use. This repository does not currently run Pages automatically on push or schedule.
+GitHub Pages sample preview is live at `https://leombe.github.io/ai-signal-brief/`. It uses sample/example data only and does not currently run automatically on push or schedule.
 
 ## Public Data And Source Policy
 
@@ -187,7 +187,7 @@ These examples are public-safe placeholders. They do not contain secrets, privat
 Near-term phases:
 
 1. Keep CI passing and documentation aligned with the public repository state.
-2. Manually run Pages Preview only after GitHub Pages settings are reviewed.
+2. Keep Pages sample preview limited to sample/example data until production publication is approved.
 3. Add source ingestion with official-source priority.
 4. Add deduplication and material-update detection.
 5. Migrate historical reports privately into sanitized English canonical records.

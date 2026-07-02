@@ -1,8 +1,8 @@
 # Pages Deployment Plan
 
-GitHub Pages is not enabled yet.
+GitHub Pages sample preview is live at `https://leombe.github.io/ai-signal-brief/`.
 
-Phase 13 adds a manual Pages Preview workflow at `.github/workflows/pages-preview.yml`. The workflow is triggered by `workflow_dispatch` only and publishes a sample static site generated from the repository's existing example JSON files.
+The Pages Preview workflow lives at `.github/workflows/pages-preview.yml`. It is triggered by `workflow_dispatch` only and publishes a sample static site generated from the repository's existing example JSON files.
 
 This is a demo preview workflow, not production daily automation.
 
@@ -17,7 +17,20 @@ python -m ai_signal_brief build-site --archive outputs/archive-example --out out
 
 It uploads `outputs/site-example` as a GitHub Pages artifact and deploys that artifact with official GitHub Pages actions.
 
-The preview site contains sample data only. It does not publish historical reports, private migration material, Telegram output, generated images, DOCX files, or live news results.
+The live preview site contains sample/example data only. It does not publish historical reports, private migration material, Telegram output, generated images, DOCX files, live news results, or production daily reports.
+
+## Current Live Status
+
+- Public repository: `https://github.com/LeombE/ai-signal-brief`
+- Pages sample preview: `https://leombe.github.io/ai-signal-brief/`
+- Pages Preview workflow has passed.
+- Latest CI is passing.
+- Pages is sample/demo only.
+- Pages is not production daily automation yet.
+- Historical reports are not migrated yet.
+- Telegram delivery is not connected.
+- OpenAI Image API is not configured.
+- Image generation and DOCX generation are not active.
 
 ## Workflow Shape
 
@@ -40,28 +53,24 @@ Official Pages actions used:
 - `actions/upload-pages-artifact`
 - `actions/deploy-pages`
 
-## Manual Setup In GitHub UI
+## Manual Operation In GitHub UI
 
-Before or during first use, configure GitHub Pages in the repository UI:
+Use the workflow manually only:
 
 1. Open `https://github.com/LeombE/ai-signal-brief`.
-2. Go to `Settings`.
-3. Open `Pages`.
-4. Set `Build and deployment` source to `GitHub Actions`.
-5. Save the setting if GitHub asks for confirmation.
-6. Go to `Actions`.
-7. Select `Pages Preview`.
-8. Choose `Run workflow` on `main`.
-9. Wait for the workflow to complete.
-10. Open the Pages URL shown in the completed deployment.
+2. Go to `Actions`.
+3. Select `Pages Preview`.
+4. Choose `Run workflow` on `main`.
+5. Wait for the workflow to complete.
+6. Open `https://leombe.github.io/ai-signal-brief/` or the Pages URL shown in the completed deployment.
 
 Do not add a push trigger or schedule until production publication rules are approved separately.
 
 ## Current Non-Goals
 
-Phase 13 does not:
+Phase 14 does not:
 
-- enable GitHub Pages from Codex
+- change workflow triggers
 - run the Pages workflow from Codex
 - add a push trigger
 - add a scheduled trigger

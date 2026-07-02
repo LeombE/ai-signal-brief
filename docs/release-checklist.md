@@ -33,8 +33,10 @@ Use this checklist while maintaining the public GitHub repository.
 
 ## Feature Boundaries
 
-- [ ] Confirm GitHub Pages is not enabled.
-- [ ] Confirm no deployment workflow exists.
+- [ ] Confirm GitHub Pages sample preview is live: `https://leombe.github.io/ai-signal-brief/`.
+- [ ] Confirm Pages currently uses sample/example data only.
+- [ ] Confirm Pages is not production daily automation yet.
+- [ ] Confirm no production deployment workflow exists.
 - [ ] Confirm no Telegram workflow exists.
 - [ ] Confirm no image generation workflow exists.
 - [ ] Confirm no DOCX generation workflow exists.
@@ -60,4 +62,4 @@ python -m unittest discover -s tests
 
 ## Public Repository Boundary
 
-Do not add Pages, deployment workflows, Telegram delivery, OpenAI API usage, image generation, DOCX generation, or historical reports until each capability is separately approved and validated.
+Do not add production Pages automation, scheduled workflows, Telegram delivery, OpenAI API usage, image generation, DOCX generation, or historical reports until each capability is separately approved and validated. The current Pages site is sample preview only.
