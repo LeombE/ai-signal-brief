@@ -12,6 +12,8 @@
     "status",
     "mode",
     "environment",
+    "report_id",
+    "report_date",
     "artifacts",
     "delivery",
     "warnings",
@@ -26,6 +28,8 @@
     "status": { "type": "string", "enum": ["success", "partial", "failed", "dry_run"] },
     "mode": { "type": "string", "enum": ["manual", "scheduled", "test"] },
     "environment": { "type": "string", "enum": ["local", "github_actions", "other"] },
+    "report_id": { "type": "string", "minLength": 1 },
+    "report_date": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
     "artifacts": {
       "type": "array",
       "items": {
@@ -41,7 +45,17 @@
     },
     "delivery": {
       "type": "object",
-      "additionalProperties": true
+      "additionalProperties": true,
+      "properties": {
+        "telegram": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "status": { "type": "string" }
+          }
+        }
+      }
     },
     "warnings": { "type": "array", "items": { "type": "string" } },
     "errors": { "type": "array", "items": { "type": "string" } }

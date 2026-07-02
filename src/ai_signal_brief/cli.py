@@ -7,6 +7,7 @@ from pathlib import Path
 
 from . import __version__
 from .rendering import RenderError, render_markdown_from_path, render_telegram_from_path, write_text_output
+from .run_metadata import RunMetadataError, create_run_record, write_run_record
 from .validation import (
     ValidationResult,
     load_source_registry,
@@ -117,6 +118,30 @@ def render_telegram_command(path: str, output_path: str) -> int:
     return 0
 
 
+def create_run_record_command(
+    report_path: str,
+    output_path: str,
+    artifacts: list[str] | None,
+    started_at: str | None,
+    ended_at: str | None,
+    timezone_name: str,
+) -> int:
+    try:
+        record = create_run_record(
+            report_path,
+            artifacts,
+            started_at=started_at,
+            ended_at=ended_at,
+            timezone_name=timezone_name,
+        )
+        written = write_run_record(record, output_path)
+    except RunMetadataError as exc:
+        print(f"Run metadata generation failed: {exc}")
+        return 1
+    print(f"Run metadata written: {written}")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="ai-signal-brief",
@@ -141,6 +166,22 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Optional source registry path. Defaults to config/sources.example.json.",
     )
+
+    create_run_parser = subparsers.add_parser(
+        "create-run-record",
+        help="Create offline run metadata from a validated report JSON.",
+    )
+    create_run_parser.add_argument("--report", required=True, help="Path to report JSON.")
+    create_run_parser.add_argument("--out", required=True, help="Output run metadata JSON path.")
+    create_run_parser.add_argument(
+        "--artifact",
+        action="append",
+        default=[],
+        help="Optional artifact in kind=relative/path format. May be repeated.",
+    )
+    create_run_parser.add_argument("--started-at", default=None, help="Deterministic started_at timestamp.")
+    create_run_parser.add_argument("--ended-at", default=None, help="Deterministic ended_at timestamp.")
+    create_run_parser.add_argument("--timezone", default="Asia/Kuala_Lumpur", help="IANA timezone name.")
 
     markdown_parser = subparsers.add_parser("render-markdown", help="Render a validated report JSON to Markdown.")
     markdown_parser.add_argument("path", help="Path to report JSON.")
@@ -175,6 +216,16 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "list-source-priorities":
         return list_source_priorities(args.path)
+
+    if args.command == "create-run-record":
+        return create_run_record_command(
+            args.report,
+            args.out,
+            args.artifact,
+            args.started_at,
+            args.ended_at,
+            args.timezone,
+        )
 
     if args.command == "render-markdown":
         return render_markdown_command(args.path, args.out)

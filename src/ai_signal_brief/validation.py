@@ -79,6 +79,8 @@ RUN_REQUIRED_FIELDS = (
     "status",
     "mode",
     "environment",
+    "report_id",
+    "report_date",
     "artifacts",
     "delivery",
     "warnings",
@@ -175,6 +177,8 @@ def validate_run(data: Any) -> list[str]:
 
     _require_fields(data, RUN_REQUIRED_FIELDS, "$", errors)
     _require_timestamp(data, "started_at", "$", errors)
+    _string_id(data, "report_id", "$", errors)
+    _require_date(data, "report_date", "$", errors)
 
     ended_at = data.get("ended_at")
     if ended_at is not None:
@@ -188,8 +192,19 @@ def validate_run(data: Any) -> list[str]:
         if field_name in data and not isinstance(data[field_name], list):
             errors.append(f"$.{field_name} must be an array")
 
-    if "delivery" in data and not isinstance(data["delivery"], dict):
+    delivery = data.get("delivery")
+    if "delivery" in data and not isinstance(delivery, dict):
         errors.append("$.delivery must be an object")
+    elif isinstance(delivery, dict):
+        telegram = delivery.get("telegram")
+        if telegram is not None:
+            if not isinstance(telegram, dict):
+                errors.append("$.delivery.telegram must be an object")
+            else:
+                if not isinstance(telegram.get("enabled"), bool):
+                    errors.append("$.delivery.telegram.enabled must be a boolean")
+                if not isinstance(telegram.get("status"), str) or not telegram.get("status"):
+                    errors.append("$.delivery.telegram.status must be a non-empty string")
 
     artifacts = data.get("artifacts")
     if isinstance(artifacts, list):

@@ -7,6 +7,8 @@
   "status": "success",
   "mode": "manual",
   "environment": "local",
+  "report_id": "2026-06-24",
+  "report_date": "2026-06-24",
   "artifacts": [
     {
       "kind": "report_json",

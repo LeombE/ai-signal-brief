@@ -12,7 +12,15 @@ AI news moves quickly and is often repeated across vendors, model releases, benc
 
 ## Current Status
 
-Phase 4 adds offline Markdown and Telegram-preview renderers that operate only on validated canonical report JSON. The repository is still local-first; no live ingestion, delivery, or publishing automation is implemented yet.
+Phase 5 adds offline run metadata generation from validated canonical report JSON. The repository is still local-first; no live ingestion, delivery, or publishing automation is implemented yet.
+
+Implemented so far:
+
+- canonical report and run schema drafts
+- stdlib-only report, run, and source registry validation
+- offline Markdown rendering
+- offline Telegram-preview text rendering without sending
+- offline run metadata generation with deterministic test timestamps
 
 Not implemented yet:
 
@@ -27,17 +35,20 @@ Not implemented yet:
 
 ## Public Data And Source Policy
 
-The project will prioritize official sources, primary technical sources, papers, repositories, regulatory filings, and clearly attributed public news. Reports should avoid copying private material, screenshots, proprietary assets, credentials, local machine paths, or unreviewed migration outputs.
+The project prioritizes official sources, primary technical sources, papers, repositories, regulatory filings, and clearly attributed public news. Reports should avoid copying private material, screenshots, proprietary assets, credentials, local machine paths, or unreviewed migration outputs.
 
 Every material story should include source IDs and every important claim should be traceable to one or more sources.
 
 ## Output Formats
 
-Planned canonical outputs:
+Canonical and offline-preview outputs:
 
 - `report.json`: source-backed public report data
 - `run.json`: execution metadata, artifact list, warnings, and delivery status
-- Markdown, HTML, website, Telegram text, and DOCX may be generated later from canonical data
+- Markdown: offline rendering from validated report JSON
+- Telegram preview text: offline preview only; it does not send messages
+
+HTML, website, Telegram delivery, DOCX, and image assets may be added in later phases.
 
 ## Canonical Data Model
 
@@ -52,10 +63,11 @@ Readable documentation lives in:
 - `docs/run-schema.md`
 - `docs/source-registry.md`
 - `docs/offline-rendering.md`
+- `docs/run-metadata.md`
 
 ## Local Development
 
-Phase 4 uses only the Python standard library.
+Phase 5 uses only the Python standard library.
 
 ```powershell
 $env:PYTHONPATH = (Resolve-Path .\src).Path
@@ -63,12 +75,17 @@ python -m ai_signal_brief --version
 python -m ai_signal_brief doctor
 python -m ai_signal_brief validate-report examples/report.example.json
 python -m ai_signal_brief validate-run examples/run.example.json
+python -m ai_signal_brief validate-sources config/sources.example.json
+python -m ai_signal_brief render-markdown examples/report.example.json --out outputs/report.example.md
+python -m ai_signal_brief render-telegram examples/report.example.json --out outputs/telegram.example.txt
+python -m ai_signal_brief create-run-record --report examples/report.example.json --out outputs/run.example.generated.json --artifact markdown=outputs/report.example.md --artifact telegram_preview=outputs/telegram.example.txt --started-at 2026-06-24T04:00:00+08:00 --ended-at 2026-06-24T04:01:00+08:00 --timezone Asia/Kuala_Lumpur
+python -m ai_signal_brief validate-run outputs/run.example.generated.json
 python -m unittest discover -s tests
 ```
 
-No package installation is required for Phase 4.
+No package installation is required for Phase 5.
 
-Validation currently checks required fields, duplicate IDs, source references, ISO-8601 timestamps with timezones, English-language report output, source registry priority rules, official-source-first policy, and secret-like values in report/run/source JSON. Rendering refuses invalid reports and writes offline preview files only.
+Validation checks required fields, duplicate IDs, source references, ISO-8601 timestamps with timezones, English-language report output, source registry priority rules, official-source-first policy, artifact shape, and secret-like values in report/run/source JSON. Rendering and run metadata generation refuse invalid report JSON.
 
 ## Example Files
 
