@@ -7,6 +7,7 @@ from pathlib import Path
 
 from . import __version__
 from .archive import ArchiveError, build_archive
+from .public_readiness import PublicReadinessResult, audit_public_readiness
 from .quality_gate import QualityGateResult, run_quality_gate
 from .rendering import RenderError, render_markdown_from_path, render_telegram_from_path, write_text_output
 from .run_metadata import RunMetadataError, create_run_record, write_run_record
@@ -98,20 +99,43 @@ def list_source_priorities(path: str | Path | None = None) -> int:
         print(f"{category['priority']}. {category['id']} - {category['description']}")
     return 0
 
-def build_site_command(archive_path: str, output_path: str) -> int:
-    try:
-        result = build_site(archive_path, output_path, repo_root=project_root())
-    except SiteBuildError as exc:
-        print(f"Site build failed: {exc}")
-        return 1
 
-    print("Site build PASS")
-    print(f"Site root: {result.site_root}")
-    print(f"Homepage: {result.homepage_path}")
-    print(f"Stylesheet: {result.stylesheet_path}")
-    print(f"Manifest: {result.manifest_path}")
-    print(f"Report pages: {len(result.report_pages)}")
-    return 0
+def print_quality_gate_result(result: QualityGateResult) -> int:
+    if result.ok:
+        print("Quality gate PASS")
+        return 0
+
+    print("Quality gate FAIL")
+    print("Failed checks:")
+    for check_name in result.failed_checks:
+        print(f"- {check_name}")
+    return 1
+
+
+def print_public_readiness_result(result: PublicReadinessResult) -> int:
+    if result.ok:
+        print("Public readiness PASS")
+        print(f"Tracked files checked: {result.checked_file_count}")
+        return 0
+
+    print("Public readiness FAIL")
+    print(f"Tracked files checked: {result.checked_file_count}")
+    print("Failed checks:")
+    for finding in result.findings:
+        print(f"- {finding.check_name}: {finding.path}")
+    return 1
+
+
+def quality_gate_command(report_path: str, run_path: str, sources_path: str) -> int:
+    result = run_quality_gate(report_path, run_path, sources_path, repo_root=project_root())
+    return print_quality_gate_result(result)
+
+
+def public_readiness_command() -> int:
+    result = audit_public_readiness(project_root())
+    return print_public_readiness_result(result)
+
+
 def archive_report_command(report_path: str, run_path: str, sources_path: str, output_path: str) -> int:
     try:
         result = build_archive(report_path, run_path, sources_path, output_path, repo_root=project_root())
@@ -128,21 +152,20 @@ def archive_report_command(report_path: str, run_path: str, sources_path: str, o
     return 0
 
 
-def print_quality_gate_result(result: QualityGateResult) -> int:
-    if result.ok:
-        print("Quality gate PASS")
-        return 0
+def build_site_command(archive_path: str, output_path: str) -> int:
+    try:
+        result = build_site(archive_path, output_path, repo_root=project_root())
+    except SiteBuildError as exc:
+        print(f"Site build failed: {exc}")
+        return 1
 
-    print("Quality gate FAIL")
-    print("Failed checks:")
-    for check_name in result.failed_checks:
-        print(f"- {check_name}")
-    return 1
-
-
-def quality_gate_command(report_path: str, run_path: str, sources_path: str) -> int:
-    result = run_quality_gate(report_path, run_path, sources_path, repo_root=project_root())
-    return print_quality_gate_result(result)
+    print("Site build PASS")
+    print(f"Site root: {result.site_root}")
+    print(f"Homepage: {result.homepage_path}")
+    print(f"Stylesheet: {result.stylesheet_path}")
+    print(f"Manifest: {result.manifest_path}")
+    print(f"Report pages: {len(result.report_pages)}")
+    return 0
 
 
 def render_markdown_command(path: str, output_path: str) -> int:
@@ -199,6 +222,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--version", action="store_true", help="Print package version and exit.")
     subparsers = parser.add_subparsers(dest="command")
     subparsers.add_parser("doctor", help="Run local skeleton checks without network access.")
+    subparsers.add_parser("public-readiness", help="Audit tracked files for public repository readiness.")
 
     report_parser = subparsers.add_parser("validate-report", help="Validate a report.json file.")
     report_parser.add_argument("path", help="Path to report JSON.")
@@ -215,14 +239,17 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Optional source registry path. Defaults to config/sources.example.json.",
     )
+
     site_parser = subparsers.add_parser("build-site", help="Build an offline static site from an archive.")
     site_parser.add_argument("--archive", required=True, help="Archive directory containing index.json.")
     site_parser.add_argument("--out", required=True, help="Static site output directory.")
+
     archive_parser = subparsers.add_parser("archive-report", help="Build an offline public report archive entry.")
     archive_parser.add_argument("--report", required=True, help="Path to report JSON.")
     archive_parser.add_argument("--run", required=True, help="Path to run metadata JSON.")
     archive_parser.add_argument("--sources", required=True, help="Path to source registry JSON.")
     archive_parser.add_argument("--out", required=True, help="Archive output directory.")
+
     quality_gate_parser = subparsers.add_parser("quality-gate", help="Run offline report/run/source quality gates.")
     quality_gate_parser.add_argument("--report", required=True, help="Path to report JSON.")
     quality_gate_parser.add_argument("--run", required=True, help="Path to run metadata JSON.")
@@ -266,6 +293,9 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "doctor":
         return run_doctor()
 
+    if args.command == "public-readiness":
+        return public_readiness_command()
+
     if args.command == "validate-report":
         return print_validation_result("Report", validate_report_path(args.path))
 
@@ -277,10 +307,13 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "list-source-priorities":
         return list_source_priorities(args.path)
+
     if args.command == "build-site":
         return build_site_command(args.archive, args.out)
+
     if args.command == "archive-report":
         return archive_report_command(args.report, args.run, args.sources, args.out)
+
     if args.command == "quality-gate":
         return quality_gate_command(args.report, args.run, args.sources)
 

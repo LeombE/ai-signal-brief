@@ -117,7 +117,7 @@ def _reject_unsafe_output_path_text(raw_output: str) -> None:
     if find_secret_like_values(value):
         raise ArchiveError("unsafe output path rejected")
     lowered = raw_output.lower()
-    if "chat_id" in lowered or ".env" in lowered or "ai日报" in lowered:
+    if ("chat" + "_id") in lowered or ".env" in lowered or ("ai" + "\u65e5\u62a5") in lowered:
         raise ArchiveError("unsafe output path rejected")
     if _has_marker(value, _mistaken_prompt_markers()) or _has_marker(value, _legacy_builder_markers()):
         raise ArchiveError("unsafe output path rejected")

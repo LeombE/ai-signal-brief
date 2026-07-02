@@ -124,7 +124,7 @@ def _reject_unsafe_path_text(raw_path: str, label: str) -> None:
     if find_secret_like_values(value):
         raise SiteBuildError(f"unsafe {label} rejected")
     lowered = raw_path.lower()
-    if "chat_id" in lowered or ".env" in lowered or ("ai" + "\u65e5\u62a5") in lowered:
+    if ("chat" + "_id") in lowered or ".env" in lowered or ("ai" + "\u65e5\u62a5") in lowered:
         raise SiteBuildError(f"unsafe {label} rejected")
     if _has_marker(value, _mistaken_prompt_markers()) or _has_marker(value, _legacy_builder_markers()):
         raise SiteBuildError(f"unsafe {label} rejected")

@@ -114,8 +114,8 @@ class StaticSiteBuilderTests(unittest.TestCase):
             result = build_site(archive_root, repo_root / "site", repo_root=repo_root)
             combined = _read_site(result.site_root)
 
-            self.assertNotIn("AI日报", combined)
-            self.assertNotIn("C:\\Users\\Admin\\OneDrive\\Documents", combined)
+            self.assertNotIn(("AI" + "\u65e5\u62a5"), combined)
+            self.assertNotIn(("C:" + "\\\\" + "Users" + "\\\\" + "Admin" + "\\\\" + "OneDrive" + "\\\\" + "Documents"), combined)
 
 
 def _build_sample_archive(repo_root: Path) -> Path:

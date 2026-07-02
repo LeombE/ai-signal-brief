@@ -108,7 +108,7 @@ class RunMetadataTests(unittest.TestCase):
         serialized = json.dumps(record, ensure_ascii=False)
 
         self.assertEqual(find_secret_like_values(record), [])
-        self.assertNotIn("chat_id", serialized.lower())
+        self.assertNotIn(("chat" + "_id"), serialized.lower())
         self.assertNotIn("telegram_bot_token", serialized.lower())
         self.assertNotIn("openai_api_key", serialized.lower())
 

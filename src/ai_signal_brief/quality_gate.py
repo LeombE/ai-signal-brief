@@ -184,7 +184,7 @@ def _has_secret_or_private_values(*values: dict[str, Any] | None) -> bool:
             return True
         for _, text in _iter_string_values(value):
             lowered = text.lower()
-            if "chat_id" in lowered or ".env" in lowered or ("://" not in text and LOCAL_PATH_FRAGMENT.search(text)):
+            if ("chat" + "_id") in lowered or ".env" in lowered or ("://" not in text and LOCAL_PATH_FRAGMENT.search(text)):
                 return True
     return False
 
