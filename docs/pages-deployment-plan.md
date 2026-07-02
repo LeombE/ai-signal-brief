@@ -66,9 +66,15 @@ Use the workflow manually only:
 
 Do not add a push trigger or schedule until production publication rules are approved separately.
 
+
+## Production Readiness
+
+Production Pages is not active yet. Before publishing real reports, use `docs/production-pages-readiness.md` to verify production data requirements, manual review gates, historical migration rules, source/citation quality, quality gates, public readiness, no-secrets boundaries, and rollback planning.
+
+Production Pages must start as manual `workflow_dispatch` only. Do not add a schedule until at least one manually reviewed report has been published successfully and the Pages URL has been verified.
 ## Current Non-Goals
 
-Phase 14 does not:
+Phase 15 does not:
 
 - change workflow triggers
 - run the Pages workflow from Codex

@@ -29,7 +29,7 @@ Implemented so far:
 - public readiness audit for tracked files
 - GitHub Actions CI definition for offline checks
 - manual GitHub Pages Preview workflow for sample data only
-- publication, Pages planning, and release checklist documentation
+- publication, Pages planning, production Pages readiness, and release checklist documentation
 
 Not implemented yet:
 
@@ -62,6 +62,7 @@ Publication planning docs:
 
 - `docs/github-publication.md`
 - `docs/pages-deployment-plan.md`
+- `docs/production-pages-readiness.md`
 - `docs/release-checklist.md`
 
 ## CI Overview
@@ -117,7 +118,7 @@ Canonical and offline-preview outputs:
 - Static site: offline HTML/CSS generated from an archive
 - GitHub Pages Preview: manual sample static-site deployment from example JSON files only
 
-Telegram delivery, DOCX, generated image assets, production Pages deployment, and historical report migration may be added in later approved phases.
+Telegram delivery, DOCX, generated image assets, production Pages deployment, and historical report migration may be added in later approved phases. Production Pages requirements are documented in `docs/production-pages-readiness.md`.
 
 ## Canonical Data Model
 
@@ -139,6 +140,7 @@ Readable documentation lives in:
 - `docs/public-readiness.md`
 - `docs/github-publication.md`
 - `docs/pages-deployment-plan.md`
+- `docs/production-pages-readiness.md`
 - `docs/release-checklist.md`
 
 ## Local Verification
@@ -191,7 +193,7 @@ Near-term phases:
 3. Add source ingestion with official-source priority.
 4. Add deduplication and material-update detection.
 5. Migrate historical reports privately into sanitized English canonical records.
-6. Add production GitHub Pages deployment after static site outputs are reviewed.
+6. Use `docs/production-pages-readiness.md` before approving production GitHub Pages deployment.
 7. Add Telegram delivery using GitHub Secrets after verification.
 8. Add generated visual assets using a dedicated API key stored only as a secret.
 
