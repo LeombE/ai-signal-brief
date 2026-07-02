@@ -14,7 +14,7 @@ AI news moves quickly and is often repeated across vendors, model releases, benc
 
 The repository is now public at `https://github.com/LeombE/ai-signal-brief`, and the latest GitHub Actions CI run is passing.
 
-The project is still offline-first: no live ingestion, delivery, scheduled automation, external API usage, image generation, DOCX generation, historical migration, GitHub Pages deployment, or Telegram delivery is active.
+The project is still offline-first: no live ingestion, delivery, scheduled automation, external API usage, image generation, DOCX generation, historical migration, production GitHub Pages automation, or Telegram delivery is active.
 
 Implemented so far:
 
@@ -28,6 +28,7 @@ Implemented so far:
 - offline static site builder from generated archive data
 - public readiness audit for tracked files
 - GitHub Actions CI definition for offline checks
+- manual GitHub Pages Preview workflow for sample data only
 - publication, Pages planning, and release checklist documentation
 
 Not implemented yet:
@@ -37,7 +38,7 @@ Not implemented yet:
 - image generation
 - Telegram delivery
 - GitHub Actions scheduling
-- GitHub Pages deployment
+- production GitHub Pages deployment from real reports
 - historical report migration
 - DOCX generation
 
@@ -49,7 +50,8 @@ Current publication boundary:
 
 - repository is public
 - latest GitHub Actions CI is passing
-- GitHub Pages is not enabled
+- GitHub Pages is not enabled yet
+- manual Pages Preview workflow exists and publishes sample data only when run manually
 - Telegram delivery is not connected
 - OpenAI Image API is not configured
 - no API keys are required for the current offline workflow
@@ -77,7 +79,25 @@ It runs offline validation only:
 - public readiness audit
 - unittest suite, including intentionally invalid fixtures through assertions
 
-The workflow does not install runtime dependencies, fetch live sources, call APIs, send Telegram messages, generate images, create DOCX files, or deploy GitHub Pages.
+The CI workflow does not install runtime dependencies, fetch live sources, call APIs, send Telegram messages, generate images, create DOCX files, or deploy GitHub Pages.
+
+## GitHub Pages Preview
+
+The manual preview workflow lives at `.github/workflows/pages-preview.yml`.
+
+It is triggered by `workflow_dispatch` only. It builds a sample archive and sample static site from the existing example JSON files, uploads `outputs/site-example` as a GitHub Pages artifact, and deploys it through the official GitHub Pages actions.
+
+The Pages Preview workflow:
+
+- publishes sample data only
+- does not publish historical AI reports
+- does not fetch live news
+- does not send Telegram messages
+- does not use OpenAI, Images, or API credentials
+- does not generate images or DOCX files
+- does not commit generated outputs to Git
+
+GitHub Pages must be configured in repository Settings before or during use. This repository does not currently run Pages automatically on push or schedule.
 
 ## Public Data And Source Policy
 
@@ -95,8 +115,9 @@ Canonical and offline-preview outputs:
 - Telegram preview text: offline preview only; it does not send messages
 - Archive layout: date-based public archive generated from validated report and run data
 - Static site: offline HTML/CSS generated from an archive
+- GitHub Pages Preview: manual sample static-site deployment from example JSON files only
 
-Telegram delivery, DOCX, generated image assets, and Pages deployment may be added in later phases.
+Telegram delivery, DOCX, generated image assets, production Pages deployment, and historical report migration may be added in later approved phases.
 
 ## Canonical Data Model
 
@@ -166,11 +187,11 @@ These examples are public-safe placeholders. They do not contain secrets, privat
 Near-term phases:
 
 1. Keep CI passing and documentation aligned with the public repository state.
-2. Add reviewed publication workflow only after explicit approval.
+2. Manually run Pages Preview only after GitHub Pages settings are reviewed.
 3. Add source ingestion with official-source priority.
 4. Add deduplication and material-update detection.
 5. Migrate historical reports privately into sanitized English canonical records.
-6. Add GitHub Pages deployment after static site outputs are reviewed.
+6. Add production GitHub Pages deployment after static site outputs are reviewed.
 7. Add Telegram delivery using GitHub Secrets after verification.
 8. Add generated visual assets using a dedicated API key stored only as a secret.
 

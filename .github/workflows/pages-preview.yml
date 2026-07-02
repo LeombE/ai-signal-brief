@@ -1,0 +1,61 @@
+name: Pages Preview
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  "id-token": write
+
+concurrency:
+  group: pages-preview
+  cancel-in-progress: false
+
+jobs:
+  sample-preview:
+    name: Build and deploy sample Pages preview
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    env:
+      PYTHONPATH: src
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Run public readiness audit
+        run: python -m ai_signal_brief public-readiness
+
+      - name: Run unit tests
+        run: python -m unittest discover -s tests
+
+      - name: Generate sample archive
+        run: python -m ai_signal_brief archive-report --report examples/report.example.json --run examples/run.example.json --sources config/sources.example.json --out outputs/archive-example
+
+      - name: Generate sample static site
+        run: python -m ai_signal_brief build-site --archive outputs/archive-example --out outputs/site-example
+
+      - name: Re-run public readiness audit
+        run: python -m ai_signal_brief public-readiness
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: outputs/site-example
+
+      - name: Deploy sample preview to Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
