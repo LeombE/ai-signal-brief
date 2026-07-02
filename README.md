@@ -22,6 +22,7 @@ Implemented so far:
 - offline Telegram-preview text rendering without sending
 - offline run metadata generation with deterministic test timestamps
 - offline quality gates across report, run, and source registry files
+- offline public archive builder with canonical date-based layout
 
 Not implemented yet:
 
@@ -66,6 +67,7 @@ Readable documentation lives in:
 - `docs/offline-rendering.md`
 - `docs/run-metadata.md`
 - `docs/quality-gates.md`
+- `docs/archive-builder.md`
 
 ## Local Development
 
@@ -79,6 +81,7 @@ python -m ai_signal_brief validate-report examples/report.example.json
 python -m ai_signal_brief validate-run examples/run.example.json
 python -m ai_signal_brief validate-sources config/sources.example.json
 python -m ai_signal_brief quality-gate --report examples/report.example.json --run examples/run.example.json --sources config/sources.example.json
+python -m ai_signal_brief archive-report --report examples/report.example.json --run examples/run.example.json --sources config/sources.example.json --out outputs/archive-example
 python -m ai_signal_brief render-markdown examples/report.example.json --out outputs/report.example.md
 python -m ai_signal_brief render-telegram examples/report.example.json --out outputs/telegram.example.txt
 python -m ai_signal_brief create-run-record --report examples/report.example.json --out outputs/run.example.generated.json --artifact markdown=outputs/report.example.md --artifact telegram_preview=outputs/telegram.example.txt --started-at 2026-06-24T04:00:00+08:00 --ended-at 2026-06-24T04:01:00+08:00 --timezone Asia/Kuala_Lumpur
@@ -88,7 +91,7 @@ python -m unittest discover -s tests
 
 No package installation is required for Phase 5.
 
-Validation checks required fields, duplicate IDs, source references, ISO-8601 timestamps with timezones, English-language report output, source registry priority rules, official-source-first policy, artifact shape, cross-file report/run/source consistency, and secret-like values in report/run/source JSON. Rendering, run metadata generation, and quality gates refuse invalid inputs.
+Validation checks required fields, duplicate IDs, source references, ISO-8601 timestamps with timezones, English-language report output, source registry priority rules, official-source-first policy, artifact shape, cross-file report/run/source consistency, and secret-like values in report/run/source JSON. Rendering, run metadata generation, quality gates, and archive building refuse invalid inputs.
 
 ## Example Files
 

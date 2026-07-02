@@ -6,6 +6,7 @@ import platform
 from pathlib import Path
 
 from . import __version__
+from .archive import ArchiveError, build_archive
 from .quality_gate import QualityGateResult, run_quality_gate
 from .rendering import RenderError, render_markdown_from_path, render_telegram_from_path, write_text_output
 from .run_metadata import RunMetadataError, create_run_record, write_run_record
@@ -95,6 +96,21 @@ def list_source_priorities(path: str | Path | None = None) -> int:
     for category in source_priorities(registry):
         print(f"{category['priority']}. {category['id']} - {category['description']}")
     return 0
+def archive_report_command(report_path: str, run_path: str, sources_path: str, output_path: str) -> int:
+    try:
+        result = build_archive(report_path, run_path, sources_path, output_path, repo_root=project_root())
+    except ArchiveError as exc:
+        print(f"Archive build failed: {exc}")
+        return 1
+
+    print("Archive build PASS")
+    print(f"Archive root: {result.archive_root}")
+    print(f"Report: {result.report_path}")
+    print(f"Run: {result.run_path}")
+    print(f"Markdown index: {result.markdown_path}")
+    print(f"Archive index: {result.index_path}")
+    return 0
+
 
 def print_quality_gate_result(result: QualityGateResult) -> int:
     if result.ok:
@@ -183,6 +199,11 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Optional source registry path. Defaults to config/sources.example.json.",
     )
+    archive_parser = subparsers.add_parser("archive-report", help="Build an offline public report archive entry.")
+    archive_parser.add_argument("--report", required=True, help="Path to report JSON.")
+    archive_parser.add_argument("--run", required=True, help="Path to run metadata JSON.")
+    archive_parser.add_argument("--sources", required=True, help="Path to source registry JSON.")
+    archive_parser.add_argument("--out", required=True, help="Archive output directory.")
     quality_gate_parser = subparsers.add_parser("quality-gate", help="Run offline report/run/source quality gates.")
     quality_gate_parser.add_argument("--report", required=True, help="Path to report JSON.")
     quality_gate_parser.add_argument("--run", required=True, help="Path to run metadata JSON.")
@@ -237,6 +258,8 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "list-source-priorities":
         return list_source_priorities(args.path)
+    if args.command == "archive-report":
+        return archive_report_command(args.report, args.run, args.sources, args.out)
     if args.command == "quality-gate":
         return quality_gate_command(args.report, args.run, args.sources)
 
