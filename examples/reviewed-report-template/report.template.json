@@ -1,0 +1,62 @@
+{
+  "schema_version": "1.0.0",
+  "report_id": "2099-01-01-placeholder-reviewed-report",
+  "report_date": "2099-01-01",
+  "generated_at": "2099-01-01T04:00:00+08:00",
+  "timezone": "Asia/Kuala_Lumpur",
+  "language": "en",
+  "title": "AI Signal Brief - Placeholder Reviewed Report",
+  "summary": {
+    "top_stories": [
+      {
+        "story_id": "story-placeholder-001",
+        "rank": 1,
+        "headline": "Placeholder reviewed AI story",
+        "why_it_matters": "This placeholder shows where the reviewed top-story summary belongs. Replace it only after manual review."
+      }
+    ]
+  },
+  "stories": [
+    {
+      "id": "story-placeholder-001",
+      "rank": 1,
+      "title": "Placeholder reviewed AI story",
+      "status": "new",
+      "importance": {
+        "score": 3,
+        "rationale": "Placeholder importance rationale. Replace with reviewed impact analysis before publication."
+      },
+      "companies": ["Example AI Organization"],
+      "models": ["Example Reviewed Model"],
+      "regions": ["Global"],
+      "claims": [
+        {
+          "id": "claim-placeholder-001",
+          "text": "Placeholder claim for template structure only. Replace with a reviewed claim supported by public sources.",
+          "source_ids": ["source-placeholder-001"],
+          "verification_status": "supported",
+          "confidence": "medium"
+        }
+      ],
+      "source_ids": ["source-placeholder-001"],
+      "analysis": "Placeholder analysis. Replace with reviewed English analysis after source and claim review."
+    }
+  ],
+  "sources": [
+    {
+      "id": "source-placeholder-001",
+      "title": "Placeholder Official Source",
+      "publisher": "Example AI Organization",
+      "url": "https://example.com/placeholder-official-source",
+      "source_type": "official",
+      "published_at": "2099-01-01T00:00:00+08:00",
+      "retrieved_at": "2099-01-01T04:00:00+08:00"
+    }
+  ],
+  "assets": [],
+  "provenance": {
+    "template_only": true,
+    "review_status": "placeholder_not_for_publication",
+    "generated_content_disclosure": "This template contains placeholder example content only and is not a real report."
+  }
+}

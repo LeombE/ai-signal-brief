@@ -22,7 +22,7 @@ Required files for each future report date:
 - `run.json`: reviewed run metadata for the report
 - `review.md`: manual review notes and checklist evidence
 
-Do not create date folders until there is a reviewed report candidate. Empty date folders should not be used as placeholders.
+Do not create date folders until there is a reviewed report candidate. Empty date folders should not be used as placeholders. Use `examples/reviewed-report-template/` for placeholder files.
 
 ## Material That Must Not Be Copied
 

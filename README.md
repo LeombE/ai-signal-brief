@@ -183,6 +183,7 @@ Validation checks required fields, duplicate IDs, source references, ISO-8601 ti
 - `examples/run.example.json`
 - `config/settings.example.json`
 - `config/sources.example.json`
+- `examples/reviewed-report-template/`
 
 These examples are public-safe placeholders. They do not contain secrets, private paths, historical generated reports, or live API credentials.
 

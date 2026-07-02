@@ -2,7 +2,7 @@
 
 This directory is reserved for future manually reviewed, sanitized English canonical reports.
 
-No real report data is stored here yet.
+No real report data is stored here yet. Use `examples/reviewed-report-template/` as the placeholder structure for future manually reviewed reports.
 
 ## Future Layout
 
