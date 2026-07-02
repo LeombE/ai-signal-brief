@@ -1,0 +1,41 @@
+﻿name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  offline-checks:
+    name: Offline checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run offline validation suite
+        env:
+          PYTHONPATH: src
+        run: |
+          python -m compileall src
+          python -m ai_signal_brief --version
+          python -m ai_signal_brief doctor
+          python -m ai_signal_brief validate-report examples/report.example.json
+          python -m ai_signal_brief validate-run examples/run.example.json
+          python -m ai_signal_brief validate-sources config/sources.example.json
+          python -m ai_signal_brief quality-gate --report examples/report.example.json --run examples/run.example.json --sources config/sources.example.json
+          python -m ai_signal_brief archive-report --report examples/report.example.json --run examples/run.example.json --sources config/sources.example.json --out outputs/archive-example
+          python -m ai_signal_brief build-site --archive outputs/archive-example --out outputs/site-example
+          python -m ai_signal_brief public-readiness
+          python -m unittest discover -s tests

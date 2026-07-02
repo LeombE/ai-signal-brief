@@ -1,4 +1,4 @@
-# AI Signal Brief
+﻿# AI Signal Brief
 
 ## What This Project Does
 
@@ -12,7 +12,7 @@ AI news moves quickly and is often repeated across vendors, model releases, benc
 
 ## Current Status
 
-Phase 9 adds public readiness auditing for tracked files before publication. The repository is still local-first; no live ingestion, delivery, or publishing automation is implemented yet.
+Phase 10 prepares the repository for future GitHub publication by adding offline CI checks and publication documentation. The repository is still local-first; no live ingestion, delivery, scheduled automation, external API usage, or publishing automation is implemented yet.
 
 Implemented so far:
 
@@ -25,6 +25,8 @@ Implemented so far:
 - offline public archive builder with canonical date-based layout
 - offline static site builder from generated archive data
 - public readiness audit for tracked files
+- GitHub Actions CI definition for offline checks
+- publication, Pages planning, and release checklist documentation
 
 Not implemented yet:
 
@@ -33,9 +35,46 @@ Not implemented yet:
 - image generation
 - Telegram delivery
 - GitHub Actions scheduling
+- GitHub Pages deployment
 - historical report migration
-- website generation
 - DOCX generation
+
+## GitHub Publication Status
+
+The intended future public repository is `spaceleoch/ai-signal-brief`.
+
+Current publication boundary:
+
+- not yet pushed to GitHub
+- no GitHub remote required yet
+- not yet live on GitHub Pages
+- not connected to Telegram
+- no API keys required
+- no historical reports migrated
+- no generated ignored outputs should be tracked
+
+Publication planning docs:
+
+- `docs/github-publication.md`
+- `docs/pages-deployment-plan.md`
+- `docs/release-checklist.md`
+
+## CI Overview
+
+The Phase 10 CI workflow lives at `.github/workflows/ci.yml`.
+
+It runs offline validation only:
+
+- Python compile check
+- package version and doctor checks
+- report, run, and source registry validation
+- cross-file quality gate
+- archive build
+- static site build
+- public readiness audit
+- unittest suite
+
+The workflow does not install runtime dependencies, fetch live sources, call APIs, send Telegram messages, generate images, create DOCX files, or deploy GitHub Pages.
 
 ## Public Data And Source Policy
 
@@ -51,8 +90,10 @@ Canonical and offline-preview outputs:
 - `run.json`: execution metadata, artifact list, warnings, and delivery status
 - Markdown: offline rendering from validated report JSON
 - Telegram preview text: offline preview only; it does not send messages
+- Archive layout: date-based public archive generated from validated report and run data
+- Static site: offline HTML/CSS generated from an archive
 
-HTML, website, Telegram delivery, DOCX, and image assets may be added in later phases.
+Telegram delivery, DOCX, generated image assets, and Pages deployment may be added in later phases.
 
 ## Canonical Data Model
 
@@ -72,13 +113,17 @@ Readable documentation lives in:
 - `docs/archive-builder.md`
 - `docs/static-site-builder.md`
 - `docs/public-readiness.md`
+- `docs/github-publication.md`
+- `docs/pages-deployment-plan.md`
+- `docs/release-checklist.md`
 
-## Local Development
+## Local Verification
 
-Phase 9 uses only the Python standard library.
+Phase 10 uses only the Python standard library.
 
 ```powershell
 $env:PYTHONPATH = (Resolve-Path .\src).Path
+python -m compileall src
 python -m ai_signal_brief --version
 python -m ai_signal_brief doctor
 python -m ai_signal_brief validate-report examples/report.example.json
@@ -88,14 +133,19 @@ python -m ai_signal_brief quality-gate --report examples/report.example.json --r
 python -m ai_signal_brief archive-report --report examples/report.example.json --run examples/run.example.json --sources config/sources.example.json --out outputs/archive-example
 python -m ai_signal_brief build-site --archive outputs/archive-example --out outputs/site-example
 python -m ai_signal_brief public-readiness
+python -m unittest discover -s tests
+```
+
+Additional offline commands:
+
+```powershell
 python -m ai_signal_brief render-markdown examples/report.example.json --out outputs/report.example.md
 python -m ai_signal_brief render-telegram examples/report.example.json --out outputs/telegram.example.txt
 python -m ai_signal_brief create-run-record --report examples/report.example.json --out outputs/run.example.generated.json --artifact markdown=outputs/report.example.md --artifact telegram_preview=outputs/telegram.example.txt --started-at 2026-06-24T04:00:00+08:00 --ended-at 2026-06-24T04:01:00+08:00 --timezone Asia/Kuala_Lumpur
 python -m ai_signal_brief validate-run outputs/run.example.generated.json
-python -m unittest discover -s tests
 ```
 
-No package installation is required for Phase 9.
+No package installation is required for Phase 10.
 
 Validation checks required fields, duplicate IDs, source references, ISO-8601 timestamps with timezones, English-language report output, source registry priority rules, official-source-first policy, artifact shape, cross-file report/run/source consistency, and secret-like values in report/run/source JSON. Rendering, run metadata generation, quality gates, archive building, static site building, and public readiness auditing refuse invalid inputs.
 
@@ -112,13 +162,14 @@ These examples are public-safe placeholders. They do not contain secrets, privat
 
 Near-term phases:
 
-1. Build robust schema validation and CLI commands.
-2. Add source ingestion with official-source priority.
-3. Add deduplication and material-update detection.
-4. Migrate historical reports privately into sanitized English canonical records.
-5. Add site generation and GitHub Pages deployment.
-6. Add Telegram delivery using GitHub Secrets after verification.
-7. Add generated visual assets using a dedicated API key stored only as a secret.
+1. Prepare GitHub publication checks and release documentation.
+2. Add reviewed publication workflow only after explicit approval.
+3. Add source ingestion with official-source priority.
+4. Add deduplication and material-update detection.
+5. Migrate historical reports privately into sanitized English canonical records.
+6. Add GitHub Pages deployment after static site outputs are reviewed.
+7. Add Telegram delivery using GitHub Secrets after verification.
+8. Add generated visual assets using a dedicated API key stored only as a secret.
 
 ## Security And Secrets
 
