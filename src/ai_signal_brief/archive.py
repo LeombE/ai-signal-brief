@@ -231,7 +231,3 @@ def _reject_unsafe_values(*values: dict[str, Any]) -> None:
             raise ArchiveError("mistaken prompt reference rejected")
         if _has_marker(value, _legacy_builder_markers()):
             raise ArchiveError("legacy builder reference rejected")
-
-
-def copy_archive_tree(source: Path, destination: Path) -> None:
-    shutil.copytree(source, destination)

@@ -10,6 +10,7 @@ from .archive import ArchiveError, build_archive
 from .quality_gate import QualityGateResult, run_quality_gate
 from .rendering import RenderError, render_markdown_from_path, render_telegram_from_path, write_text_output
 from .run_metadata import RunMetadataError, create_run_record, write_run_record
+from .site import SiteBuildError, build_site
 from .validation import (
     ValidationResult,
     load_source_registry,
@@ -95,6 +96,21 @@ def list_source_priorities(path: str | Path | None = None) -> int:
     print(f"Source priorities: {registry_path}")
     for category in source_priorities(registry):
         print(f"{category['priority']}. {category['id']} - {category['description']}")
+    return 0
+
+def build_site_command(archive_path: str, output_path: str) -> int:
+    try:
+        result = build_site(archive_path, output_path, repo_root=project_root())
+    except SiteBuildError as exc:
+        print(f"Site build failed: {exc}")
+        return 1
+
+    print("Site build PASS")
+    print(f"Site root: {result.site_root}")
+    print(f"Homepage: {result.homepage_path}")
+    print(f"Stylesheet: {result.stylesheet_path}")
+    print(f"Manifest: {result.manifest_path}")
+    print(f"Report pages: {len(result.report_pages)}")
     return 0
 def archive_report_command(report_path: str, run_path: str, sources_path: str, output_path: str) -> int:
     try:
@@ -199,6 +215,9 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Optional source registry path. Defaults to config/sources.example.json.",
     )
+    site_parser = subparsers.add_parser("build-site", help="Build an offline static site from an archive.")
+    site_parser.add_argument("--archive", required=True, help="Archive directory containing index.json.")
+    site_parser.add_argument("--out", required=True, help="Static site output directory.")
     archive_parser = subparsers.add_parser("archive-report", help="Build an offline public report archive entry.")
     archive_parser.add_argument("--report", required=True, help="Path to report JSON.")
     archive_parser.add_argument("--run", required=True, help="Path to run metadata JSON.")
@@ -258,6 +277,8 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "list-source-priorities":
         return list_source_priorities(args.path)
+    if args.command == "build-site":
+        return build_site_command(args.archive, args.out)
     if args.command == "archive-report":
         return archive_report_command(args.report, args.run, args.sources, args.out)
     if args.command == "quality-gate":
