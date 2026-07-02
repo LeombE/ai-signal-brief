@@ -1,73 +1,56 @@
 # GitHub Publication Plan
 
-This repository is prepared for future publication as `LeombE/ai-signal-brief`.
+This repository has been pushed to GitHub as `LeombE/ai-signal-brief`.
 
-Phase 11A is a final pre-push audit and command-preparation phase only. It does not create a GitHub remote, create a GitHub repository, push commits, enable GitHub Pages, add production delivery, configure API keys, or migrate historical reports.
+Phase 12 records the post-push status only. It does not change repository visibility, enable GitHub Pages, add deployment workflows, configure API keys, connect Telegram delivery, generate images, create DOCX files, or migrate historical reports.
 
-## Publication Status
+## Current Repository Status
+
+Repository URL:
+
+```text
+https://github.com/LeombE/ai-signal-brief
+```
 
 Current status:
 
-- local public-ready skeleton exists
+- repository has been pushed to GitHub
+- repository visibility is currently Private
+- latest GitHub Actions CI run is passing on commit `54bffa7`
 - offline validation commands exist
 - offline render, archive, site, and readiness checks exist
-- GitHub Actions CI definition exists for offline checks
-- no GitHub remote is required yet
-- no secrets are required yet
+- GitHub Actions CI runs offline checks only
+- GitHub Pages is not enabled
 - no Telegram delivery is configured
-- no OpenAI Image API workflow is configured
+- OpenAI Image API is not configured
+- no secrets are required for the current offline workflow
 - historical reports have not been migrated
 
-## Intended Public Repository
+## Publication Boundary
 
-Target repository:
+Changing repository visibility from Private to Public is intentionally outside Phase 12. Do it only after a final manual review and explicit approval.
 
-```text
-LeombE/ai-signal-brief
-```
+## Required Checks Before Making Public
 
-The current local repository should remain the source for a clean first push only after manual review.
-
-## Required Pre-Publication Checks
-
-Before creating or pushing to the public repository:
+Before changing repository visibility from Private to Public:
 
 1. Confirm `git branch --show-current` returns `main`.
 2. Confirm `git status --short` is empty.
-3. Confirm `git remote -v` is empty before remote setup.
-4. Run the full local verification sequence from `README.md`.
-5. Confirm `python -m ai_signal_brief public-readiness` returns PASS.
-6. Confirm no secrets, local env values, or tokens are present.
-7. Confirm no private migration source content is present.
-8. Confirm generated ignored outputs are not tracked.
-9. Confirm no Telegram token is present.
-10. Confirm no OpenAI API key is present.
-11. Confirm no chat identifier is present.
-12. Confirm no historical reports have been migrated without review.
-13. Confirm the intended owner and repository name are `LeombE/ai-signal-brief`.
+3. Confirm `git remote -v` points to `https://github.com/LeombE/ai-signal-brief.git`.
+4. Confirm the latest GitHub Actions CI run is passing.
+5. Run `python -m ai_signal_brief public-readiness` locally and confirm PASS.
+6. Run `python -m unittest discover -s tests` locally and confirm OK.
+7. Confirm no secrets, local env values, tokens, or API keys are present.
+8. Confirm no private migration source content is present.
+9. Confirm generated ignored outputs are not tracked.
+10. Confirm no Telegram token is present.
+11. Confirm no OpenAI API key is present.
+12. Confirm no chat identifier is present.
+13. Confirm no historical reports have been migrated without review.
+14. Confirm GitHub Pages remains disabled unless separately approved.
+15. Confirm no deployment workflow, Telegram workflow, or OpenAI Image API workflow is active.
+16. Confirm the intended public owner and repository name are `LeombE/ai-signal-brief`.
 
-## First Push Checklist
+## Post-Push Notes
 
-Complete these steps manually before the first push:
-
-1. Create an empty GitHub repository named `ai-signal-brief` under `LeombE`.
-2. Do not initialize the GitHub repository with a README, license, gitignore, or workflow files.
-3. Re-run the final local audit commands.
-4. Add the remote only after the empty repository exists.
-5. Push `main` only after the local audit remains clean.
-6. Check the GitHub Actions CI run after the first push.
-7. Do not enable GitHub Pages until a later approved phase.
-
-## Phase 11B Command Template
-
-Run these only after explicit approval:
-
-```powershell
-git remote add origin https://github.com/LeombE/ai-signal-brief.git
-git remote -v
-git push -u origin main
-```
-
-## First Push Boundary
-
-The first push is intentionally outside Phase 11A. It should happen only after explicit approval and one final public readiness pass.
+The repository is ready for final visibility review, not production operation. The current project is an offline, public-safe skeleton and validation pipeline. Future live ingestion, Pages deployment, Telegram delivery, image generation, DOCX generation, and historical migration must be added in later approved phases.

@@ -12,7 +12,9 @@ AI news moves quickly and is often repeated across vendors, model releases, benc
 
 ## Current Status
 
-Phase 10 prepares the repository for future GitHub publication by adding offline CI checks and publication documentation. The repository is still local-first; no live ingestion, delivery, scheduled automation, external API usage, or publishing automation is implemented yet.
+Phase 12 reflects the post-push publication state. The repository has been pushed to GitHub at `LeombE/ai-signal-brief`, remains Private, and the latest GitHub Actions CI run is passing on commit `54bffa7`.
+
+The project is still offline-first: no live ingestion, delivery, scheduled automation, external API usage, image generation, DOCX generation, historical migration, GitHub Pages deployment, or Telegram delivery is active.
 
 Implemented so far:
 
@@ -41,16 +43,18 @@ Not implemented yet:
 
 ## GitHub Publication Status
 
-The intended future public repository is `LeombE/ai-signal-brief`.
+Repository URL: `https://github.com/LeombE/ai-signal-brief`
 
 Current publication boundary:
 
-- not yet pushed to GitHub
-- no GitHub remote required yet
-- not yet live on GitHub Pages
-- not connected to Telegram
-- no API keys required
-- no historical reports migrated
+- pushed to GitHub
+- repository visibility is currently Private
+- latest GitHub Actions CI is passing on commit `54bffa7`
+- GitHub Pages is not enabled
+- Telegram delivery is not connected
+- OpenAI Image API is not configured
+- no API keys are required for the current offline workflow
+- no historical reports have been migrated
 - no generated ignored outputs should be tracked
 
 Publication planning docs:
@@ -61,18 +65,18 @@ Publication planning docs:
 
 ## CI Overview
 
-The Phase 10 CI workflow lives at `.github/workflows/ci.yml`.
+The CI workflow lives at `.github/workflows/ci.yml`.
 
 It runs offline validation only:
 
 - Python compile check
 - package version and doctor checks
-- report, run, and source registry validation
+- positive report, run, and source registry example validation
 - cross-file quality gate
 - archive build
 - static site build
 - public readiness audit
-- unittest suite
+- unittest suite, including intentionally invalid fixtures through assertions
 
 The workflow does not install runtime dependencies, fetch live sources, call APIs, send Telegram messages, generate images, create DOCX files, or deploy GitHub Pages.
 
@@ -119,7 +123,7 @@ Readable documentation lives in:
 
 ## Local Verification
 
-Phase 10 uses only the Python standard library.
+Phase 12 uses only the Python standard library.
 
 ```powershell
 $env:PYTHONPATH = (Resolve-Path .\src).Path
@@ -145,7 +149,7 @@ python -m ai_signal_brief create-run-record --report examples/report.example.jso
 python -m ai_signal_brief validate-run outputs/run.example.generated.json
 ```
 
-No package installation is required for Phase 10.
+No package installation is required for Phase 12.
 
 Validation checks required fields, duplicate IDs, source references, ISO-8601 timestamps with timezones, English-language report output, source registry priority rules, official-source-first policy, artifact shape, cross-file report/run/source consistency, and secret-like values in report/run/source JSON. Rendering, run metadata generation, quality gates, archive building, static site building, and public readiness auditing refuse invalid inputs.
 
@@ -162,14 +166,15 @@ These examples are public-safe placeholders. They do not contain secrets, privat
 
 Near-term phases:
 
-1. Prepare GitHub publication checks and release documentation.
-2. Add reviewed publication workflow only after explicit approval.
-3. Add source ingestion with official-source priority.
-4. Add deduplication and material-update detection.
-5. Migrate historical reports privately into sanitized English canonical records.
-6. Add GitHub Pages deployment after static site outputs are reviewed.
-7. Add Telegram delivery using GitHub Secrets after verification.
-8. Add generated visual assets using a dedicated API key stored only as a secret.
+1. Complete private post-push review and public visibility checklist.
+2. Change repository visibility from Private to Public only after explicit approval.
+3. Add reviewed publication workflow only after explicit approval.
+4. Add source ingestion with official-source priority.
+5. Add deduplication and material-update detection.
+6. Migrate historical reports privately into sanitized English canonical records.
+7. Add GitHub Pages deployment after static site outputs are reviewed.
+8. Add Telegram delivery using GitHub Secrets after verification.
+9. Add generated visual assets using a dedicated API key stored only as a secret.
 
 ## Security And Secrets
 

@@ -1,28 +1,46 @@
 # Release Checklist
 
-Use this checklist before creating the public GitHub repository or pushing local commits.
+Use this checklist before changing the GitHub repository from Private to Public.
 
 ## Repository Target
 
 - [ ] Confirm public owner and repository name: `LeombE/ai-signal-brief`.
-- [ ] Confirm no GitHub remote is configured unless explicitly intended.
+- [ ] Confirm repository URL: `https://github.com/LeombE/ai-signal-brief`.
+- [ ] Confirm repository visibility is currently Private.
 - [ ] Confirm the current branch is `main`.
 - [ ] Confirm the working tree is clean.
+- [ ] Confirm `origin` points to `https://github.com/LeombE/ai-signal-brief.git`.
+
+## CI And Local Verification
+
+- [ ] Confirm latest GitHub Actions CI run is passing.
+- [ ] Confirm latest passing CI includes commit `54bffa7` or a newer reviewed commit.
+- [ ] Run `python -m ai_signal_brief public-readiness` and confirm PASS.
+- [ ] Run `python -m unittest discover -s tests` and confirm OK.
 
 ## Safety
 
-- [ ] Confirm `python -m ai_signal_brief public-readiness` returns PASS.
 - [ ] Confirm no secrets are present.
 - [ ] Confirm no local env values are present.
 - [ ] Confirm no private migration source content is present.
 - [ ] Confirm no generated ignored outputs are tracked.
 - [ ] Confirm no Telegram token is present.
+- [ ] Confirm Telegram delivery is not connected.
 - [ ] Confirm no OpenAI API key is present.
+- [ ] Confirm OpenAI Image API is not configured.
 - [ ] Confirm no chat identifier is present.
 - [ ] Confirm no mistaken prompt references are present.
 - [ ] Confirm no historical reports have been migrated yet.
 
-## Local Verification
+## Feature Boundaries
+
+- [ ] Confirm GitHub Pages is not enabled.
+- [ ] Confirm no deployment workflow exists.
+- [ ] Confirm no Telegram workflow exists.
+- [ ] Confirm no image generation workflow exists.
+- [ ] Confirm no DOCX generation workflow exists.
+
+## Local Verification Command
 
 Run the same offline command sequence used by CI:
 
@@ -41,29 +59,6 @@ python -m ai_signal_brief public-readiness
 python -m unittest discover -s tests
 ```
 
-## First Push Checklist
+## Public Visibility Boundary
 
-- [ ] Create an empty GitHub repository at `LeombE/ai-signal-brief`.
-- [ ] Do not initialize the remote repository with generated files.
-- [ ] Run `git branch --show-current` and confirm `main`.
-- [ ] Run `git status --short` and confirm no output.
-- [ ] Run `git remote -v` and confirm no existing remote before setup.
-- [ ] Run `python -m ai_signal_brief public-readiness` and confirm PASS.
-- [ ] Run `python -m unittest discover -s tests` and confirm OK.
-- [ ] Add the GitHub remote only after the empty repository exists.
-- [ ] Push `main` only after explicit approval.
-- [ ] Review the first GitHub Actions CI run.
-
-## Phase 11B Commands
-
-Run these only after explicit approval:
-
-```powershell
-git remote add origin https://github.com/LeombE/ai-signal-brief.git
-git remote -v
-git push -u origin main
-```
-
-## Publication Boundary
-
-Do not push until publication is explicitly approved after the checklist passes.
+Do not change repository visibility from Private to Public until this checklist passes and the change is explicitly approved.
