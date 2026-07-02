@@ -12,7 +12,7 @@ AI news moves quickly and is often repeated across vendors, model releases, benc
 
 ## Current Status
 
-Phase 12 reflects the post-push publication state. The repository has been pushed to GitHub at `LeombE/ai-signal-brief`, remains Private, and the latest GitHub Actions CI run is passing on commit `54bffa7`.
+The repository is now public at `https://github.com/LeombE/ai-signal-brief`, and the latest GitHub Actions CI run is passing.
 
 The project is still offline-first: no live ingestion, delivery, scheduled automation, external API usage, image generation, DOCX generation, historical migration, GitHub Pages deployment, or Telegram delivery is active.
 
@@ -47,9 +47,8 @@ Repository URL: `https://github.com/LeombE/ai-signal-brief`
 
 Current publication boundary:
 
-- pushed to GitHub
-- repository visibility is currently Private
-- latest GitHub Actions CI is passing on commit `54bffa7`
+- repository is public
+- latest GitHub Actions CI is passing
 - GitHub Pages is not enabled
 - Telegram delivery is not connected
 - OpenAI Image API is not configured
@@ -123,7 +122,7 @@ Readable documentation lives in:
 
 ## Local Verification
 
-Phase 12 uses only the Python standard library.
+This project currently uses only the Python standard library.
 
 ```powershell
 $env:PYTHONPATH = (Resolve-Path .\src).Path
@@ -149,7 +148,7 @@ python -m ai_signal_brief create-run-record --report examples/report.example.jso
 python -m ai_signal_brief validate-run outputs/run.example.generated.json
 ```
 
-No package installation is required for Phase 12.
+No package installation is required for the current offline workflow.
 
 Validation checks required fields, duplicate IDs, source references, ISO-8601 timestamps with timezones, English-language report output, source registry priority rules, official-source-first policy, artifact shape, cross-file report/run/source consistency, and secret-like values in report/run/source JSON. Rendering, run metadata generation, quality gates, archive building, static site building, and public readiness auditing refuse invalid inputs.
 
@@ -166,15 +165,14 @@ These examples are public-safe placeholders. They do not contain secrets, privat
 
 Near-term phases:
 
-1. Complete private post-push review and public visibility checklist.
-2. Change repository visibility from Private to Public only after explicit approval.
-3. Add reviewed publication workflow only after explicit approval.
-4. Add source ingestion with official-source priority.
-5. Add deduplication and material-update detection.
-6. Migrate historical reports privately into sanitized English canonical records.
-7. Add GitHub Pages deployment after static site outputs are reviewed.
-8. Add Telegram delivery using GitHub Secrets after verification.
-9. Add generated visual assets using a dedicated API key stored only as a secret.
+1. Keep CI passing and documentation aligned with the public repository state.
+2. Add reviewed publication workflow only after explicit approval.
+3. Add source ingestion with official-source priority.
+4. Add deduplication and material-update detection.
+5. Migrate historical reports privately into sanitized English canonical records.
+6. Add GitHub Pages deployment after static site outputs are reviewed.
+7. Add Telegram delivery using GitHub Secrets after verification.
+8. Add generated visual assets using a dedicated API key stored only as a secret.
 
 ## Security And Secrets
 

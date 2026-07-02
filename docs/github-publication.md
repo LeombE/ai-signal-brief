@@ -1,8 +1,8 @@
 # GitHub Publication Plan
 
-This repository has been pushed to GitHub as `LeombE/ai-signal-brief`.
+This repository is now public at `https://github.com/LeombE/ai-signal-brief`.
 
-Phase 12 records the post-push status only. It does not change repository visibility, enable GitHub Pages, add deployment workflows, configure API keys, connect Telegram delivery, generate images, create DOCX files, or migrate historical reports.
+This document records the current public status only. It does not enable GitHub Pages, add deployment workflows, configure API keys, connect Telegram delivery, generate images, create DOCX files, or migrate historical reports.
 
 ## Current Repository Status
 
@@ -14,9 +14,8 @@ https://github.com/LeombE/ai-signal-brief
 
 Current status:
 
-- repository has been pushed to GitHub
-- repository visibility is currently Private
-- latest GitHub Actions CI run is passing on commit `54bffa7`
+- repository is public
+- latest GitHub Actions CI run is passing
 - offline validation commands exist
 - offline render, archive, site, and readiness checks exist
 - GitHub Actions CI runs offline checks only
@@ -26,13 +25,15 @@ Current status:
 - no secrets are required for the current offline workflow
 - historical reports have not been migrated
 
-## Publication Boundary
+## Current Publication Boundary
 
-Changing repository visibility from Private to Public is intentionally outside Phase 12. Do it only after a final manual review and explicit approval.
+The repository is public, but it is not a production service. The current project is an offline, public-safe skeleton and validation pipeline.
 
-## Required Checks Before Making Public
+Future live ingestion, Pages deployment, Telegram delivery, image generation, DOCX generation, and historical migration must be added only in later approved phases.
 
-Before changing repository visibility from Private to Public:
+## Ongoing Public Repo Checks
+
+Before adding any new public-facing capability:
 
 1. Confirm `git branch --show-current` returns `main`.
 2. Confirm `git status --short` is empty.
@@ -49,8 +50,4 @@ Before changing repository visibility from Private to Public:
 13. Confirm no historical reports have been migrated without review.
 14. Confirm GitHub Pages remains disabled unless separately approved.
 15. Confirm no deployment workflow, Telegram workflow, or OpenAI Image API workflow is active.
-16. Confirm the intended public owner and repository name are `LeombE/ai-signal-brief`.
-
-## Post-Push Notes
-
-The repository is ready for final visibility review, not production operation. The current project is an offline, public-safe skeleton and validation pipeline. Future live ingestion, Pages deployment, Telegram delivery, image generation, DOCX generation, and historical migration must be added in later approved phases.
+16. Confirm the intended public owner and repository name remain `LeombE/ai-signal-brief`.

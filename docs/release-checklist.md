@@ -1,12 +1,12 @@
 # Release Checklist
 
-Use this checklist before changing the GitHub repository from Private to Public.
+Use this checklist while maintaining the public GitHub repository.
 
-## Repository Target
+## Repository Status
 
 - [ ] Confirm public owner and repository name: `LeombE/ai-signal-brief`.
 - [ ] Confirm repository URL: `https://github.com/LeombE/ai-signal-brief`.
-- [ ] Confirm repository visibility is currently Private.
+- [ ] Confirm repository visibility is public.
 - [ ] Confirm the current branch is `main`.
 - [ ] Confirm the working tree is clean.
 - [ ] Confirm `origin` points to `https://github.com/LeombE/ai-signal-brief.git`.
@@ -14,7 +14,6 @@ Use this checklist before changing the GitHub repository from Private to Public.
 ## CI And Local Verification
 
 - [ ] Confirm latest GitHub Actions CI run is passing.
-- [ ] Confirm latest passing CI includes commit `54bffa7` or a newer reviewed commit.
 - [ ] Run `python -m ai_signal_brief public-readiness` and confirm PASS.
 - [ ] Run `python -m unittest discover -s tests` and confirm OK.
 
@@ -59,6 +58,6 @@ python -m ai_signal_brief public-readiness
 python -m unittest discover -s tests
 ```
 
-## Public Visibility Boundary
+## Public Repository Boundary
 
-Do not change repository visibility from Private to Public until this checklist passes and the change is explicitly approved.
+Do not add Pages, deployment workflows, Telegram delivery, OpenAI API usage, image generation, DOCX generation, or historical reports until each capability is separately approved and validated.
