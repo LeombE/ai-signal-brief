@@ -6,6 +6,7 @@ import platform
 from pathlib import Path
 
 from . import __version__
+from .quality_gate import QualityGateResult, run_quality_gate
 from .rendering import RenderError, render_markdown_from_path, render_telegram_from_path, write_text_output
 from .run_metadata import RunMetadataError, create_run_record, write_run_record
 from .validation import (
@@ -95,6 +96,22 @@ def list_source_priorities(path: str | Path | None = None) -> int:
         print(f"{category['priority']}. {category['id']} - {category['description']}")
     return 0
 
+def print_quality_gate_result(result: QualityGateResult) -> int:
+    if result.ok:
+        print("Quality gate PASS")
+        return 0
+
+    print("Quality gate FAIL")
+    print("Failed checks:")
+    for check_name in result.failed_checks:
+        print(f"- {check_name}")
+    return 1
+
+
+def quality_gate_command(report_path: str, run_path: str, sources_path: str) -> int:
+    result = run_quality_gate(report_path, run_path, sources_path, repo_root=project_root())
+    return print_quality_gate_result(result)
+
 
 def render_markdown_command(path: str, output_path: str) -> int:
     try:
@@ -166,6 +183,10 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Optional source registry path. Defaults to config/sources.example.json.",
     )
+    quality_gate_parser = subparsers.add_parser("quality-gate", help="Run offline report/run/source quality gates.")
+    quality_gate_parser.add_argument("--report", required=True, help="Path to report JSON.")
+    quality_gate_parser.add_argument("--run", required=True, help="Path to run metadata JSON.")
+    quality_gate_parser.add_argument("--sources", required=True, help="Path to source registry JSON.")
 
     create_run_parser = subparsers.add_parser(
         "create-run-record",
@@ -216,6 +237,8 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "list-source-priorities":
         return list_source_priorities(args.path)
+    if args.command == "quality-gate":
+        return quality_gate_command(args.report, args.run, args.sources)
 
     if args.command == "create-run-record":
         return create_run_record_command(

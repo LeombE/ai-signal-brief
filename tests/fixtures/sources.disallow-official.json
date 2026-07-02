@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0.0",
+  "source_policy": "official_sources_first",
+  "allowed_source_types": ["paper", "repository", "regulatory", "news", "social", "other"],
+  "categories": [
+    {
+      "id": "official",
+      "priority": 1,
+      "description": "Official sources intentionally omitted from allowed_source_types for fixture coverage."
+    }
+  ],
+  "sources": [
+    {
+      "id": "example-official",
+      "title": "Example Official Source",
+      "publisher": "Example Publisher",
+      "url": "https://example.com/official",
+      "source_type": "official",
+      "category_id": "official",
+      "priority": 1
+    }
+  ]
+}
