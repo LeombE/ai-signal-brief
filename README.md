@@ -69,6 +69,7 @@ Publication planning docs:
 - `docs/first-reviewed-report-candidate-plan.md`
 - `docs/daily-topic-discovery-architecture.md`
 - `docs/topic-sources-and-candidates.md`
+- `docs/offline-mock-topic-discovery.md`
 - `docs/release-checklist.md`
 
 ## CI Overview
@@ -124,7 +125,7 @@ Canonical and offline-preview outputs:
 - Static site: offline HTML/CSS generated from an archive
 - GitHub Pages Preview: manual sample static-site deployment from example JSON files only
 
-Telegram delivery, DOCX, generated image assets, production Pages deployment, and historical report migration may be added in later approved phases. Production Pages requirements are documented in `docs/production-pages-readiness.md`; future reviewed report staging rules are documented in `docs/reviewed-report-staging.md`, and local dry-run rules are documented in `docs/reviewed-report-dry-run.md`; a dry-run helper command plan is documented in `docs/reviewed-report-dry-run-command-plan.md`, first-candidate selection rules are documented in `docs/first-reviewed-report-candidate-plan.md`, and future daily topic discovery architecture is documented in `docs/daily-topic-discovery-architecture.md`.
+Telegram delivery, DOCX, generated image assets, production Pages deployment, and historical report migration may be added in later approved phases. Production Pages requirements are documented in `docs/production-pages-readiness.md`; future reviewed report staging rules are documented in `docs/reviewed-report-staging.md`, and local dry-run rules are documented in `docs/reviewed-report-dry-run.md`; a dry-run helper command plan is documented in `docs/reviewed-report-dry-run-command-plan.md`, first-candidate selection rules are documented in `docs/first-reviewed-report-candidate-plan.md`, and future daily topic discovery architecture is documented in `docs/daily-topic-discovery-architecture.md`, and offline mock topic discovery is documented in `docs/offline-mock-topic-discovery.md`.
 
 ## Canonical Data Model
 
@@ -154,6 +155,7 @@ Readable documentation lives in:
 - `docs/first-reviewed-report-candidate-plan.md`
 - `docs/daily-topic-discovery-architecture.md`
 - `docs/topic-sources-and-candidates.md`
+- `docs/offline-mock-topic-discovery.md`
 - `docs/release-checklist.md`
 
 ## Local Verification
@@ -171,6 +173,7 @@ python -m ai_signal_brief validate-sources config/sources.example.json
 python -m ai_signal_brief validate-topic-sources config/topic_sources.example.json
 python -m ai_signal_brief validate-topics examples/topic-candidates.example.json
 python -m ai_signal_brief rank-topics examples/topic-candidates.example.json --explain
+python -m ai_signal_brief discover-topics --date 2026-06-24 --sources config/topic_sources.example.json --mock-observations tests/fixtures/topic_observations.valid.json --out outputs/topic-candidates/2026-06-24.json --rank
 python -m ai_signal_brief quality-gate --report examples/report.example.json --run examples/run.example.json --sources config/sources.example.json
 python -m ai_signal_brief archive-report --report examples/report.example.json --run examples/run.example.json --sources config/sources.example.json --out outputs/archive-example
 python -m ai_signal_brief build-site --archive outputs/archive-example --out outputs/site-example
@@ -190,7 +193,7 @@ python -m ai_signal_brief dry-run-reviewed-report --date YYYY-MM-DD --report rep
 
 No package installation is required for the current offline workflow.
 
-Validation checks required fields, duplicate IDs, source references, ISO-8601 timestamps with timezones, English-language report output, source registry priority rules, official-source-first policy, topic source registry rules, topic candidate references, artifact shape, cross-file report/run/source consistency, and secret-like values in report/run/source/topic JSON. Offline topic ranking validates candidates first, applies deterministic score normalization, preserves dedup evidence, and refuses unsafe output paths. Rendering, run metadata generation, quality gates, archive building, static site building, and public readiness auditing refuse invalid inputs.
+Validation checks required fields, duplicate IDs, source references, ISO-8601 timestamps with timezones, English-language report output, source registry priority rules, official-source-first policy, topic source registry rules, topic candidate references, artifact shape, cross-file report/run/source consistency, and secret-like values in report/run/source/topic JSON. Offline mock topic discovery reads local observation fixtures, validates the topic source registry, writes candidate JSON under `outputs/`, validates generated candidates, and can run ranking without network access. Offline topic ranking validates candidates first, applies deterministic score normalization, preserves dedup evidence, and refuses unsafe output paths. Rendering, run metadata generation, quality gates, archive building, static site building, and public readiness auditing refuse invalid inputs.
 
 ## Example Files
 
@@ -210,7 +213,7 @@ Near-term phases:
 
 1. Keep CI passing and documentation aligned with the public repository state.
 2. Keep Pages sample preview limited to sample/example data until production publication is approved.
-3. Keep topic source validation, topic candidate validation, and topic ranking offline; add live daily topic discovery only after separate approval.
+3. Keep topic source validation, topic candidate validation, mock topic discovery, and topic ranking offline; add live daily topic discovery only after separate approval.
 4. Extend reviewed-report promotion from ranked topic candidates only after manual review.
 5. Stage future manually reviewed English canonical reports under `reports-reviewed/` only after review.
 6. Use `docs/production-pages-readiness.md` before approving production GitHub Pages deployment.

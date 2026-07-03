@@ -135,12 +135,13 @@ Proposed topic candidate fields:
 
 ## Current Offline Topic Commands
 
-The current implementation includes validation and ranking only. These commands are offline-only and do not fetch, scrape, schedule, publish, send Telegram messages, call OpenAI APIs, generate images, or create DOCX files.
+The current implementation includes validation, local mock discovery, and ranking only. These commands are offline-only and do not fetch, scrape, schedule, publish, send Telegram messages, call OpenAI APIs, generate images, or create DOCX files.
 
 ```powershell
 python -m ai_signal_brief validate-topic-sources config/topic_sources.example.json
 python -m ai_signal_brief validate-topics examples/topic-candidates.example.json
 python -m ai_signal_brief rank-topics examples/topic-candidates.example.json --explain
+python -m ai_signal_brief discover-topics --date 2026-06-24 --sources config/topic_sources.example.json --mock-observations tests/fixtures/topic_observations.valid.json --out outputs/topic-candidates/2026-06-24.json --rank
 ```
 
 Expected behavior:
@@ -148,19 +149,19 @@ Expected behavior:
 - `validate-topic-sources` validates source registry fields, unique IDs, source type compatibility, source/category references, priorities, reliability tiers, fetch modes, public HTTPS URLs, and no-secret rules.
 - `validate-topics` validates candidate fields, source observation references, source IDs, dedup groups, unresolved items, score ranges, timestamp shape, safety markers, and no-secret rules.
 - `rank-topics` validates topic candidates first, computes deterministic ranking scores, preserves duplicate/related audit evidence, applies material-update evidence adjustments, and optionally writes generated ranked JSON under `outputs/`.
+- `discover-topics` reads local mock observation fixtures only, validates the topic source registry, converts observations into topic candidates, validates generated output, and can run ranking without network access.
 
 ## Future CLI Commands
 
-Future live-discovery commands remain unimplemented:
+Future live-source discovery commands remain unimplemented:
 
 ```powershell
-python -m ai_signal_brief discover-topics --date YYYY-MM-DD --sources config/topic_sources.example.json --out outputs/topic-candidates/YYYY-MM-DD.json
 python -m ai_signal_brief topic-scan-readiness
 ```
 
 Expected future behavior:
 
-- `discover-topics` writes local candidate artifacts only.
+- A future live discovery mode may collect from approved public sources only after separate approval.
 - `topic-scan-readiness` checks config, schema files, output paths, source policy, and safety settings before any scheduled run.
 
 ## Current And Future Implementation Files
@@ -172,13 +173,12 @@ Current validation and example files:
 - `examples/topic-candidates.example.json`
 - `src/ai_signal_brief/topic_validation.py`
 - `src/ai_signal_brief/topic_ranking.py`
+- `src/ai_signal_brief/topic_discovery.py`
 - `tests/test_topic_validation_cli.py`
 - `tests/test_topic_ranking.py`
+- `tests/test_topic_discovery.py`
 
 Future files, not created yet:
-
-- `src/ai_signal_brief/topic_discovery.py`
-- `tests/test_topic_discovery.py`
 - `.github/workflows/daily-topic-scan.yml`
 
 ## Ranking And Scoring Rules

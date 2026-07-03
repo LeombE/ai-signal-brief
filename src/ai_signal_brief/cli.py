@@ -28,6 +28,7 @@ from .topic_ranking import (
     render_topic_ranking_summary,
     write_ranked_topics_output,
 )
+from .topic_discovery import TopicDiscoveryError, discover_topics_from_mock, render_discovery_summary
 
 
 REQUIRED_PROJECT_FILES = (
@@ -96,6 +97,33 @@ def print_validation_result(label: str, result: ValidationResult) -> int:
     for error in result.errors:
         print(f"- {error}")
     return 1
+
+
+def discover_topics_command(
+    scan_date: str,
+    sources_path: str,
+    mock_observations_path: str,
+    output_path: str,
+    rank: bool,
+    timezone_name: str,
+    quiet_ok: bool,
+) -> int:
+    try:
+        result = discover_topics_from_mock(
+            scan_date=scan_date,
+            sources_path=sources_path,
+            mock_observations_path=mock_observations_path,
+            output_path=output_path,
+            timezone_name=timezone_name,
+            rank=rank,
+            quiet_ok=quiet_ok,
+            repo_root=project_root(),
+        )
+    except TopicDiscoveryError as exc:
+        print(f"Topic discovery failed: {exc}")
+        return 1
+    print(render_discovery_summary(result))
+    return 0
 
 
 def rank_topics_command(
@@ -320,6 +348,15 @@ def build_parser() -> argparse.ArgumentParser:
     rank_topics_parser.add_argument("--include-unresolved", action="store_true", default=True, help="Explicitly keep unresolved candidates in ranked output.")
     rank_topics_parser.add_argument("--explain", action="store_true", help="Print ranking formula components for each topic.")
 
+    discover_topics_parser = subparsers.add_parser("discover-topics", help="Create topic candidates from local mock observations only.")
+    discover_topics_parser.add_argument("--date", required=True, help="Scan date in YYYY-MM-DD format.")
+    discover_topics_parser.add_argument("--sources", required=True, help="Path to topic source registry JSON.")
+    discover_topics_parser.add_argument("--mock-observations", required=True, help="Path to local mock observation fixture JSON.")
+    discover_topics_parser.add_argument("--out", required=True, help="Topic candidate output path under outputs/.")
+    discover_topics_parser.add_argument("--rank", action="store_true", help="Run offline ranking after generation.")
+    discover_topics_parser.add_argument("--timezone", default="Asia/Kuala_Lumpur", help="IANA timezone name for deterministic generated_at.")
+    discover_topics_parser.add_argument("--quiet-ok", action="store_true", help="Allow empty mock observations to generate a quiet-day candidate.")
+
     priorities_parser = subparsers.add_parser("list-source-priorities", help="List source category priorities.")
     priorities_parser.add_argument(
         "--path",
@@ -413,6 +450,17 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "rank-topics":
         return rank_topics_command(args.path, args.out, args.top_n, args.include_unresolved, args.explain)
+
+    if args.command == "discover-topics":
+        return discover_topics_command(
+            args.date,
+            args.sources,
+            args.mock_observations,
+            args.out,
+            args.rank,
+            args.timezone,
+            args.quiet_ok,
+        )
 
     if args.command == "list-source-priorities":
         return list_source_priorities(args.path)

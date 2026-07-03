@@ -1,0 +1,5 @@
+{
+  "schema_version": "1.0.0",
+  "description": "Public-safe empty mock observation set for quiet-day tests only.",
+  "observations": []
+}

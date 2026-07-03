@@ -1,0 +1,79 @@
+{
+  "schema_version": "1.0.0",
+  "description": "Public-safe placeholder mock observations for offline topic discovery tests only.",
+  "observations": [
+    {
+      "observation_id": "mock-observation-official-release",
+      "source_id": "openai-news",
+      "title": "ExampleAI Labs announces a placeholder API update",
+      "url": "https://example.com/mock-official-api-update",
+      "observed_at": "2026-06-24T03:40:00+08:00",
+      "published_at": "2026-06-23T12:00:00+00:00",
+      "retrieved_at": "2026-06-24T03:45:00+08:00",
+      "source_type": "official",
+      "raw_signal_type": "official_release",
+      "summary": "Placeholder official-source observation used only to exercise offline discovery.",
+      "topic_type": "product_release",
+      "candidate_status": "new",
+      "companies": [
+        "ExampleAI Labs"
+      ],
+      "models": [
+        "Example API"
+      ],
+      "regions": [
+        "global"
+      ],
+      "material_update_score": 4,
+      "importance_score": 3,
+      "novelty_score": 3,
+      "confidence": "high",
+      "uncertainty_notes": [],
+      "safety_flags": [
+        "placeholder_example"
+      ],
+      "dedup_key": "exampleai-labs-placeholder-api-update",
+      "related_observation_ids": [
+        "mock-observation-model-card"
+      ]
+    },
+    {
+      "observation_id": "mock-observation-model-card",
+      "source_id": "huggingface-model-cards",
+      "title": "Example Model 1 receives a placeholder model-card update",
+      "url": "https://example.com/mock-model-card-update",
+      "observed_at": "2026-06-24T03:50:00+08:00",
+      "published_at": null,
+      "retrieved_at": "2026-06-24T03:55:00+08:00",
+      "source_type": "repository",
+      "raw_signal_type": "model_card",
+      "summary": "Placeholder model-card observation with unresolved publication timing.",
+      "topic_type": "model_release",
+      "candidate_status": "unresolved",
+      "companies": [
+        "ExampleAI Labs"
+      ],
+      "models": [
+        "Example Model 1"
+      ],
+      "regions": [
+        "global"
+      ],
+      "material_update_score": 3,
+      "importance_score": 2,
+      "novelty_score": 3,
+      "confidence": "medium",
+      "uncertainty_notes": [
+        "Publication time is intentionally unresolved in this placeholder."
+      ],
+      "safety_flags": [
+        "placeholder_example",
+        "manual_review_required"
+      ],
+      "dedup_key": "exampleai-labs-placeholder-api-update",
+      "related_observation_ids": [
+        "mock-observation-official-release"
+      ]
+    }
+  ]
+}

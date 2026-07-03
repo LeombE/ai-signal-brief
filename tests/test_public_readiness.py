@@ -109,6 +109,7 @@ def _create_minimal_ready_tree(root: Path) -> tuple[Path, list[str]]:
             "validate-topic-sources",
             "validate-topics",
             "rank-topics",
+            "discover-topics",
             "quality-gate",
             "archive-report",
             "build-site",
