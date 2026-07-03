@@ -152,18 +152,22 @@ Topic source and topic candidate validation is implemented as offline-only CLI c
 ```powershell
 python -m ai_signal_brief validate-topic-sources config/topic_sources.example.json
 python -m ai_signal_brief validate-topics examples/topic-candidates.example.json
+python -m ai_signal_brief rank-topics examples/topic-candidates.example.json --explain
 ```
 
 The topic source registry validator checks required fields, unique category/source IDs, allowed source types, category references, positive priorities, reliability tiers, fetch modes, public HTTPS URLs, and no private/local or secret-like markers.
 
 The topic candidate validator checks required top-level fields, ISO-8601 timestamps with timezones, unique topic/source observation IDs, source and observation references, score ranges, candidate status, confidence, review flags, unresolved and quiet-day behavior, and no private/local or secret-like markers.
 
+The topic ranking command validates input before ranking. It combines `source_quality_score`, `material_update_score`, `importance_score`, `novelty_score`, confidence adjustment, uncertainty penalty, safety flag penalty, and material-evidence adjustment. It keeps unresolved and quiet-day candidates visible, marks lower-ranked duplicate or related topics as `duplicate_or_related`, and writes generated ranked JSON only when `--out` points under `outputs/`.
+
+Deduplication uses `dedup_key` first and `related_topic_ids` as an audit signal. It never deletes candidate records silently; duplicate and related candidates remain available for manual review. Material-update detection treats official releases, model cards, repository releases, papers, regulatory sources, and security advisories as stronger evidence, while news-only or social-only items remain cautious and do not upgrade uncertain claims.
+
 ## Future Work
 
-Live discovery, ranking, readiness checks, scheduled scans, and publication are still unimplemented. Planned future commands remain separate from the current validators:
+Live discovery, readiness checks, scheduled scans, and publication are still unimplemented. Planned future commands remain separate from the current validators and ranker:
 
 ```powershell
 python -m ai_signal_brief discover-topics --date YYYY-MM-DD --sources config/topic_sources.example.json --out outputs/topic-candidates/YYYY-MM-DD.json
-python -m ai_signal_brief rank-topics outputs/topic-candidates/YYYY-MM-DD.json
 python -m ai_signal_brief topic-scan-readiness
 ```

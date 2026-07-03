@@ -22,6 +22,12 @@ from .validation import (
     validate_sources_path,
 )
 from .topic_validation import validate_topic_sources_path, validate_topics_path
+from .topic_ranking import (
+    TopicRankingError,
+    rank_topics_from_path,
+    render_topic_ranking_summary,
+    write_ranked_topics_output,
+)
 
 
 REQUIRED_PROJECT_FILES = (
@@ -90,6 +96,25 @@ def print_validation_result(label: str, result: ValidationResult) -> int:
     for error in result.errors:
         print(f"- {error}")
     return 1
+
+
+def rank_topics_command(
+    path: str,
+    output_path: str | None,
+    top_n: int | None,
+    include_unresolved: bool,
+    explain: bool,
+) -> int:
+    try:
+        result = rank_topics_from_path(path, top_n=top_n, include_unresolved=include_unresolved)
+        print(render_topic_ranking_summary(result, explain=explain))
+        if output_path:
+            written = write_ranked_topics_output(result.ranked, output_path, repo_root=project_root())
+            print(f"Ranked topic output written: {written}")
+    except TopicRankingError as exc:
+        print(f"Topic ranking failed: {exc}")
+        return 1
+    return 0
 
 
 def list_source_priorities(path: str | Path | None = None) -> int:
@@ -288,6 +313,13 @@ def build_parser() -> argparse.ArgumentParser:
     topics_parser = subparsers.add_parser("validate-topics", help="Validate a topic candidate JSON file.")
     topics_parser.add_argument("path", help="Path to topic candidate JSON.")
 
+    rank_topics_parser = subparsers.add_parser("rank-topics", help="Rank validated topic candidates offline.")
+    rank_topics_parser.add_argument("path", help="Path to topic candidate JSON.")
+    rank_topics_parser.add_argument("--out", default=None, help="Optional ranked JSON output path under outputs/.")
+    rank_topics_parser.add_argument("--top-n", type=int, default=None, help="Optional maximum number of ranked topics to return.")
+    rank_topics_parser.add_argument("--include-unresolved", action="store_true", default=True, help="Explicitly keep unresolved candidates in ranked output.")
+    rank_topics_parser.add_argument("--explain", action="store_true", help="Print ranking formula components for each topic.")
+
     priorities_parser = subparsers.add_parser("list-source-priorities", help="List source category priorities.")
     priorities_parser.add_argument(
         "--path",
@@ -378,6 +410,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "validate-topics":
         return print_validation_result("Topic candidates", validate_topics_path(args.path))
+
+    if args.command == "rank-topics":
+        return rank_topics_command(args.path, args.out, args.top_n, args.include_unresolved, args.explain)
 
     if args.command == "list-source-priorities":
         return list_source_priorities(args.path)

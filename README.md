@@ -170,6 +170,7 @@ python -m ai_signal_brief validate-run examples/run.example.json
 python -m ai_signal_brief validate-sources config/sources.example.json
 python -m ai_signal_brief validate-topic-sources config/topic_sources.example.json
 python -m ai_signal_brief validate-topics examples/topic-candidates.example.json
+python -m ai_signal_brief rank-topics examples/topic-candidates.example.json --explain
 python -m ai_signal_brief quality-gate --report examples/report.example.json --run examples/run.example.json --sources config/sources.example.json
 python -m ai_signal_brief archive-report --report examples/report.example.json --run examples/run.example.json --sources config/sources.example.json --out outputs/archive-example
 python -m ai_signal_brief build-site --archive outputs/archive-example --out outputs/site-example
@@ -189,7 +190,7 @@ python -m ai_signal_brief dry-run-reviewed-report --date YYYY-MM-DD --report rep
 
 No package installation is required for the current offline workflow.
 
-Validation checks required fields, duplicate IDs, source references, ISO-8601 timestamps with timezones, English-language report output, source registry priority rules, official-source-first policy, topic source registry rules, topic candidate references, artifact shape, cross-file report/run/source consistency, and secret-like values in report/run/source/topic JSON. Rendering, run metadata generation, quality gates, archive building, static site building, and public readiness auditing refuse invalid inputs.
+Validation checks required fields, duplicate IDs, source references, ISO-8601 timestamps with timezones, English-language report output, source registry priority rules, official-source-first policy, topic source registry rules, topic candidate references, artifact shape, cross-file report/run/source consistency, and secret-like values in report/run/source/topic JSON. Offline topic ranking validates candidates first, applies deterministic score normalization, preserves dedup evidence, and refuses unsafe output paths. Rendering, run metadata generation, quality gates, archive building, static site building, and public readiness auditing refuse invalid inputs.
 
 ## Example Files
 
@@ -209,8 +210,8 @@ Near-term phases:
 
 1. Keep CI passing and documentation aligned with the public repository state.
 2. Keep Pages sample preview limited to sample/example data until production publication is approved.
-3. Keep topic source and topic candidate validation offline; add live daily topic discovery only after separate approval.
-4. Add deduplication and material-update detection.
+3. Keep topic source validation, topic candidate validation, and topic ranking offline; add live daily topic discovery only after separate approval.
+4. Extend reviewed-report promotion from ranked topic candidates only after manual review.
 5. Stage future manually reviewed English canonical reports under `reports-reviewed/` only after review.
 6. Use `docs/production-pages-readiness.md` before approving production GitHub Pages deployment.
 7. Add Telegram delivery using GitHub Secrets after verification.
