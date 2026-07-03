@@ -154,6 +154,7 @@ def _build_observation(fixture: dict[str, Any]) -> dict[str, Any]:
         "metadata_only": True,
         "observation_id": _observation_id(str(fixture["source_id"]), str(fixture["content_hash"])),
         "observed_at": fixture["observed_at"],
+        "raw_signal_type": _raw_signal_type(fixture),
         "published_at": fixture.get("published_at"),
         "reduced_metadata": metadata,
         "retrieved_at": fixture["retrieved_at"],
@@ -187,6 +188,36 @@ def _merged_safety_flags(flags: Any) -> list[str]:
     values = [flag for flag in flags if isinstance(flag, str)]
     values.extend(["replay_fixture", "metadata_only", "manual_review_required", "no_live_fetch"])
     return sorted(set(values))
+
+
+def _raw_signal_type(fixture: dict[str, Any]) -> str:
+    metadata = fixture.get("reduced_metadata", {})
+    if isinstance(metadata, dict):
+        explicit = metadata.get("raw_signal_type")
+        if isinstance(explicit, str) and re.fullmatch(r"[a-z0-9_]+", explicit):
+            return explicit
+
+    title = str(fixture.get("title", ""))
+    summary = str(metadata.get("summary", "")) if isinstance(metadata, dict) else ""
+    combined = f"{title} {summary}".lower()
+    source_type = str(fixture.get("source_type", "")).lower()
+    if "model card" in combined:
+        return "model_card"
+    if "security" in combined or "advisory" in combined:
+        return "security_advisory"
+    if "changelog" in combined:
+        return "changelog"
+    if "release notes" in combined:
+        return "release_notes"
+    if source_type == "repository":
+        return "repository_release"
+    if source_type == "paper":
+        return "research_paper"
+    if source_type == "regulatory":
+        return "regulatory_metadata"
+    if source_type == "news":
+        return "news_metadata"
+    return "official_release" if source_type == "official" else "metadata_snapshot"
 
 
 def _validate_reduced_metadata(metadata: dict[str, Any], errors: list[str]) -> None:

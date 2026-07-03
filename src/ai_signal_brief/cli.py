@@ -30,6 +30,7 @@ from .topic_ranking import (
     write_ranked_topics_output,
 )
 from .topic_discovery import TopicDiscoveryError, discover_topics_from_mock, render_discovery_summary
+from .replay_discovery import ReplayDiscoveryError, discover_topics_from_replay
 
 
 REQUIRED_PROJECT_FILES = (
@@ -126,6 +127,30 @@ def discover_topics_command(
     print(render_discovery_summary(result))
     return 0
 
+
+def discover_topics_from_replay_command(
+    scan_date: str,
+    sources_path: str,
+    replay_dir: str,
+    output_path: str,
+    rank: bool,
+    timezone_name: str,
+) -> int:
+    try:
+        result = discover_topics_from_replay(
+            scan_date=scan_date,
+            sources_path=sources_path,
+            replay_dir=replay_dir,
+            output_path=output_path,
+            timezone_name=timezone_name,
+            rank=rank,
+            repo_root=project_root(),
+        )
+    except ReplayDiscoveryError as exc:
+        print(f"Replay topic discovery failed: {exc}")
+        return 1
+    print(render_discovery_summary(result))
+    return 0
 
 def rank_topics_command(
     path: str,
@@ -367,6 +392,16 @@ def build_parser() -> argparse.ArgumentParser:
     discover_topics_parser.add_argument("--timezone", default="Asia/Kuala_Lumpur", help="IANA timezone name for deterministic generated_at.")
     discover_topics_parser.add_argument("--quiet-ok", action="store_true", help="Allow empty mock observations to generate a quiet-day candidate.")
 
+    replay_topics_parser = subparsers.add_parser(
+        "discover-topics-from-replay",
+        help="Create topic candidates from local replay fixtures only.",
+    )
+    replay_topics_parser.add_argument("--date", required=True, help="Scan date in YYYY-MM-DD format.")
+    replay_topics_parser.add_argument("--sources", required=True, help="Path to disabled topic source registry JSON.")
+    replay_topics_parser.add_argument("--replay-dir", required=True, help="Directory containing local replay fixture JSON files.")
+    replay_topics_parser.add_argument("--out", required=True, help="Topic candidate output path under outputs/.")
+    replay_topics_parser.add_argument("--rank", action="store_true", help="Run offline ranking after generation.")
+    replay_topics_parser.add_argument("--timezone", default="Asia/Kuala_Lumpur", help="IANA timezone name for deterministic generated_at.")
     fetch_replay_parser = subparsers.add_parser(
         "fetch-source-replay",
         help="Convert a safe local replay fixture into a source observation without network access.",
@@ -478,6 +513,15 @@ def main(argv: list[str] | None = None) -> int:
             args.quiet_ok,
         )
 
+    if args.command == "discover-topics-from-replay":
+        return discover_topics_from_replay_command(
+            args.date,
+            args.sources,
+            args.replay_dir,
+            args.out,
+            args.rank,
+            args.timezone,
+        )
     if args.command == "fetch-source-replay":
         return fetch_source_replay_command(args.source_id, args.fixture)
     if args.command == "list-source-priorities":

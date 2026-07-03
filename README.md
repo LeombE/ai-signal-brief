@@ -33,6 +33,7 @@ Implemented so far:
 - manual GitHub Pages Preview workflow for sample data only
 - manual Topic Scan Preview workflow for mock topic-candidate artifacts only
 - replay-only fetch adapter skeleton for local safe fixtures only
+- replay-only topic discovery integration from local replay fixtures to reviewable topic candidate artifacts
 - publication, Pages planning, production Pages readiness, reviewed report staging, reviewed report dry-run helper command, daily topic discovery architecture, topic source registry and candidate schema examples, live-source discovery readiness, disabled live-source registry example, live-source registry extension planning, live fetch adapter interface planning, and release checklist documentation
 
 Not implemented yet:
@@ -81,6 +82,7 @@ Publication planning docs:
 - `docs/live-source-registry-extension-plan.md`
 - `docs/live-fetch-adapter-interface-plan.md`
 - `docs/fetch-replay-fixtures.md`
+- `docs/replay-topic-discovery.md`
 - `config/topic_sources.live.example.json`
 - `docs/release-checklist.md`
 
@@ -229,7 +231,7 @@ python -m ai_signal_brief dry-run-reviewed-report --date YYYY-MM-DD --report rep
 
 No package installation is required for the current offline workflow.
 
-Validation checks required fields, duplicate IDs, source references, ISO-8601 timestamps with timezones, English-language report output, source registry priority rules, official-source-first policy, topic source registry rules, topic candidate references, artifact shape, cross-file report/run/source consistency, and secret-like values in report/run/source/topic JSON. Offline mock topic discovery reads local observation fixtures, validates the topic source registry, writes candidate JSON under `outputs/`, validates generated candidates, and can run ranking without network access. Offline topic ranking validates candidates first, applies deterministic score normalization, preserves dedup evidence, and refuses unsafe output paths. Rendering, run metadata generation, quality gates, archive building, static site building, and public readiness auditing refuse invalid inputs.
+Validation checks required fields, duplicate IDs, source references, ISO-8601 timestamps with timezones, English-language report output, source registry priority rules, official-source-first policy, topic source registry rules, topic candidate references, artifact shape, cross-file report/run/source consistency, and secret-like values in report/run/source/topic JSON. Offline mock topic discovery reads local observation fixtures, validates the topic source registry, writes candidate JSON under `outputs/`, validates generated candidates, and can run ranking without network access. Replay topic discovery reads local replay fixtures only, keeps generated topics unresolved and manually reviewable, validates generated candidates, and can run ranking without network access. Offline topic ranking validates candidates first, applies deterministic score normalization, preserves dedup evidence, and refuses unsafe output paths. Rendering, run metadata generation, quality gates, archive building, static site building, and public readiness auditing refuse invalid inputs.
 
 ## Example Files
 

@@ -68,19 +68,56 @@ def discover_topics_from_mock(
     quiet_ok: bool = False,
     repo_root: str | Path | None = None,
 ) -> TopicDiscoveryResult:
+    source_registry = _load_valid_source_registry(sources_path)
+    mock_data = _load_mock_observations(mock_observations_path)
+    observations = mock_data.get("observations", [])
+    return discover_topics_from_observation_data(
+        scan_date=scan_date,
+        sources_path=sources_path,
+        source_registry=source_registry,
+        observations=observations,
+        output_path=output_path,
+        timezone_name=timezone_name,
+        rank=rank,
+        quiet_ok=quiet_ok,
+        repo_root=repo_root,
+        generation_mode="offline_mock_observations_only",
+        source_registry_label="config/topic_sources.example.json",
+        observation_safety_flag="mock_observation",
+        scan_id_prefix="mock-topic-scan",
+        unresolved_reason="Mock observation requires manual source or timing review before publication.",
+        unresolved_review_action="Verify public source timing and claim scope before promotion.",
+        observation_label="observations",
+    )
+
+
+def discover_topics_from_observation_data(
+    *,
+    scan_date: str,
+    sources_path: str | Path,
+    source_registry: dict[str, Any],
+    observations: list[Any],
+    output_path: str | Path,
+    timezone_name: str = "Asia/Kuala_Lumpur",
+    rank: bool = False,
+    quiet_ok: bool = False,
+    repo_root: str | Path | None = None,
+    generation_mode: str = "offline_mock_observations_only",
+    source_registry_label: str | None = None,
+    observation_safety_flag: str = "mock_observation",
+    scan_id_prefix: str = "mock-topic-scan",
+    unresolved_reason: str = "Mock observation requires manual source or timing review before publication.",
+    unresolved_review_action: str = "Verify public source timing and claim scope before promotion.",
+    observation_label: str = "observations",
+) -> TopicDiscoveryResult:
     root = Path(repo_root) if repo_root is not None else Path.cwd()
     _validate_date(scan_date)
     generated_at = _generated_at(scan_date, timezone_name)
-
-    source_registry = _load_valid_source_registry(sources_path)
-    source_ids = _registry_source_ids(source_registry)
-    mock_data = _load_mock_observations(mock_observations_path)
-    observations = mock_data.get("observations", [])
     if not isinstance(observations, list):
-        raise TopicDiscoveryError("mock observations must contain an observations array")
+        raise TopicDiscoveryError(f"{observation_label} must be an array")
     if not observations and not quiet_ok:
         raise TopicDiscoveryError("quiet-day observations require --quiet-ok")
-    _validate_mock_observations(mock_data, source_ids)
+    _validate_observations(observations, _registry_source_ids(source_registry), observation_label=observation_label)
 
     candidates = _build_topic_candidates(
         scan_date=scan_date,
@@ -89,6 +126,12 @@ def discover_topics_from_mock(
         source_registry=source_registry,
         observations=observations,
         quiet_ok=quiet_ok,
+        generation_mode=generation_mode,
+        source_registry_label=source_registry_label or str(sources_path).replace("\\", "/"),
+        observation_safety_flag=observation_safety_flag,
+        scan_id_prefix=scan_id_prefix,
+        unresolved_reason=unresolved_reason,
+        unresolved_review_action=unresolved_review_action,
     )
     _reject_unsafe_values(candidates)
 
@@ -109,7 +152,6 @@ def discover_topics_from_mock(
         ranked_summary = render_topic_ranking_summary(ranked_result, explain=False)
 
     return TopicDiscoveryResult(output_path=destination, candidates=candidates, ranked_summary=ranked_summary)
-
 
 def render_discovery_summary(result: TopicDiscoveryResult) -> str:
     lines = [
@@ -155,9 +197,13 @@ def _validate_mock_observations(data: dict[str, Any], source_ids: set[str]) -> N
     observations = data.get("observations")
     if not isinstance(observations, list):
         raise TopicDiscoveryError("mock observations must contain an observations array")
+    _validate_observations(observations, source_ids, observation_label="observations")
+
+
+def _validate_observations(observations: list[Any], source_ids: set[str], *, observation_label: str) -> None:
     seen: set[str] = set()
     for index, observation in enumerate(observations):
-        path = f"observations[{index}]"
+        path = f"{observation_label}[{index}]"
         if not isinstance(observation, dict):
             raise TopicDiscoveryError(f"{path} must be an object")
         _require_observation_fields(observation, path)
@@ -181,7 +227,6 @@ def _validate_mock_observations(data: dict[str, Any], source_ids: set[str]) -> N
             _require_score(observation, field, path)
         if observation.get("confidence") not in {"high", "medium", "low"}:
             raise TopicDiscoveryError(f"{path}.confidence must be high, medium, or low")
-
 
 def _require_observation_fields(observation: dict[str, Any], path: str) -> None:
     required = (
@@ -225,6 +270,12 @@ def _build_topic_candidates(
     source_registry: dict[str, Any],
     observations: list[Any],
     quiet_ok: bool,
+    generation_mode: str = "offline_mock_observations_only",
+    source_registry_label: str = "config/topic_sources.example.json",
+    observation_safety_flag: str = "mock_observation",
+    scan_id_prefix: str = "mock-topic-scan",
+    unresolved_reason: str = "Mock observation requires manual source or timing review before publication.",
+    unresolved_review_action: str = "Verify public source timing and claim scope before promotion.",
 ) -> dict[str, Any]:
     if not observations and quiet_ok:
         return _quiet_day_candidates(scan_date, generated_at, timezone_name)
@@ -240,12 +291,12 @@ def _build_topic_candidates(
         observation_id = str(observation["observation_id"])
         observation_to_topic[observation_id] = topic_id
         source_id = str(observation["source_id"])
-        source_observations.append(_source_observation_entry(observation))
+        source_observations.append(_source_observation_entry(observation, observation_safety_flag=observation_safety_flag))
         uncertainty_notes = list(observation.get("uncertainty_notes", []))
         candidate_status = str(observation["candidate_status"])
         if observation.get("published_at") is None and candidate_status != "quiet_day_note":
             candidate_status = "unresolved"
-            note = "Published time is not available in the mock observation."
+            note = "Published time is not available in the observation."
             if note not in uncertainty_notes:
                 uncertainty_notes.append(note)
         topic = {
@@ -267,7 +318,7 @@ def _build_topic_candidates(
             "uncertainty_notes": uncertainty_notes,
             "review_recommendation": "needs_source_review" if candidate_status == "unresolved" else "include",
             "review_required": True,
-            "safety_flags": list(observation.get("safety_flags", [])) + ["mock_observation", "manual_review_required"],
+            "safety_flags": list(observation.get("safety_flags", [])) + [observation_safety_flag, "manual_review_required"],
             "dedup_key": str(observation["dedup_key"]),
             "related_topic_ids": [],
         }
@@ -277,8 +328,8 @@ def _build_topic_candidates(
                 {
                     "id": "unresolved-" + topic_id,
                     "topic_id": topic_id,
-                    "reason": "Mock observation requires manual source or timing review before publication.",
-                    "review_action": "Verify public source timing and claim scope before promotion.",
+                    "reason": unresolved_reason,
+                    "review_action": unresolved_review_action,
                 }
             )
 
@@ -290,7 +341,7 @@ def _build_topic_candidates(
 
     return {
         "schema_version": TOPIC_CANDIDATES_SCHEMA_VERSION,
-        "scan_id": "mock-topic-scan-" + scan_date,
+        "scan_id": scan_id_prefix + "-" + scan_date,
         "scan_date": scan_date,
         "generated_at": generated_at,
         "timezone": timezone_name,
@@ -299,8 +350,8 @@ def _build_topic_candidates(
         "dedup_groups": dedup_groups,
         "unresolved_items": unresolved_items,
         "provenance": {
-            "generation_mode": "offline_mock_observations_only",
-            "source_registry": "config/topic_sources.example.json",
+            "generation_mode": generation_mode,
+            "source_registry": source_registry_label,
             "live_fetching": False,
             "publication_status": "not_published",
             "telegram_delivery": "not_connected",
@@ -310,7 +361,6 @@ def _build_topic_candidates(
             "production_pages_deploy": "not_configured",
         },
     }
-
 
 def _quiet_day_candidates(scan_date: str, generated_at: str, timezone_name: str) -> dict[str, Any]:
     topic_id = "topic-quiet-day-" + scan_date
@@ -368,7 +418,7 @@ def _quiet_day_candidates(scan_date: str, generated_at: str, timezone_name: str)
     }
 
 
-def _source_observation_entry(observation: dict[str, Any]) -> dict[str, Any]:
+def _source_observation_entry(observation: dict[str, Any], *, observation_safety_flag: str) -> dict[str, Any]:
     return {
         "observation_id": str(observation["observation_id"]),
         "source_id": str(observation["source_id"]),
@@ -385,11 +435,17 @@ def _source_observation_entry(observation: dict[str, Any]) -> dict[str, Any]:
             "models": list(observation.get("models", [])),
             "regions": list(observation.get("regions", [])),
         },
-        "content_hash": _content_hash(observation),
-        "source_confidence": str(observation.get("confidence", "medium")),
-        "safety_flags": list(observation.get("safety_flags", [])) + ["mock_observation"],
+        "content_hash": _observation_content_hash(observation),
+        "source_confidence": str(observation.get("source_confidence", observation.get("confidence", "medium"))),
+        "safety_flags": list(observation.get("safety_flags", [])) + [observation_safety_flag],
     }
 
+
+def _observation_content_hash(observation: dict[str, Any]) -> str:
+    value = observation.get("content_hash")
+    if isinstance(value, str) and re.fullmatch(r"[a-f0-9]{64}", value):
+        return value
+    return _content_hash(observation)
 
 def _material_score(observation: dict[str, Any]) -> int:
     score = int(observation["material_update_score"])
@@ -437,13 +493,23 @@ def _dedup_groups(topics: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def _registry_source_ids(source_registry: dict[str, Any]) -> set[str]:
-    return {str(source["id"]) for source in source_registry.get("sources", []) if isinstance(source, dict) and isinstance(source.get("id"), str)}
+    ids: set[str] = set()
+    for source in source_registry.get("sources", []):
+        if not isinstance(source, dict):
+            continue
+        source_id = _source_identifier(source)
+        if source_id:
+            ids.add(source_id)
+    return ids
 
 
 def _source_quality_by_id(source_registry: dict[str, Any]) -> dict[str, int]:
     quality: dict[str, int] = {}
     for source in source_registry.get("sources", []):
-        if not isinstance(source, dict) or not isinstance(source.get("id"), str):
+        if not isinstance(source, dict):
+            continue
+        source_id = _source_identifier(source)
+        if not source_id:
             continue
         source_type = str(source.get("source_type", ""))
         reliability = str(source.get("reliability_tier", ""))
@@ -452,9 +518,16 @@ def _source_quality_by_id(source_registry: dict[str, Any]) -> dict[str, int]:
             base = min(5, base + 1)
         elif reliability == "context":
             base = max(1, base - 1)
-        quality[source["id"]] = base
+        quality[source_id] = base
     return quality
 
+
+def _source_identifier(source: dict[str, Any]) -> str | None:
+    for field in ("id", "source_id"):
+        value = source.get(field)
+        if isinstance(value, str) and value:
+            return value
+    return None
 
 def _topic_id(observation: dict[str, Any]) -> str:
     seed = str(observation.get("observation_id") or observation.get("title") or observation.get("dedup_key"))
