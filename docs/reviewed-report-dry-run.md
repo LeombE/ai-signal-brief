@@ -1,6 +1,6 @@
 # Reviewed Report Dry-Run Workflow
 
-This document defines a safe local dry-run procedure for a future manually reviewed canonical report.
+This document defines a safe local dry-run procedure for a future manually reviewed canonical report. A future helper command interface is planned in `docs/reviewed-report-dry-run-command-plan.md`, but no helper command is implemented yet.
 
 It does not create a real report, migrate historical reports, deploy GitHub Pages, send Telegram messages, call OpenAI, generate images, create DOCX files, or schedule automation.
 
