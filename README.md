@@ -29,7 +29,7 @@ Implemented so far:
 - public readiness audit for tracked files
 - GitHub Actions CI definition for offline checks
 - manual GitHub Pages Preview workflow for sample data only
-- publication, Pages planning, production Pages readiness, reviewed report staging, reviewed report dry-run helper command, daily topic discovery architecture, and release checklist documentation
+- publication, Pages planning, production Pages readiness, reviewed report staging, reviewed report dry-run helper command, daily topic discovery architecture, topic source registry and candidate schema examples, and release checklist documentation
 
 Not implemented yet:
 
@@ -68,6 +68,7 @@ Publication planning docs:
 - `docs/reviewed-report-dry-run-command-plan.md`
 - `docs/first-reviewed-report-candidate-plan.md`
 - `docs/daily-topic-discovery-architecture.md`
+- `docs/topic-sources-and-candidates.md`
 - `docs/release-checklist.md`
 
 ## CI Overview
@@ -131,6 +132,7 @@ Initial schema drafts live in:
 
 - `schemas/report.schema.json`
 - `schemas/run.schema.json`
+- `schemas/topic-candidates.schema.json`
 
 Readable documentation lives in:
 
@@ -151,6 +153,7 @@ Readable documentation lives in:
 - `docs/reviewed-report-dry-run-command-plan.md`
 - `docs/first-reviewed-report-candidate-plan.md`
 - `docs/daily-topic-discovery-architecture.md`
+- `docs/topic-sources-and-candidates.md`
 - `docs/release-checklist.md`
 
 ## Local Verification
@@ -192,7 +195,9 @@ Validation checks required fields, duplicate IDs, source references, ISO-8601 ti
 - `examples/run.example.json`
 - `config/settings.example.json`
 - `config/sources.example.json`
+- `config/topic_sources.example.json`
 - `examples/reviewed-report-template/`
+- `examples/topic-candidates.example.json`
 
 These examples are public-safe placeholders. They do not contain secrets, private paths, historical generated reports, or live API credentials.
 

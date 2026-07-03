@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://leombe.github.io/ai-signal-brief/schemas/topic-candidates.schema.json",
+  "title": "AI Signal Brief Topic Candidates",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "scan_id", "scan_date", "generated_at", "timezone", "topics", "source_observations", "dedup_groups", "unresolved_items", "provenance"],
+  "properties": {
+    "schema_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "scan_id": {"type": "string", "minLength": 1},
+    "scan_date": {"type": "string", "format": "date"},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "timezone": {"type": "string", "minLength": 1},
+    "topics": {"type": "array", "items": {"$ref": "#/$defs/topic"}},
+    "source_observations": {"type": "array", "items": {"$ref": "#/$defs/source_observation"}},
+    "dedup_groups": {"type": "array", "items": {"$ref": "#/$defs/dedup_group"}},
+    "unresolved_items": {"type": "array", "items": {"$ref": "#/$defs/unresolved_item"}},
+    "provenance": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["source_registry", "generation_mode", "publication_status"],
+      "properties": {
+        "source_registry": {"type": "string"},
+        "generation_mode": {"type": "string"},
+        "publication_status": {"type": "string"}
+      }
+    }
+  },
+  "$defs": {
+    "topic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["topic_id", "topic_title", "candidate_status", "topic_type", "companies", "models", "regions", "source_observation_ids", "source_ids", "primary_source_ids", "material_update_score", "importance_score", "novelty_score", "source_quality_score", "confidence", "uncertainty_notes", "review_recommendation", "review_required", "safety_flags", "dedup_key", "related_topic_ids"],
+      "properties": {
+        "topic_id": {"type": "string", "minLength": 1},
+        "topic_title": {"type": "string", "minLength": 1},
+        "candidate_status": {"type": "string", "enum": ["new", "update", "follow_up", "duplicate", "unresolved", "rejected", "quiet_day_note"]},
+        "topic_type": {"type": "string", "enum": ["model_release", "product_release", "research", "benchmark", "developer_tooling", "security", "policy", "infrastructure", "company_strategy", "ecosystem", "other"]},
+        "companies": {"type": "array", "items": {"type": "string"}},
+        "models": {"type": "array", "items": {"type": "string"}},
+        "regions": {"type": "array", "items": {"type": "string"}},
+        "source_observation_ids": {"type": "array", "items": {"type": "string"}},
+        "source_ids": {"type": "array", "items": {"type": "string"}},
+        "primary_source_ids": {"type": "array", "items": {"type": "string"}},
+        "material_update_score": {"type": "integer", "minimum": 0, "maximum": 5},
+        "importance_score": {"type": "integer", "minimum": 0, "maximum": 5},
+        "novelty_score": {"type": "integer", "minimum": 0, "maximum": 5},
+        "source_quality_score": {"type": "integer", "minimum": 0, "maximum": 5},
+        "confidence": {"type": "string", "enum": ["high", "medium", "low"]},
+        "uncertainty_notes": {"type": "array", "items": {"type": "string"}},
+        "review_recommendation": {"type": "string", "enum": ["include", "monitor", "defer", "reject", "needs_source_review"]},
+        "review_required": {"type": "boolean"},
+        "safety_flags": {"type": "array", "items": {"type": "string"}},
+        "dedup_key": {"type": "string"},
+        "related_topic_ids": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "source_observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["observation_id", "source_id", "title", "url", "observed_at", "source_type", "summary", "safety_flags"],
+      "properties": {
+        "observation_id": {"type": "string", "minLength": 1},
+        "source_id": {"type": "string", "minLength": 1},
+        "title": {"type": "string", "minLength": 1},
+        "url": {"type": "string", "format": "uri"},
+        "observed_at": {"type": "string", "format": "date-time"},
+        "published_at": {"type": ["string", "null"], "format": "date-time"},
+        "retrieved_at": {"type": ["string", "null"], "format": "date-time"},
+        "source_type": {"type": "string", "enum": ["official", "paper", "repository", "regulatory", "news", "social", "other"]},
+        "raw_signal_type": {"type": "string"},
+        "summary": {"type": "string"},
+        "entities": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "companies": {"type": "array", "items": {"type": "string"}},
+            "models": {"type": "array", "items": {"type": "string"}},
+            "regions": {"type": "array", "items": {"type": "string"}}
+          }
+        },
+        "content_hash": {"type": ["string", "null"]},
+        "source_confidence": {"type": "string", "enum": ["high", "medium", "low"]},
+        "safety_flags": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "dedup_group": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dedup_key", "topic_ids", "canonical_topic_id", "reason"],
+      "properties": {
+        "dedup_key": {"type": "string"},
+        "topic_ids": {"type": "array", "items": {"type": "string"}},
+        "canonical_topic_id": {"type": "string"},
+        "reason": {"type": "string"}
+      }
+    },
+    "unresolved_item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "topic_id", "reason", "review_action"],
+      "properties": {
+        "id": {"type": "string"},
+        "topic_id": {"type": "string"},
+        "reason": {"type": "string"},
+        "review_action": {"type": "string"}
+      }
+    }
+  }
+}
