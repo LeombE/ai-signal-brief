@@ -64,6 +64,7 @@ Publication planning docs:
 - `docs/pages-deployment-plan.md`
 - `docs/production-pages-readiness.md`
 - `docs/reviewed-report-staging.md`
+- `docs/reviewed-report-dry-run.md`
 - `docs/release-checklist.md`
 
 ## CI Overview
@@ -119,7 +120,7 @@ Canonical and offline-preview outputs:
 - Static site: offline HTML/CSS generated from an archive
 - GitHub Pages Preview: manual sample static-site deployment from example JSON files only
 
-Telegram delivery, DOCX, generated image assets, production Pages deployment, and historical report migration may be added in later approved phases. Production Pages requirements are documented in `docs/production-pages-readiness.md`; future reviewed report staging rules are documented in `docs/reviewed-report-staging.md`.
+Telegram delivery, DOCX, generated image assets, production Pages deployment, and historical report migration may be added in later approved phases. Production Pages requirements are documented in `docs/production-pages-readiness.md`; future reviewed report staging rules are documented in `docs/reviewed-report-staging.md`, and local dry-run rules are documented in `docs/reviewed-report-dry-run.md`.
 
 ## Canonical Data Model
 
@@ -143,6 +144,7 @@ Readable documentation lives in:
 - `docs/pages-deployment-plan.md`
 - `docs/production-pages-readiness.md`
 - `docs/reviewed-report-staging.md`
+- `docs/reviewed-report-dry-run.md`
 - `docs/release-checklist.md`
 
 ## Local Verification

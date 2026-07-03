@@ -41,3 +41,6 @@ Use this checklist for each future report folder:
 - [ ] Quality gate passes.
 - [ ] Generated static page reviewed.
 - [ ] Rollback plan known.
+## Local Dry Run
+
+Before any future reviewed report is considered for publication, follow docs/reviewed-report-dry-run.md. Dry-run outputs belong under outputs/ and must not be committed.

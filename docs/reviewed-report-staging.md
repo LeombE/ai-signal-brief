@@ -90,7 +90,7 @@ Claim review should confirm that:
 
 ## Pages And Delivery Boundaries
 
-Production Pages publishing must not happen before manual review. A reviewed report should first be validated locally, archived locally, rendered into a static site locally, and inspected before any production Pages workflow is considered.
+Production Pages publishing must not happen before manual review. A reviewed report should first be validated locally, archived locally, rendered into a static site locally, and inspected before any production Pages workflow is considered. Use `docs/reviewed-report-dry-run.md` for the dry-run procedure.
 
 Telegram delivery must remain disconnected until the Pages URL for the reviewed report is verified.
 
