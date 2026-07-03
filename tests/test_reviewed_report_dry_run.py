@@ -12,6 +12,7 @@ TEMPLATE_DIR = ROOT / "examples" / "reviewed-report-template"
 REPORT_TEMPLATE = TEMPLATE_DIR / "report.template.json"
 RUN_TEMPLATE = TEMPLATE_DIR / "run.template.json"
 SOURCES = ROOT / "config" / "sources.example.json"
+RELATIVE_SOURCES = Path("config") / "sources.example.json"
 TEST_OUTPUT_ROOT = ROOT / "outputs" / "test-reviewed-dry-run-helper"
 WORKFLOWS = ROOT / ".github" / "workflows"
 
@@ -24,9 +25,9 @@ class ReviewedReportDryRunTests(unittest.TestCase):
 
             result = dry_run_reviewed_report(
                 date="2099-01-02",
-                report_path=report_path,
-                run_path=run_path,
-                sources_path=SOURCES,
+                report_path=_repo_relative(report_path),
+                run_path=_repo_relative(run_path),
+                sources_path=RELATIVE_SOURCES,
                 archive_out=_repo_relative(workspace / "archive"),
                 site_out=_repo_relative(workspace / "site"),
                 strict=True,
@@ -49,11 +50,11 @@ class ReviewedReportDryRunTests(unittest.TestCase):
                     "--date",
                     "2099-01-03",
                     "--report",
-                    str(report_path),
+                    str(_repo_relative(report_path)),
                     "--run",
-                    str(run_path),
+                    str(_repo_relative(run_path)),
                     "--sources",
-                    str(SOURCES),
+                    str(RELATIVE_SOURCES),
                     "--archive-out",
                     str(_repo_relative(workspace / "archive")),
                     "--site-out",
@@ -72,9 +73,9 @@ class ReviewedReportDryRunTests(unittest.TestCase):
 
             result = dry_run_reviewed_report(
                 date="2099-01-04",
-                report_path=report_path,
-                run_path=run_path,
-                sources_path=SOURCES,
+                report_path=_repo_relative(report_path),
+                run_path=_repo_relative(run_path),
+                sources_path=RELATIVE_SOURCES,
                 archive_out=_repo_relative(workspace / "archive"),
                 site_out=_repo_relative(site_out),
                 no_site=True,
@@ -140,9 +141,9 @@ class ReviewedReportDryRunTests(unittest.TestCase):
             with self.assertRaisesRegex(ReviewedDryRunError, "unsafe archive output"):
                 dry_run_reviewed_report(
                     date="2099-01-10",
-                    report_path=report_path,
-                    run_path=run_path,
-                    sources_path=SOURCES,
+                    report_path=_repo_relative(report_path),
+                    run_path=_repo_relative(run_path),
+                    sources_path=RELATIVE_SOURCES,
                     archive_out="not-outputs/reviewed-dry-run",
                     site_out=_repo_relative(workspace / "site"),
                     repo_root=ROOT,
@@ -277,9 +278,9 @@ Remove the local ignored output directory if the dry-run result is not acceptabl
 def _run_candidate(workspace: Path, report_date: str, report_path: Path, run_path: Path):
     return dry_run_reviewed_report(
         date=report_date,
-        report_path=report_path,
-        run_path=run_path,
-        sources_path=SOURCES,
+        report_path=_repo_relative(report_path),
+        run_path=_repo_relative(run_path),
+        sources_path=RELATIVE_SOURCES,
         archive_out=_repo_relative(workspace / "archive"),
         site_out=_repo_relative(workspace / "site"),
         strict=True,
