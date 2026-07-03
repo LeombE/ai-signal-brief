@@ -10,7 +10,7 @@ The goal is to produce a safe, auditable topic-candidate artifact that helps a h
 
 This document is an architecture plan only. It does not implement collectors, live source fetching, GitHub Actions schedules, OpenAI API usage, Telegram delivery, image generation, production Pages deployment, or historical migration.
 
-Future implementation must remain offline-safe until each capability is explicitly approved and reviewed. Live-source discovery readiness requirements are documented in `docs/live-source-discovery-readiness.md`.
+Future implementation must remain offline-safe until each capability is explicitly approved and reviewed. Live-source discovery readiness requirements are documented in `docs/live-source-discovery-readiness.md`, and future registry extension fields are documented in `docs/live-source-registry-extension-plan.md`.
 
 ## Topic Discovery Versus Report Publication
 
@@ -153,7 +153,7 @@ Expected behavior:
 
 ## Future CLI Commands
 
-Future live-source discovery commands remain unimplemented. Requirements and safety gates are documented in `docs/live-source-discovery-readiness.md`:
+Future live-source discovery commands remain unimplemented. Requirements and safety gates are documented in `docs/live-source-discovery-readiness.md`; registry extension planning is documented in `docs/live-source-registry-extension-plan.md`:
 
 ```powershell
 python -m ai_signal_brief topic-scan-readiness

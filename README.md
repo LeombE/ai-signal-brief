@@ -30,7 +30,7 @@ Implemented so far:
 - GitHub Actions CI definition for offline checks
 - manual GitHub Pages Preview workflow for sample data only
 - manual Topic Scan Preview workflow for mock topic-candidate artifacts only
-- publication, Pages planning, production Pages readiness, reviewed report staging, reviewed report dry-run helper command, daily topic discovery architecture, topic source registry and candidate schema examples, live-source discovery readiness, and release checklist documentation
+- publication, Pages planning, production Pages readiness, reviewed report staging, reviewed report dry-run helper command, daily topic discovery architecture, topic source registry and candidate schema examples, live-source discovery readiness, live-source registry extension planning, and release checklist documentation
 
 Not implemented yet:
 
@@ -74,6 +74,7 @@ Publication planning docs:
 - `docs/offline-mock-topic-discovery.md`
 - `docs/topic-scan-preview-workflow.md`
 - `docs/live-source-discovery-readiness.md`
+- `docs/live-source-registry-extension-plan.md`
 - `docs/release-checklist.md`
 
 ## CI Overview
@@ -149,7 +150,7 @@ Canonical and offline-preview outputs:
 
 Telegram delivery, DOCX, generated image assets, production Pages deployment, and historical report migration may be added in later approved phases. Production Pages requirements are documented in `docs/production-pages-readiness.md`; future reviewed report staging rules are documented in `docs/reviewed-report-staging.md`, and local dry-run rules are documented in `docs/reviewed-report-dry-run.md`; a dry-run helper command plan is documented in `docs/reviewed-report-dry-run-command-plan.md`, first-candidate selection rules are documented in `docs/first-reviewed-report-candidate-plan.md`, future daily topic discovery architecture is documented in `docs/daily-topic-discovery-architecture.md`, offline mock topic discovery is documented in `docs/offline-mock-topic-discovery.md`, and live-source readiness is documented in `docs/live-source-discovery-readiness.md`.
 
-The first manual `Topic Scan Preview` run on `main` completed successfully. It uploaded one short-lived `topic-candidates-preview` artifact containing `topic-candidates.json`, and the artifact was manually inspected as mock placeholder output only. Live-source discovery remains unimplemented; future requirements and safety gates are documented in `docs/live-source-discovery-readiness.md`.
+The first manual `Topic Scan Preview` run on `main` completed successfully. It uploaded one short-lived `topic-candidates-preview` artifact containing `topic-candidates.json`, and the artifact was manually inspected as mock placeholder output only. Live-source discovery remains unimplemented; future requirements and safety gates are documented in `docs/live-source-discovery-readiness.md`, and future registry extension fields are documented in `docs/live-source-registry-extension-plan.md`.
 
 ## Canonical Data Model
 
