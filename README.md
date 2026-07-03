@@ -29,7 +29,7 @@ Implemented so far:
 - public readiness audit for tracked files
 - GitHub Actions CI definition for offline checks
 - manual GitHub Pages Preview workflow for sample data only
-- publication, Pages planning, production Pages readiness, reviewed report staging, reviewed report dry-run helper command, and release checklist documentation
+- publication, Pages planning, production Pages readiness, reviewed report staging, reviewed report dry-run helper command, daily topic discovery architecture, and release checklist documentation
 
 Not implemented yet:
 
@@ -67,6 +67,7 @@ Publication planning docs:
 - `docs/reviewed-report-dry-run.md`
 - `docs/reviewed-report-dry-run-command-plan.md`
 - `docs/first-reviewed-report-candidate-plan.md`
+- `docs/daily-topic-discovery-architecture.md`
 - `docs/release-checklist.md`
 
 ## CI Overview
@@ -122,7 +123,7 @@ Canonical and offline-preview outputs:
 - Static site: offline HTML/CSS generated from an archive
 - GitHub Pages Preview: manual sample static-site deployment from example JSON files only
 
-Telegram delivery, DOCX, generated image assets, production Pages deployment, and historical report migration may be added in later approved phases. Production Pages requirements are documented in `docs/production-pages-readiness.md`; future reviewed report staging rules are documented in `docs/reviewed-report-staging.md`, and local dry-run rules are documented in `docs/reviewed-report-dry-run.md`; a dry-run helper command plan is documented in `docs/reviewed-report-dry-run-command-plan.md`, and first-candidate selection rules are documented in `docs/first-reviewed-report-candidate-plan.md`.
+Telegram delivery, DOCX, generated image assets, production Pages deployment, and historical report migration may be added in later approved phases. Production Pages requirements are documented in `docs/production-pages-readiness.md`; future reviewed report staging rules are documented in `docs/reviewed-report-staging.md`, and local dry-run rules are documented in `docs/reviewed-report-dry-run.md`; a dry-run helper command plan is documented in `docs/reviewed-report-dry-run-command-plan.md`, first-candidate selection rules are documented in `docs/first-reviewed-report-candidate-plan.md`, and future daily topic discovery architecture is documented in `docs/daily-topic-discovery-architecture.md`.
 
 ## Canonical Data Model
 
@@ -149,6 +150,7 @@ Readable documentation lives in:
 - `docs/reviewed-report-dry-run.md`
 - `docs/reviewed-report-dry-run-command-plan.md`
 - `docs/first-reviewed-report-candidate-plan.md`
+- `docs/daily-topic-discovery-architecture.md`
 - `docs/release-checklist.md`
 
 ## Local Verification
@@ -200,7 +202,7 @@ Near-term phases:
 
 1. Keep CI passing and documentation aligned with the public repository state.
 2. Keep Pages sample preview limited to sample/example data until production publication is approved.
-3. Add source ingestion with official-source priority.
+3. Plan and then add daily topic discovery with official-source priority.
 4. Add deduplication and material-update detection.
 5. Stage future manually reviewed English canonical reports under `reports-reviewed/` only after review.
 6. Use `docs/production-pages-readiness.md` before approving production GitHub Pages deployment.
