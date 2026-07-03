@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0.0",
+  "source_policy": "",
+  "allowed_source_types": [
+    "official",
+    "unsupported_type"
+  ],
+  "allowed_fetch_modes": [
+    "manual_review",
+    "live_fetch"
+  ],
+  "categories": [
+    {
+      "id": "official_company_announcements",
+      "priority": 0,
+      "reliability_tier": "unknown",
+      "description": "Bad category."
+    },
+    {
+      "id": "official_company_announcements",
+      "priority": 1,
+      "reliability_tier": "primary",
+      "description": "Duplicate category."
+    }
+  ],
+  "sources": [
+    {
+      "id": "duplicate-source",
+      "title": "Invalid local source",
+      "publisher": "Invalid Publisher",
+      "url": "http://localhost/source",
+      "source_type": "unsupported_type",
+      "category_id": "missing-category",
+      "priority": 0,
+      "reliability_tier": "unknown",
+      "expected_update_frequency": "",
+      "allowed_fetch_mode": "live_fetch",
+      "attribution_requirements": "",
+      "safety_notes": ""
+    },
+    {
+      "id": "duplicate-source",
+      "title": "Invalid non-HTTPS source",
+      "publisher": "Invalid Publisher",
+      "url": "ftp://example.com/source",
+      "source_type": "official",
+      "category_id": "official_company_announcements",
+      "priority": 1,
+      "reliability_tier": "primary",
+      "expected_update_frequency": "daily",
+      "allowed_fetch_mode": "manual_review",
+      "attribution_requirements": "Cite the source.",
+      "safety_notes": "Invalid fixture only."
+    }
+  ]
+}

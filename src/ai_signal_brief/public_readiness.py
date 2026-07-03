@@ -57,6 +57,8 @@ ALLOWLIST_BY_FILE: dict[str, set[str]] = {
     "tests/fixtures/sources.invalid.json": {"secret_like", "secret_assignment", "local_path"},
     "tests/fixtures/run.secret-like.json": {"secret_like", "secret_assignment", "chat_reference"},
     "tests/fixtures/report.mistaken-prompt.json": {"mistaken_prompt"},
+    "tests/fixtures/topic-candidates.secret-like.json": {"secret_like", "secret_assignment"},
+    "tests/fixtures/topic-candidates.private-path.json": {"local_path"},
 }
 
 

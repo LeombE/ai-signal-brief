@@ -1,0 +1,135 @@
+{
+  "schema_version": "1.0.0",
+  "scan_id": "topic-scan-2099-01-03-example",
+  "scan_date": "2099-01-03",
+  "generated_at": "2099-01-03T04:07:00+08:00",
+  "timezone": "Asia/Kuala_Lumpur",
+  "topics": [
+    {
+      "topic_id": "topic-example-model-card-update",
+      "topic_title": "ExampleAI Labs publishes an example model-card update",
+      "candidate_status": "unresolved",
+      "topic_type": "model_release",
+      "companies": [
+        "ExampleAI Labs"
+      ],
+      "models": [
+        "Example Model 1"
+      ],
+      "regions": [
+        "global"
+      ],
+      "source_observation_ids": [
+        "obs-example-model-card"
+      ],
+      "source_ids": [
+        "example-model-card-source"
+      ],
+      "primary_source_ids": [
+        "example-model-card-source"
+      ],
+      "material_update_score": 3,
+      "importance_score": 9,
+      "novelty_score": 3,
+      "source_quality_score": 4,
+      "confidence": "medium",
+      "uncertainty_notes": [
+        "Placeholder example only. No real current news claim is being made."
+      ],
+      "review_recommendation": "needs_source_review",
+      "review_required": true,
+      "safety_flags": [
+        "placeholder_example",
+        "manual_review_required"
+      ],
+      "dedup_key": "exampleai-labs-example-model-1-model-card",
+      "related_topic_ids": []
+    },
+    {
+      "topic_id": "topic-example-quiet-day-note",
+      "topic_title": "Quiet-day placeholder when no candidate clears the review threshold",
+      "candidate_status": "quiet_day_note",
+      "topic_type": "other",
+      "companies": [],
+      "models": [],
+      "regions": [],
+      "source_observation_ids": [],
+      "source_ids": [],
+      "primary_source_ids": [],
+      "material_update_score": 0,
+      "importance_score": 0,
+      "novelty_score": 0,
+      "source_quality_score": 0,
+      "confidence": "low",
+      "uncertainty_notes": [
+        "Quiet-day note is valid when no sourced topic should become a report candidate."
+      ],
+      "review_recommendation": "defer",
+      "review_required": true,
+      "safety_flags": [
+        "quiet_day",
+        "no_publication_candidate"
+      ],
+      "dedup_key": "quiet-day-2099-01-03",
+      "related_topic_ids": []
+    }
+  ],
+  "source_observations": [
+    {
+      "observation_id": "obs-example-model-card",
+      "source_id": "example-model-card-source",
+      "title": "Example Model 1 model-card placeholder",
+      "url": "https://example.com/example-model-card",
+      "observed_at": "2099-01-03T04:05:00+08:00",
+      "published_at": null,
+      "retrieved_at": null,
+      "source_type": "repository",
+      "raw_signal_type": "model_card",
+      "summary": "Placeholder observation used to demonstrate topic discovery structure.",
+      "entities": {
+        "companies": [
+          "ExampleAI Labs"
+        ],
+        "models": [
+          "Example Model 1"
+        ],
+        "regions": [
+          "global"
+        ]
+      },
+      "content_hash": null,
+      "source_confidence": "medium",
+      "safety_flags": [
+        "placeholder_example",
+        "manual_review_required"
+      ]
+    }
+  ],
+  "dedup_groups": [
+    {
+      "dedup_key": "exampleai-labs-example-model-1-model-card",
+      "topic_ids": [
+        "topic-example-model-card-update"
+      ],
+      "canonical_topic_id": "topic-example-model-card-update",
+      "reason": "Single placeholder candidate; no duplicate observations in the example."
+    }
+  ],
+  "unresolved_items": [
+    {
+      "id": "unresolved-example-model-card-date",
+      "topic_id": "topic-example-model-card-update",
+      "reason": "The example does not include a source-declared publication time.",
+      "review_action": "Keep unresolved until a public source date is manually verified."
+    }
+  ],
+  "provenance": {
+    "source_registry": "config/topic_sources.example.json",
+    "generation_mode": "placeholder_example_only",
+    "publication_status": "not_published",
+    "telegram_delivery": "not_connected",
+    "openai_api_usage": "not_configured",
+    "image_generation": "not_configured",
+    "production_pages_deploy": "not_configured"
+  }
+}

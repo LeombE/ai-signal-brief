@@ -21,14 +21,18 @@ from .validation import (
     validate_run_path,
     validate_sources_path,
 )
+from .topic_validation import validate_topic_sources_path, validate_topics_path
 
 
 REQUIRED_PROJECT_FILES = (
     "schemas/report.schema.json",
     "schemas/run.schema.json",
+    "schemas/topic-candidates.schema.json",
     "examples/report.example.json",
     "examples/run.example.json",
+    "examples/topic-candidates.example.json",
     "config/sources.example.json",
+    "config/topic_sources.example.json",
 )
 
 
@@ -275,6 +279,15 @@ def build_parser() -> argparse.ArgumentParser:
     sources_parser = subparsers.add_parser("validate-sources", help="Validate a source registry JSON file.")
     sources_parser.add_argument("path", help="Path to source registry JSON.")
 
+    topic_sources_parser = subparsers.add_parser(
+        "validate-topic-sources",
+        help="Validate a topic discovery source registry JSON file.",
+    )
+    topic_sources_parser.add_argument("path", help="Path to topic source registry JSON.")
+
+    topics_parser = subparsers.add_parser("validate-topics", help="Validate a topic candidate JSON file.")
+    topics_parser.add_argument("path", help="Path to topic candidate JSON.")
+
     priorities_parser = subparsers.add_parser("list-source-priorities", help="List source category priorities.")
     priorities_parser.add_argument(
         "--path",
@@ -359,6 +372,12 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "validate-sources":
         return print_validation_result("Source registry", validate_sources_path(args.path))
+
+    if args.command == "validate-topic-sources":
+        return print_validation_result("Topic source registry", validate_topic_sources_path(args.path))
+
+    if args.command == "validate-topics":
+        return print_validation_result("Topic candidates", validate_topics_path(args.path))
 
     if args.command == "list-source-priorities":
         return list_source_priorities(args.path)

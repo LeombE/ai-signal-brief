@@ -133,31 +133,48 @@ Proposed topic candidate fields:
 - `review_required`: boolean
 - `safety_flags`
 
-## Future CLI Commands
+## Current Offline Validation Commands
 
-Future commands, not implemented in this phase:
+The current implementation includes validation only. These commands are offline-only and do not fetch, scrape, rank, schedule, publish, send Telegram messages, call OpenAI APIs, generate images, or create DOCX files.
 
 ```powershell
-python -m ai_signal_brief discover-topics --date YYYY-MM-DD --sources config/topic_sources.example.json --out outputs/topic-candidates/YYYY-MM-DD.json
-python -m ai_signal_brief validate-topics outputs/topic-candidates/YYYY-MM-DD.json
-python -m ai_signal_brief rank-topics outputs/topic-candidates/YYYY-MM-DD.json
-python -m ai_signal_brief topic-scan-readiness
+python -m ai_signal_brief validate-topic-sources config/topic_sources.example.json
+python -m ai_signal_brief validate-topics examples/topic-candidates.example.json
 ```
 
 Expected behavior:
 
+- `validate-topic-sources` validates source registry fields, unique IDs, source type compatibility, source/category references, priorities, reliability tiers, fetch modes, public HTTPS URLs, and no-secret rules.
+- `validate-topics` validates candidate fields, source observation references, source IDs, dedup groups, unresolved items, score ranges, timestamp shape, safety markers, and no-secret rules.
+
+## Future CLI Commands
+
+Future live-discovery commands remain unimplemented:
+
+```powershell
+python -m ai_signal_brief discover-topics --date YYYY-MM-DD --sources config/topic_sources.example.json --out outputs/topic-candidates/YYYY-MM-DD.json
+python -m ai_signal_brief rank-topics outputs/topic-candidates/YYYY-MM-DD.json
+python -m ai_signal_brief topic-scan-readiness
+```
+
+Expected future behavior:
+
 - `discover-topics` writes local candidate artifacts only.
-- `validate-topics` validates schema, source references, timestamps, safety flags, and no-secret rules.
 - `rank-topics` ranks existing candidate artifacts without fetching live data.
 - `topic-scan-readiness` checks config, schema files, output paths, source policy, and safety settings before any scheduled run.
 
-## Future Implementation Files
+## Current And Future Implementation Files
 
-Future files, not created in this phase:
+Current validation and example files:
 
 - `config/topic_sources.example.json`
 - `schemas/topic-candidates.schema.json`
 - `examples/topic-candidates.example.json`
+- `src/ai_signal_brief/topic_validation.py`
+- `tests/test_topic_validation_cli.py`
+
+Future files, not created yet:
+
 - `src/ai_signal_brief/topic_discovery.py`
 - `tests/test_topic_discovery.py`
 - `.github/workflows/daily-topic-scan.yml`

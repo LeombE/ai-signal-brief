@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0.0",
+  "scan_id": "",
+  "scan_date": "not-a-date",
+  "generated_at": "not-a-timestamp",
+  "timezone": "",
+  "topics": "not-an-array",
+  "source_observations": "not-an-array",
+  "dedup_groups": "not-an-array",
+  "unresolved_items": "not-an-array",
+  "provenance": {}
+}

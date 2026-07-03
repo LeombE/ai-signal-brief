@@ -145,15 +145,25 @@ Future topic discovery must preserve these boundaries:
 - no production Pages deployment from topic candidates alone
 - no automatic report publication
 
+## Offline Validation Commands
+
+Topic source and topic candidate validation is implemented as offline-only CLI checks. These commands load local JSON files, validate structure and references, reject secret-like or private markers, and do not fetch live sources.
+
+```powershell
+python -m ai_signal_brief validate-topic-sources config/topic_sources.example.json
+python -m ai_signal_brief validate-topics examples/topic-candidates.example.json
+```
+
+The topic source registry validator checks required fields, unique category/source IDs, allowed source types, category references, positive priorities, reliability tiers, fetch modes, public HTTPS URLs, and no private/local or secret-like markers.
+
+The topic candidate validator checks required top-level fields, ISO-8601 timestamps with timezones, unique topic/source observation IDs, source and observation references, score ranges, candidate status, confidence, review flags, unresolved and quiet-day behavior, and no private/local or secret-like markers.
+
 ## Future Work
 
-Future implementation should add validation logic and CLI commands only after the schema and examples are reviewed.
-
-Planned future commands remain unimplemented:
+Live discovery, ranking, readiness checks, scheduled scans, and publication are still unimplemented. Planned future commands remain separate from the current validators:
 
 ```powershell
 python -m ai_signal_brief discover-topics --date YYYY-MM-DD --sources config/topic_sources.example.json --out outputs/topic-candidates/YYYY-MM-DD.json
-python -m ai_signal_brief validate-topics outputs/topic-candidates/YYYY-MM-DD.json
 python -m ai_signal_brief rank-topics outputs/topic-candidates/YYYY-MM-DD.json
 python -m ai_signal_brief topic-scan-readiness
 ```
