@@ -116,6 +116,16 @@ This is not final publication content. It was manually rewritten in English from
 - Generated output handling: `outputs/` remains generated local output only and must not be committed.
 - Remaining page review items: final browser-based visual inspection should still be done before any future PR or production Pages publication.
 
+## Pre-PR Audit
+
+- Diff against `main` was reviewed before adding the PR draft.
+- Initial candidate diff included only `report.json`, `run.json`, and `review.md` under `reports-reviewed/2026/06/24/`.
+- No unrelated project files were present in the candidate diff.
+- Generated local outputs remained under `outputs/` and were ignored by Git.
+- Candidate files and generated dry-run outputs were scanned for private paths, credentials, token-like strings, old builder references, raw historical prose, and mistaken prompt references.
+- The only generated-output path-style finding was an expected static site page reference inside ignored local output, not committed candidate content.
+- Final PR draft was prepared as `reports-reviewed/2026/06/24/pr-draft.md` and remains a local candidate artifact until a later phase approves push or PR creation.
+
 ## Rollback Plan
 
 If any validation or manual review fails, keep this candidate branch unpushed and unmerged, or revert the candidate commit. Keep the public sample Pages preview unchanged until a reviewed candidate is explicitly approved for production publication.
