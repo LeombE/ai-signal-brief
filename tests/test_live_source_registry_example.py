@@ -1,14 +1,19 @@
 import json
+import socket
 import re
 import unittest
 from pathlib import Path
 from typing import Any
+
+from ai_signal_brief.topic_validation import validate_topic_sources_path
 from urllib.parse import urlparse
+from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parents[1]
 LIVE_REGISTRY = ROOT / "config" / "topic_sources.live.example.json"
 WORKFLOW = ROOT / ".github" / "workflows" / "topic-scan-preview.yml"
+FIXTURES = ROOT / "tests" / "fixtures"
 REQUIRED_LIVE_FIELDS = {
     "source_id",
     "title",
@@ -55,6 +60,11 @@ class LiveSourceRegistryExampleTests(unittest.TestCase):
         self.assertEqual(data["source_policy"], "official_sources_first")
         self.assertTrue(data["categories"])
         self.assertTrue(data["sources"])
+
+    def test_live_source_registry_passes_topic_source_validation(self) -> None:
+        result = validate_topic_sources_path(LIVE_REGISTRY)
+
+        self.assertTrue(result.ok, result.errors)
 
     def test_all_expected_categories_are_represented(self) -> None:
         data = _load_json(LIVE_REGISTRY)
@@ -109,6 +119,45 @@ class LiveSourceRegistryExampleTests(unittest.TestCase):
         self.assertIsNone(re.search(r"\bsk-(?:proj-)?[A-Za-z0-9_-]{20,}\b", content))
         self.assertIsNone(re.search(r"\b\d{6,}:[A-Za-z0-9_-]{20,}\b", content))
         self.assertIsNone(re.search(r"\b[A-Za-z]:\\", content))
+
+    def test_invalid_live_enabled_fixture_fails(self) -> None:
+        result = validate_topic_sources_path(FIXTURES / "topic_sources_live_enabled_invalid.json")
+
+        self.assertFalse(result.ok)
+        self.assertTrue(any("enabled" in error and "false" in error for error in result.errors))
+
+    def test_invalid_private_url_fixture_fails(self) -> None:
+        result = validate_topic_sources_path(FIXTURES / "topic_sources_live_private_url_invalid.json")
+
+        self.assertFalse(result.ok)
+        self.assertTrue(any("query strings" in error or "private" in error for error in result.errors))
+
+    def test_invalid_secret_like_fixture_fails(self) -> None:
+        result = validate_topic_sources_path(FIXTURES / "topic_sources_live_secret_like_invalid.json")
+
+        self.assertFalse(result.ok)
+        self.assertTrue(any("secret-like" in error.lower() for error in result.errors))
+
+    def test_invalid_missing_rate_limit_fixture_fails(self) -> None:
+        result = validate_topic_sources_path(FIXTURES / "topic_sources_live_missing_rate_limit_invalid.json")
+
+        self.assertFalse(result.ok)
+        joined = "\n".join(result.errors)
+        self.assertIn("max_requests_per_run", joined)
+        self.assertIn("timeout_seconds", joined)
+
+    def test_invalid_missing_manual_review_fixture_fails(self) -> None:
+        result = validate_topic_sources_path(FIXTURES / "topic_sources_live_missing_manual_review_invalid.json")
+
+        self.assertFalse(result.ok)
+        self.assertTrue(any("manual_review_required" in error for error in result.errors))
+
+    def test_validation_does_not_call_network(self) -> None:
+        def fail_network(*args: object, **kwargs: object) -> None:
+            raise AssertionError("network call attempted")
+
+        with patch.object(socket, "create_connection", side_effect=fail_network):
+            self.assertTrue(validate_topic_sources_path(LIVE_REGISTRY).ok)
 
     def test_topic_scan_preview_workflow_remains_manual_only(self) -> None:
         workflow = WORKFLOW.read_text(encoding="utf-8")

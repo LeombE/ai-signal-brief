@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
@@ -65,6 +65,7 @@ ALLOWLIST_BY_FILE: dict[str, set[str]] = {
     "tests/fixtures/topic-candidates.private-path.json": {"local_path"},
     "tests/fixtures/topic_observations.private_path.json": {"local_path"},
     "tests/fixtures/topic_observations.secret_like.json": {"secret_like", "secret_assignment"},
+    "tests/fixtures/topic_sources_live_secret_like_invalid.json": {"secret_like"},
 }
 
 

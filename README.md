@@ -198,6 +198,7 @@ python -m ai_signal_brief validate-report examples/report.example.json
 python -m ai_signal_brief validate-run examples/run.example.json
 python -m ai_signal_brief validate-sources config/sources.example.json
 python -m ai_signal_brief validate-topic-sources config/topic_sources.example.json
+python -m ai_signal_brief validate-topic-sources config/topic_sources.live.example.json
 python -m ai_signal_brief validate-topics examples/topic-candidates.example.json
 python -m ai_signal_brief rank-topics examples/topic-candidates.example.json --explain
 python -m ai_signal_brief discover-topics --date 2026-06-24 --sources config/topic_sources.example.json --mock-observations tests/fixtures/topic_observations.valid.json --out outputs/topic-candidates/2026-06-24.json --rank

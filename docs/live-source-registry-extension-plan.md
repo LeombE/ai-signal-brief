@@ -21,7 +21,7 @@ A public-safe disabled-by-default example registry now lives at:
 config/topic_sources.live.example.json
 ```
 
-This file is an example only. It contains no enabled live sources, does not trigger fetching, and does not change any workflow. Every example source keeps `enabled: false`, `manual_review_required: true`, and `attribution_required: true`.
+This file is an example only. It contains no enabled live sources, does not trigger fetching, and does not change any workflow. Every example source keeps `enabled: false`, `manual_review_required: true`, and `attribution_required: true`. It is validated offline with `python -m ai_signal_brief validate-topic-sources config/topic_sources.live.example.json`.
 
 ## Future Registry Fields
 

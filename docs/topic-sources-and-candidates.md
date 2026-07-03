@@ -156,7 +156,7 @@ python -m ai_signal_brief rank-topics examples/topic-candidates.example.json --e
 python -m ai_signal_brief discover-topics --date 2026-06-24 --sources config/topic_sources.example.json --mock-observations tests/fixtures/topic_observations.valid.json --out outputs/topic-candidates/2026-06-24.json --rank
 ```
 
-The topic source registry validator checks required fields, unique category/source IDs, allowed source types, category references, positive priorities, reliability tiers, fetch modes, public HTTPS URLs, and no private/local or secret-like markers.
+The topic source registry validator checks required fields, unique category/source IDs, allowed source types, category references, positive priorities, reliability tiers, fetch modes, public HTTPS URLs, and no private/local or secret-like markers. `config/topic_sources.live.example.json` validates through the same CLI with additional disabled-live-source field checks.
 
 The topic candidate validator checks required top-level fields, ISO-8601 timestamps with timezones, unique topic/source observation IDs, source and observation references, score ranges, candidate status, confidence, review flags, unresolved and quiet-day behavior, and no private/local or secret-like markers.
 

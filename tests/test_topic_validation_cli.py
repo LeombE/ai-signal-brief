@@ -19,6 +19,11 @@ class TopicValidationCliTests(unittest.TestCase):
 
         self.assertTrue(result.ok, result.errors)
 
+    def test_valid_live_topic_source_registry_passes(self) -> None:
+        result = validate_topic_sources_path(ROOT / "config" / "topic_sources.live.example.json")
+
+        self.assertTrue(result.ok, result.errors)
+
     def test_valid_topic_candidates_pass(self) -> None:
         result = validate_topics_path(ROOT / "examples" / "topic-candidates.example.json")
 

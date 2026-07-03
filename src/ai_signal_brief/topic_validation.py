@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from pathlib import Path
 from typing import Any
@@ -37,6 +37,30 @@ TOPIC_SOURCE_ENTRY_REQUIRED_FIELDS = (
     "allowed_fetch_mode",
     "attribution_requirements",
     "safety_notes",
+)
+LIVE_TOPIC_SOURCE_ENTRY_REQUIRED_FIELDS = (
+    "source_id",
+    "title",
+    "publisher",
+    "source_type",
+    "category_id",
+    "priority",
+    "reliability_tier",
+    "url",
+    "enabled",
+    "fetch_mode",
+    "allowed_fetch_mode",
+    "expected_update_frequency",
+    "max_requests_per_run",
+    "min_seconds_between_requests",
+    "timeout_seconds",
+    "cache_ttl_minutes",
+    "attribution_required",
+    "manual_review_required",
+    "robots_policy_note",
+    "rate_limit_note",
+    "safety_notes",
+    "disallowed_content_rules",
 )
 TOPIC_CANDIDATES_REQUIRED_FIELDS = (
     "schema_version",
@@ -85,6 +109,17 @@ SOURCE_OBSERVATION_REQUIRED_FIELDS = (
 )
 VALID_RELIABILITY_TIERS = {"primary", "primary_or_context", "context"}
 VALID_FETCH_MODES = {"manual_review", "public_feed", "repository_metadata", "official_page_snapshot", "manual_snapshot", "disabled"}
+VALID_LIVE_FETCH_MODES = {
+    "disabled",
+    "manual_snapshot",
+    "official_feed",
+    "official_page_metadata",
+    "repository_release_metadata",
+    "paper_metadata",
+    "advisory_metadata",
+    "regulatory_metadata",
+    "news_metadata",
+}
 VALID_CANDIDATE_STATUSES = {"new", "update", "follow_up", "duplicate", "unresolved", "rejected", "quiet_day_note"}
 VALID_TOPIC_TYPES = {"model_release", "product_release", "research", "benchmark", "developer_tooling", "security", "policy", "infrastructure", "company_strategy", "ecosystem", "other"}
 VALID_CONFIDENCE = {"high", "medium", "low"}
@@ -133,6 +168,7 @@ def validate_topic_sources(data: Any) -> list[str]:
 
     allowed_types = _validate_allowed_source_types(data.get("allowed_source_types"), errors)
     allowed_fetch_modes = set(data.get("allowed_fetch_modes", [])) if isinstance(data.get("allowed_fetch_modes"), list) else VALID_FETCH_MODES
+    live_registry = _is_live_source_registry(data)
 
     categories = data.get("categories")
     category_ids: set[str] = set()
@@ -148,7 +184,10 @@ def validate_topic_sources(data: Any) -> list[str]:
         errors.append("$.sources must be a non-empty array")
     else:
         for index, source in enumerate(sources):
-            _validate_topic_source_entry(source, index, category_ids, allowed_types, allowed_fetch_modes, source_ids, errors)
+            if live_registry:
+                _validate_live_topic_source_entry(source, index, category_ids, allowed_types, allowed_fetch_modes, source_ids, errors)
+            else:
+                _validate_topic_source_entry(source, index, category_ids, allowed_types, allowed_fetch_modes, source_ids, errors)
 
     return errors
 
@@ -200,6 +239,16 @@ def validate_topics(data: Any, *, known_source_ids: set[str] | None = None) -> l
             _validate_unresolved_item(item, index, topic_ids, errors)
 
     return errors
+
+
+def _is_live_source_registry(data: dict[str, Any]) -> bool:
+    if data.get("registry_status") == "example_disabled_only":
+        return True
+    sources = data.get("sources")
+    return isinstance(sources, list) and any(
+        isinstance(source, dict) and ("source_id" in source or "fetch_mode" in source or "max_requests_per_run" in source)
+        for source in sources
+    )
 
 
 def _validate_allowed_source_types(value: Any, errors: list[str]) -> set[str]:
@@ -256,6 +305,49 @@ def _validate_topic_source_entry(source: Any, index: int, category_ids: set[str]
     _require_non_empty_string(source, "attribution_requirements", path, errors)
     _require_non_empty_string(source, "safety_notes", path, errors)
     _require_public_https_url(source, "url", path, errors)
+
+
+def _validate_live_topic_source_entry(source: Any, index: int, category_ids: set[str], allowed_types: set[str], allowed_fetch_modes: set[str], source_ids: set[str], errors: list[str]) -> None:
+    path = f"$.sources[{index}]"
+    if not isinstance(source, dict):
+        errors.append(f"{path} must be an object")
+        return
+    _require_fields(source, LIVE_TOPIC_SOURCE_ENTRY_REQUIRED_FIELDS, path, errors)
+    source_id = _require_non_empty_string(source, "source_id", path, errors)
+    if source_id:
+        if source_id in source_ids:
+            errors.append(f"{path}.source_id duplicates source id '{source_id}'")
+        source_ids.add(source_id)
+    _require_non_empty_string(source, "title", path, errors)
+    _require_non_empty_string(source, "publisher", path, errors)
+    source_type = _require_enum(source, "source_type", SOURCE_TYPES, path, errors)
+    if source_type and allowed_types and source_type not in allowed_types:
+        errors.append(f"{path}.source_type is not listed in allowed_source_types")
+    category_id = _require_non_empty_string(source, "category_id", path, errors)
+    if category_id and category_id not in category_ids:
+        errors.append(f"{path}.category_id references unknown category id '{category_id}'")
+    _require_positive_int(source, "priority", path, errors)
+    _require_enum(source, "reliability_tier", VALID_RELIABILITY_TIERS, path, errors)
+    _require_public_https_url(source, "url", path, errors)
+    _require_live_url_boundary(source, "url", path, errors)
+    if source.get("enabled") is not False:
+        errors.append(f"{path}.enabled must be false for disabled live source examples")
+    fetch_mode = _require_enum(source, "fetch_mode", allowed_fetch_modes or VALID_LIVE_FETCH_MODES, path, errors)
+    if fetch_mode and fetch_mode != "disabled":
+        errors.append(f"{path}.fetch_mode must be disabled for disabled live source examples")
+    _require_enum(source, "allowed_fetch_mode", allowed_fetch_modes or VALID_LIVE_FETCH_MODES, path, errors)
+    _require_non_empty_string(source, "expected_update_frequency", path, errors)
+    _require_positive_int(source, "max_requests_per_run", path, errors)
+    _require_non_negative_int(source, "min_seconds_between_requests", path, errors)
+    _require_positive_int(source, "timeout_seconds", path, errors)
+    _require_non_negative_int(source, "cache_ttl_minutes", path, errors)
+    _require_true(source, "attribution_required", path, errors)
+    _require_true(source, "manual_review_required", path, errors)
+    _require_non_empty_string(source, "robots_policy_note", path, errors)
+    _require_non_empty_string(source, "rate_limit_note", path, errors)
+    _require_non_empty_string(source, "safety_notes", path, errors)
+    _require_non_empty_string_list(source, "disallowed_content_rules", path, errors)
+    _validate_live_source_markers(source, path, errors)
 
 
 def _validate_source_observation(observation: Any, index: int, observation_ids: set[str], observation_source_ids: set[str], errors: list[str]) -> None:
@@ -378,6 +470,60 @@ def _require_positive_int(obj: dict[str, Any], field: str, path: str, errors: li
     value = obj.get(field)
     if not isinstance(value, int) or value < 1:
         errors.append(f"{path}.{field} must be a positive integer")
+
+
+def _require_non_negative_int(obj: dict[str, Any], field: str, path: str, errors: list[str]) -> None:
+    value = obj.get(field)
+    if not isinstance(value, int) or value < 0:
+        errors.append(f"{path}.{field} must be a non-negative integer")
+
+
+def _require_true(obj: dict[str, Any], field: str, path: str, errors: list[str]) -> None:
+    if obj.get(field) is not True:
+        errors.append(f"{path}.{field} must be true")
+
+
+def _require_non_empty_string_list(obj: dict[str, Any], field: str, path: str, errors: list[str]) -> None:
+    values = obj.get(field)
+    if not isinstance(values, list) or not values:
+        errors.append(f"{path}.{field} must be a non-empty array")
+        return
+    for index, value in enumerate(values):
+        if not isinstance(value, str) or not value:
+            errors.append(f"{path}.{field}[{index}] must be a non-empty string")
+
+
+def _require_live_url_boundary(obj: dict[str, Any], field: str, path: str, errors: list[str]) -> None:
+    value = obj.get(field)
+    if not isinstance(value, str):
+        return
+    parsed = urlparse(value)
+    if parsed.username or parsed.password or parsed.query or parsed.fragment:
+        errors.append(f"{path}.{field} must not contain credentials, query strings, or fragments")
+
+
+def _validate_live_source_markers(source: dict[str, Any], path: str, errors: list[str]) -> None:
+    marker_fields = ("url", "title", "publisher", "robots_policy_note", "rate_limit_note", "safety_notes")
+    disallowed_markers = (
+        "login_required",
+        "login-required",
+        "paywalled_content",
+        "paywalled-content",
+        "signed_url",
+        "signed-url",
+        "private_url",
+        "private-url",
+        "raw_html_snapshot",
+        "raw-html-snapshot",
+        "outputs/",
+    )
+    for field in marker_fields:
+        value = source.get(field)
+        if not isinstance(value, str):
+            continue
+        lowered = value.lower()
+        if any(marker in lowered for marker in disallowed_markers):
+            errors.append(f"{path}.{field} contains disallowed live source marker")
 
 
 def _require_score(obj: dict[str, Any], field: str, path: str, errors: list[str]) -> None:
