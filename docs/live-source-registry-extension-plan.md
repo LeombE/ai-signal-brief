@@ -12,6 +12,17 @@ The future live-source registry extension should describe which public sources m
 
 The registry must be conservative by default: every future live source starts disabled, requires public HTTPS, carries rate-limit metadata, and remains artifact-only during the first live dry-run phase.
 
+
+## Disabled Example Registry File
+
+A public-safe disabled-by-default example registry now lives at:
+
+```text
+config/topic_sources.live.example.json
+```
+
+This file is an example only. It contains no enabled live sources, does not trigger fetching, and does not change any workflow. Every example source keeps `enabled: false`, `manual_review_required: true`, and `attribution_required: true`.
+
 ## Future Registry Fields
 
 Future live-source entries should extend the topic source registry with these fields:

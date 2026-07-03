@@ -20,7 +20,7 @@ These files are public-safe examples. They do not implement collectors, schedule
 
 The registry includes `schema_version`, `source_policy`, `allowed_source_types`, `categories`, `sources`, `priority`, `reliability_tier`, `expected_update_frequency`, `allowed_fetch_mode`, attribution requirements, and safety notes.
 
-All example sources are disabled by default. A later implementation phase must explicitly decide which sources can be observed and how. Live-source eligibility, fetch policy, caching, and artifact-only test requirements are documented in `docs/live-source-discovery-readiness.md`; future live-source registry fields are documented in `docs/live-source-registry-extension-plan.md`.
+All example sources are disabled by default. A later implementation phase must explicitly decide which sources can be observed and how. Live-source eligibility, fetch policy, caching, and artifact-only test requirements are documented in `docs/live-source-discovery-readiness.md`; future live-source registry fields are documented in `docs/live-source-registry-extension-plan.md`, and the disabled live registry example is `config/topic_sources.live.example.json`.
 
 ## Source Categories
 

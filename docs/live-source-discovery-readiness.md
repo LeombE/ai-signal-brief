@@ -4,7 +4,7 @@
 
 Live-source discovery is not implemented. This document defines requirements, safety gates, and future phase boundaries for a possible live-source topic discovery mode.
 
-The current project supports offline topic source validation, offline topic candidate validation, offline ranking, offline mock discovery, and a manual GitHub Actions Topic Scan Preview workflow that uses local fixture observations only. Future live-source registry extension fields and disabled-by-default source policy are documented in `docs/live-source-registry-extension-plan.md`.
+The current project supports offline topic source validation, offline topic candidate validation, offline ranking, offline mock discovery, and a manual GitHub Actions Topic Scan Preview workflow that uses local fixture observations only. Future live-source registry extension fields and disabled-by-default source policy are documented in `docs/live-source-registry-extension-plan.md`; the public-safe disabled example registry is `config/topic_sources.live.example.json`.
 
 No schedule, live fetching, Telegram delivery, OpenAI API usage, image generation, DOCX generation, or automatic report publication is active.
 
