@@ -2,7 +2,7 @@
 
 ## Status
 
-This document is a planning artifact only. It does not implement a fetch adapter, live fetching, workflow changes, scheduling, external API calls, Telegram delivery, OpenAI API usage, image generation, DOCX generation, production Pages deployment, or report publication.
+This document began as a planning artifact. The project now includes a replay-only fetch adapter skeleton and safe local replay fixtures. It still does not implement live fetching, workflow changes, scheduling, external API calls, Telegram delivery, OpenAI API usage, image generation, DOCX generation, production Pages deployment, or report publication.
 
 The current project remains offline-first. The disabled live source registry example at `config/topic_sources.live.example.json` validates offline, and every live source entry remains disabled by default.
 
@@ -366,7 +366,7 @@ Planned live-discovery dry-run command:
 python -m ai_signal_brief discover-topics-live --date YYYY-MM-DD --sources config/topic_sources.live.example.json --mode replay_fixture --out outputs/topic-candidates-live/YYYY-MM-DD.json
 ```
 
-Both commands are future proposals only. They must not perform live network access until separately approved.
+The replay command is implemented and reads local JSON only. The `discover-topics-live` command remains a future proposal and must not perform live network access until separately approved.
 
 ## Future Enablement Criteria
 

@@ -1,0 +1,25 @@
+{
+  "fixture_schema_version": "1.0.0",
+  "source_id": "example-model-card-hub",
+  "source_type": "repository",
+  "title": "Example model card metadata snapshot",
+  "url": "https://example.com/models/example-model-card",
+  "observed_at": "2026-06-24T04:05:00+08:00",
+  "published_at": "2026-06-23T12:00:00+00:00",
+  "retrieved_at": "2026-06-24T04:05:10+08:00",
+  "fetch_mode": "replay_fixture",
+  "content_type": "application/json",
+  "reduced_metadata": {
+    "title": "Example model card metadata snapshot",
+    "summary": "Synthetic reduced metadata for a public model card replay fixture.",
+    "canonical_url": "https://example.com/models/example-model-card"
+  },
+  "entities": {
+    "companies": ["Example Model Registry"],
+    "models": ["Example Card Model"],
+    "regions": ["global"]
+  },
+  "content_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "source_confidence": "medium",
+  "safety_flags": ["synthetic_fixture", "manual_review_required"]
+}

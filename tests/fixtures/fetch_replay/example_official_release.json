@@ -1,0 +1,25 @@
+{
+  "fixture_schema_version": "1.0.0",
+  "source_id": "openai-news",
+  "source_type": "official",
+  "title": "Example official release metadata snapshot",
+  "url": "https://example.com/ai/announcements/example-release",
+  "observed_at": "2026-06-24T04:00:00+08:00",
+  "published_at": "2026-06-23T16:00:00+00:00",
+  "retrieved_at": "2026-06-24T04:00:10+08:00",
+  "fetch_mode": "replay_fixture",
+  "content_type": "application/json",
+  "reduced_metadata": {
+    "title": "Example official release metadata snapshot",
+    "summary": "Synthetic reduced metadata for a public official AI announcement replay fixture.",
+    "canonical_url": "https://example.com/ai/announcements/example-release"
+  },
+  "entities": {
+    "companies": ["Example AI Vendor"],
+    "models": ["Example Model"],
+    "regions": ["global"]
+  },
+  "content_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "source_confidence": "high",
+  "safety_flags": ["synthetic_fixture", "manual_review_required"]
+}

@@ -1,0 +1,24 @@
+{
+  "fixture_schema_version": "1.0.0",
+  "source_id": "openai-news",
+  "source_type": "official",
+  "title": "Invalid private path fixture",
+  "url": "https://example.com/ai/announcements/private-path",
+  "observed_at": "2026-06-24T04:00:00+08:00",
+  "published_at": "2026-06-23T16:00:00+00:00",
+  "retrieved_at": "2026-06-24T04:00:10+08:00",
+  "fetch_mode": "replay_fixture",
+  "content_type": "application/json",
+  "reduced_metadata": {
+    "title": "Invalid private path fixture",
+    "summary": "This intentionally invalid fixture references C:\\Users\\Example\\Private\\source.json."
+  },
+  "entities": {
+    "companies": [],
+    "models": [],
+    "regions": []
+  },
+  "content_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "source_confidence": "low",
+  "safety_flags": ["intentional_invalid_fixture"]
+}

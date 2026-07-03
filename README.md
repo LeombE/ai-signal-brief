@@ -30,6 +30,7 @@ Implemented so far:
 - GitHub Actions CI definition for offline checks
 - manual GitHub Pages Preview workflow for sample data only
 - manual Topic Scan Preview workflow for mock topic-candidate artifacts only
+- replay-only fetch adapter skeleton for local safe fixtures only
 - publication, Pages planning, production Pages readiness, reviewed report staging, reviewed report dry-run helper command, daily topic discovery architecture, topic source registry and candidate schema examples, live-source discovery readiness, disabled live-source registry example, live-source registry extension planning, live fetch adapter interface planning, and release checklist documentation
 
 Not implemented yet:
@@ -76,6 +77,7 @@ Publication planning docs:
 - `docs/live-source-discovery-readiness.md`
 - `docs/live-source-registry-extension-plan.md`
 - `docs/live-fetch-adapter-interface-plan.md`
+- `docs/fetch-replay-fixtures.md`
 - `config/topic_sources.live.example.json`
 - `docs/release-checklist.md`
 
@@ -184,6 +186,7 @@ Readable documentation lives in:
 - `docs/topic-sources-and-candidates.md`
 - `docs/offline-mock-topic-discovery.md`
 - `docs/topic-scan-preview-workflow.md`
+- `docs/fetch-replay-fixtures.md`
 - `docs/release-checklist.md`
 
 ## Local Verification
@@ -202,6 +205,7 @@ python -m ai_signal_brief validate-topic-sources config/topic_sources.example.js
 python -m ai_signal_brief validate-topic-sources config/topic_sources.live.example.json
 python -m ai_signal_brief validate-topics examples/topic-candidates.example.json
 python -m ai_signal_brief rank-topics examples/topic-candidates.example.json --explain
+python -m ai_signal_brief fetch-source-replay --source-id openai-news --fixture tests/fixtures/fetch_replay/example_official_release.json
 python -m ai_signal_brief discover-topics --date 2026-06-24 --sources config/topic_sources.example.json --mock-observations tests/fixtures/topic_observations.valid.json --out outputs/topic-candidates/2026-06-24.json --rank
 python -m ai_signal_brief quality-gate --report examples/report.example.json --run examples/run.example.json --sources config/sources.example.json
 python -m ai_signal_brief archive-report --report examples/report.example.json --run examples/run.example.json --sources config/sources.example.json --out outputs/archive-example

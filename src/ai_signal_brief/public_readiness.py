@@ -40,6 +40,7 @@ CORE_COMMANDS = (
     "validate-topics",
     "rank-topics",
     "discover-topics",
+    "fetch-source-replay",
     "quality-gate",
     "archive-report",
     "build-site",
@@ -66,6 +67,8 @@ ALLOWLIST_BY_FILE: dict[str, set[str]] = {
     "tests/fixtures/topic_observations.private_path.json": {"local_path"},
     "tests/fixtures/topic_observations.secret_like.json": {"secret_like", "secret_assignment"},
     "tests/fixtures/topic_sources_live_secret_like_invalid.json": {"secret_like"},
+    "tests/fixtures/fetch_replay/invalid_private_path.json": {"local_path"},
+    "tests/fixtures/fetch_replay/invalid_secret_like.json": {"secret_like"},
 }
 
 

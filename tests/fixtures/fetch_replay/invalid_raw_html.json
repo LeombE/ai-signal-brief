@@ -1,0 +1,25 @@
+{
+  "fixture_schema_version": "1.0.0",
+  "source_id": "openai-news",
+  "source_type": "official",
+  "title": "Invalid raw HTML fixture",
+  "url": "https://example.com/ai/announcements/raw-html",
+  "observed_at": "2026-06-24T04:00:00+08:00",
+  "published_at": "2026-06-23T16:00:00+00:00",
+  "retrieved_at": "2026-06-24T04:00:10+08:00",
+  "fetch_mode": "replay_fixture",
+  "content_type": "application/json",
+  "reduced_metadata": {
+    "title": "Invalid raw HTML fixture",
+    "raw_html": "<html><body>intentionally invalid raw markup fixture</body></html>",
+    "summary": "This intentionally invalid fixture includes raw markup."
+  },
+  "entities": {
+    "companies": [],
+    "models": [],
+    "regions": []
+  },
+  "content_hash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "source_confidence": "low",
+  "safety_flags": ["intentional_invalid_fixture"]
+}

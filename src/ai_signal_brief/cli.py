@@ -7,6 +7,7 @@ from pathlib import Path
 
 from . import __version__
 from .archive import ArchiveError, build_archive
+from .fetch_adapter import FetchAdapterError, replay_fixture_to_observation, render_observation_json
 from .public_readiness import PublicReadinessResult, audit_public_readiness
 from .quality_gate import QualityGateResult, run_quality_gate
 from .rendering import RenderError, render_markdown_from_path, render_telegram_from_path, write_text_output
@@ -144,6 +145,15 @@ def rank_topics_command(
         return 1
     return 0
 
+
+def fetch_source_replay_command(source_id: str, fixture_path: str) -> int:
+    try:
+        result = replay_fixture_to_observation(fixture_path, source_id=source_id)
+    except FetchAdapterError as exc:
+        print(f"Fetch replay failed: {exc}")
+        return 1
+    print(render_observation_json(result.observation), end="")
+    return 0
 
 def list_source_priorities(path: str | Path | None = None) -> int:
     registry_path = Path(path) if path else project_root() / "config" / "sources.example.json"
@@ -357,6 +367,12 @@ def build_parser() -> argparse.ArgumentParser:
     discover_topics_parser.add_argument("--timezone", default="Asia/Kuala_Lumpur", help="IANA timezone name for deterministic generated_at.")
     discover_topics_parser.add_argument("--quiet-ok", action="store_true", help="Allow empty mock observations to generate a quiet-day candidate.")
 
+    fetch_replay_parser = subparsers.add_parser(
+        "fetch-source-replay",
+        help="Convert a safe local replay fixture into a source observation without network access.",
+    )
+    fetch_replay_parser.add_argument("--source-id", required=True, help="Expected source_id in the replay fixture.")
+    fetch_replay_parser.add_argument("--fixture", required=True, help="Path to a local replay fixture JSON file.")
     priorities_parser = subparsers.add_parser("list-source-priorities", help="List source category priorities.")
     priorities_parser.add_argument(
         "--path",
@@ -462,6 +478,8 @@ def main(argv: list[str] | None = None) -> int:
             args.quiet_ok,
         )
 
+    if args.command == "fetch-source-replay":
+        return fetch_source_replay_command(args.source_id, args.fixture)
     if args.command == "list-source-priorities":
         return list_source_priorities(args.path)
 
