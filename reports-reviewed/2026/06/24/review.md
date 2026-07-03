@@ -98,8 +98,23 @@ This is not final publication content. It was manually rewritten in English from
 - `validate-report` should pass after this source-review hardening.
 - `validate-run` should pass after this source-review hardening.
 - `quality-gate` should pass after this source-review hardening.
-- `dry-run-reviewed-report --strict --no-site` should pass after this source-review hardening.
-- Generated static page still requires manual review in a later phase.
+- `dry-run-reviewed-report --strict` should pass after this static page dry-run review.
+- Generated static page was reviewed from local offline output in this phase; final browser-based visual inspection is still required before any future publication.
+
+## Static Page Review
+
+- Generated local site path: `outputs/reviewed-site-dry-run/2026/06/24/`.
+- Homepage presence: confirmed. The generated homepage exists and links to the 2026-06-24 report page.
+- Report page presence: confirmed. The generated dated report page exists under the generated site output.
+- Title/date/timezone display: confirmed. The report page shows the title, report date, generated_at timestamp, and `Asia/Kuala_Lumpur` timezone.
+- Story list display: confirmed. The report page shows all five ranked candidate stories with status, importance, and analysis text.
+- Source list display: confirmed. The report page shows all six source IDs, titles, publishers, source types, and public HTTPS URLs.
+- Claim/source mapping display: confirmed. Each visible claim includes a `Sources:` reference back to the relevant source ID.
+- Provenance/draft disclosure display: confirmed. The report page includes `candidate_draft`, `not_published`, `no_telegram_sent`, `no_image_generated`, and the generated-content disclosure.
+- Editorial clarity findings: acceptable for local review. The page keeps Qwen release timing conservative and avoids adding unsupported benchmark, pricing, or operational metrics.
+- Security review findings: no private paths, credentials, token-like strings, old builder references, raw historical prose, mistaken prompt references, or private migration references were found in the generated archive/site output during this pass.
+- Generated output handling: `outputs/` remains generated local output only and must not be committed.
+- Remaining page review items: final browser-based visual inspection should still be done before any future PR or production Pages publication.
 
 ## Rollback Plan
 
