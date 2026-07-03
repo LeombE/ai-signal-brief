@@ -4,7 +4,7 @@
 
 This document is a planning artifact only. It does not create a live source registry JSON file, implement live fetching, modify workflows, add a schedule, call external APIs, send Telegram messages, use OpenAI APIs, generate images, create DOCX files, or deploy Pages.
 
-The current topic discovery implementation remains offline-only. Existing commands validate local examples, rank local topic candidates, and run mock discovery from committed fixtures.
+The current topic discovery implementation remains offline-only. Existing commands validate local examples, rank local topic candidates, and run mock discovery from committed fixtures. The future fetch adapter contract is documented separately in `docs/live-fetch-adapter-interface-plan.md`.
 
 ## Objective
 
