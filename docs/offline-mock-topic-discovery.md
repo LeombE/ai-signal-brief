@@ -62,4 +62,6 @@ It uses `workflow_dispatch` only and runs the same offline mock discovery path a
 
 The workflow does not fetch live sources, publish reports, deploy Pages, send Telegram messages, call OpenAI APIs, generate images, create DOCX files, commit generated output, or schedule anything.
 
+The first manual `Topic Scan Preview` run completed successfully on `main`. The uploaded artifact was named `topic-candidates-preview`, contained `topic-candidates.json`, and was manually inspected as mock-only placeholder output. That run did not deploy Pages, publish production reports, send Telegram messages, call OpenAI APIs, generate images, create DOCX files, or fetch live sources.
+
 Schedule-based topic scans should be considered only in a later approved phase after manual preview artifacts have been reviewed.

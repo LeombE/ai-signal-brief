@@ -67,6 +67,36 @@ Reviewers should download the artifact from a manual workflow run and inspect:
 - unresolved items
 - ranking output in the workflow logs
 
+## Manual Run Result
+
+The first manual `Topic Scan Preview` run was triggered from GitHub Actions on `main` and completed successfully.
+
+Observed result:
+
+- workflow run: `Topic Scan Preview #1`
+- status: success
+- branch: `main`
+- artifact count: 1
+- artifact name: `topic-candidates-preview`
+- artifact contents: `topic-candidates.json`
+- retention: 7 days
+
+The artifact was downloaded and manually opened. The generated `topic-candidates.json` contained mock placeholder topic candidates only, derived from the local fixture observations used by the workflow.
+
+This successful preview run confirms the manual workflow path, artifact upload, and artifact inspection process. It does not indicate live AI news discovery, production report publication, or scheduled automation.
+
+The run did not:
+
+- deploy GitHub Pages
+- publish a production report
+- send Telegram messages
+- call OpenAI APIs
+- generate images
+- create DOCX files
+- fetch live sources
+- migrate historical reports
+- commit generated outputs
+
 ## Future Scheduling Boundary
 
 A scheduled topic scan should be considered only in a later approved phase after the manual preview workflow has been reviewed and accepted. Any future scheduled workflow must keep the same no-secrets, no-private-data, and public-source policy boundaries.

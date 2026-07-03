@@ -148,6 +148,8 @@ Canonical and offline-preview outputs:
 
 Telegram delivery, DOCX, generated image assets, production Pages deployment, and historical report migration may be added in later approved phases. Production Pages requirements are documented in `docs/production-pages-readiness.md`; future reviewed report staging rules are documented in `docs/reviewed-report-staging.md`, and local dry-run rules are documented in `docs/reviewed-report-dry-run.md`; a dry-run helper command plan is documented in `docs/reviewed-report-dry-run-command-plan.md`, first-candidate selection rules are documented in `docs/first-reviewed-report-candidate-plan.md`, and future daily topic discovery architecture is documented in `docs/daily-topic-discovery-architecture.md`, and offline mock topic discovery is documented in `docs/offline-mock-topic-discovery.md`.
 
+The first manual `Topic Scan Preview` run on `main` completed successfully. It uploaded one short-lived `topic-candidates-preview` artifact containing `topic-candidates.json`, and the artifact was manually inspected as mock placeholder output only.
+
 ## Canonical Data Model
 
 Initial schema drafts live in:
