@@ -4,6 +4,8 @@
 
 This document began as a planning artifact. The project now includes a replay-only fetch adapter skeleton and safe local replay fixtures. It still does not implement live fetching, workflow changes, scheduling, external API calls, Telegram delivery, OpenAI API usage, image generation, DOCX generation, production Pages deployment, or report publication.
 
+GitHub Actions CI for commit `85ec975 Add replay-only fetch adapter skeleton` was manually confirmed green in the GitHub UI. The implemented `fetch-source-replay` command reads local JSON replay fixtures only; no `discover-topics-live` CLI exists yet, and live fetching remains future work that requires separate approval.
+
 The current project remains offline-first. The disabled live source registry example at `config/topic_sources.live.example.json` validates offline, and every live source entry remains disabled by default.
 
 ## Future Adapter Objective

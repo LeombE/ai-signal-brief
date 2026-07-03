@@ -14,6 +14,8 @@ AI news moves quickly and is often repeated across vendors, model releases, benc
 
 The repository is now public at `https://github.com/LeombE/ai-signal-brief`, and the latest GitHub Actions CI run is passing.
 
+GitHub Actions CI for commit `85ec975 Add replay-only fetch adapter skeleton` was manually confirmed green in the GitHub UI. That replay-only adapter milestone uses local JSON fixtures only and did not enable live fetching, scheduling, deployment, Telegram delivery, OpenAI API usage, image generation, or DOCX generation.
+
 The project is still offline-first: no live ingestion, delivery, scheduled automation, external API usage, image generation, DOCX generation, historical migration, production daily Pages automation, or Telegram delivery is active. GitHub Pages sample preview is live at `https://leombe.github.io/ai-signal-brief/` and currently uses sample/example data only.
 
 Implemented so far:
@@ -52,6 +54,7 @@ Current publication boundary:
 
 - repository is public
 - latest GitHub Actions CI is passing
+- replay-only fetch adapter CI for commit `85ec975` was manually confirmed green; no schedule, deployment, Telegram, OpenAI API, image generation, or DOCX step was triggered
 - GitHub Pages sample preview is live: `https://leombe.github.io/ai-signal-brief/`
 - manual Pages Preview workflow exists and publishes sample data only when run manually
 - manual Topic Scan Preview workflow exists and uploads mock topic candidates as a short-lived artifact only

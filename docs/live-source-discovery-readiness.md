@@ -6,6 +6,8 @@ Live-source discovery is not implemented. This document defines requirements, sa
 
 The current project supports offline topic source validation, offline topic candidate validation, offline ranking, offline mock discovery, a replay-only fetch adapter for local safe fixtures, and a manual GitHub Actions Topic Scan Preview workflow that uses local fixture observations only. Future live-source registry extension fields and disabled-by-default source policy are documented in `docs/live-source-registry-extension-plan.md`; the future fetch adapter interface plan is documented in `docs/live-fetch-adapter-interface-plan.md`; the public-safe disabled example registry is `config/topic_sources.live.example.json`.
 
+GitHub Actions CI for commit `85ec975 Add replay-only fetch adapter skeleton` was manually confirmed green in the GitHub UI. That result verifies the replay-only adapter path and local fixture checks; it does not enable live discovery, live HTTP fetching, scheduling, deployment, Telegram, OpenAI API usage, image generation, or DOCX generation.
+
 No schedule, live fetching, Telegram delivery, OpenAI API usage, image generation, DOCX generation, or automatic report publication is active.
 
 ## Objective

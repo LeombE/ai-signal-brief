@@ -4,6 +4,8 @@
 
 Fetch replay fixtures are local, public-safe test inputs for the replay-only fetch adapter. They do not enable live source fetching, external API calls, workflow changes, schedules, Telegram delivery, OpenAI API usage, image generation, DOCX generation, Pages deployment, or report publication.
 
+GitHub Actions CI for commit `85ec975 Add replay-only fetch adapter skeleton` was manually confirmed green in the GitHub UI. The confirmation covers replay-only fixture parsing and validation; it does not make the adapter a live web fetcher and does not activate scheduling, Telegram, OpenAI API usage, image generation, DOCX generation, Pages deployment, or report publication.
+
 The current replay command reads local JSON only:
 
 ```powershell
