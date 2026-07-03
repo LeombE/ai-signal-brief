@@ -1,0 +1,59 @@
+name: Topic Scan Preview
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: topic-scan-preview-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  mock-topic-scan:
+    name: Offline mock topic scan preview
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    env:
+      PYTHONPATH: src
+      TOPIC_SCAN_OUTPUT: outputs/topic-candidates/${{ github.run_id }}/topic-candidates.json
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Compile source
+        run: python -m compileall src
+
+      - name: Validate topic source registry
+        run: python -m ai_signal_brief validate-topic-sources config/topic_sources.example.json
+
+      - name: Generate mock topic candidates
+        run: >-
+          python -m ai_signal_brief discover-topics
+          --date 2026-06-24
+          --sources config/topic_sources.example.json
+          --mock-observations tests/fixtures/topic_observations.valid.json
+          --out "$TOPIC_SCAN_OUTPUT"
+          --rank
+
+      - name: Validate generated topic candidates
+        run: python -m ai_signal_brief validate-topics "$TOPIC_SCAN_OUTPUT"
+
+      - name: Rank generated topic candidates
+        run: python -m ai_signal_brief rank-topics "$TOPIC_SCAN_OUTPUT" --explain
+
+      - name: Upload topic candidate preview artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: topic-candidates-preview
+          path: outputs/topic-candidates/${{ github.run_id }}/
+          retention-days: 7
+          if-no-files-found: error

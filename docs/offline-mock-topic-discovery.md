@@ -53,3 +53,13 @@ The offline pipeline:
 - Empty observation sets require `--quiet-ok`.
 - Secret-like values and private local paths are rejected before generation succeeds.
 - Live discovery remains unimplemented and requires separate approval.
+
+## Manual GitHub Actions Preview
+
+A manual-only preview workflow is defined in `.github/workflows/topic-scan-preview.yml`.
+
+It uses `workflow_dispatch` only and runs the same offline mock discovery path against `tests/fixtures/topic_observations.valid.json`. The generated topic candidates are written under `outputs/topic-candidates/${{ github.run_id }}/topic-candidates.json`, validated, ranked with `--explain`, and uploaded as the `topic-candidates-preview` artifact with `retention-days: 7`.
+
+The workflow does not fetch live sources, publish reports, deploy Pages, send Telegram messages, call OpenAI APIs, generate images, create DOCX files, commit generated output, or schedule anything.
+
+Schedule-based topic scans should be considered only in a later approved phase after manual preview artifacts have been reviewed.

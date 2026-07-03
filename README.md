@@ -29,6 +29,7 @@ Implemented so far:
 - public readiness audit for tracked files
 - GitHub Actions CI definition for offline checks
 - manual GitHub Pages Preview workflow for sample data only
+- manual Topic Scan Preview workflow for mock topic-candidate artifacts only
 - publication, Pages planning, production Pages readiness, reviewed report staging, reviewed report dry-run helper command, daily topic discovery architecture, topic source registry and candidate schema examples, and release checklist documentation
 
 Not implemented yet:
@@ -52,6 +53,7 @@ Current publication boundary:
 - latest GitHub Actions CI is passing
 - GitHub Pages sample preview is live: `https://leombe.github.io/ai-signal-brief/`
 - manual Pages Preview workflow exists and publishes sample data only when run manually
+- manual Topic Scan Preview workflow exists and uploads mock topic candidates as a short-lived artifact only
 - Telegram delivery is not connected
 - OpenAI Image API is not configured
 - no API keys are required for the current offline workflow
@@ -70,6 +72,7 @@ Publication planning docs:
 - `docs/daily-topic-discovery-architecture.md`
 - `docs/topic-sources-and-candidates.md`
 - `docs/offline-mock-topic-discovery.md`
+- `docs/topic-scan-preview-workflow.md`
 - `docs/release-checklist.md`
 
 ## CI Overview
@@ -106,6 +109,24 @@ The Pages Preview workflow:
 - does not commit generated outputs to Git
 
 GitHub Pages sample preview is live at `https://leombe.github.io/ai-signal-brief/`. It uses sample/example data only and does not currently run automatically on push or schedule.
+
+## Topic Scan Preview
+
+The manual topic scan preview workflow lives at `.github/workflows/topic-scan-preview.yml`.
+
+It is triggered by `workflow_dispatch` only. It runs offline mock topic discovery from `tests/fixtures/topic_observations.valid.json`, writes generated topic candidates under `outputs/topic-candidates/${{ github.run_id }}/`, validates and ranks the generated JSON, and uploads it as the `topic-candidates-preview` artifact for 7 days.
+
+The Topic Scan Preview workflow:
+
+- uses mock fixture observations only
+- does not fetch live sources
+- does not publish reports
+- does not deploy GitHub Pages
+- does not send Telegram messages
+- does not call OpenAI APIs
+- does not generate images or DOCX files
+- does not commit generated outputs to Git
+
 
 ## Public Data And Source Policy
 
@@ -156,6 +177,7 @@ Readable documentation lives in:
 - `docs/daily-topic-discovery-architecture.md`
 - `docs/topic-sources-and-candidates.md`
 - `docs/offline-mock-topic-discovery.md`
+- `docs/topic-scan-preview-workflow.md`
 - `docs/release-checklist.md`
 
 ## Local Verification
