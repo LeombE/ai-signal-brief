@@ -1,37 +1,41 @@
 {
-  "schema_version": "1.0.0",
-  "run_id": "2026-06-24T04-00-00+08-00-reviewed-candidate-shell",
-  "started_at": "2026-06-24T04:00:00+08:00",
-  "ended_at": "2026-06-24T04:01:00+08:00",
-  "timezone": "Asia/Kuala_Lumpur",
-  "status": "dry_run",
-  "mode": "manual",
-  "environment": "local",
-  "report_id": "2026-06-24-reviewed-candidate-shell",
-  "report_date": "2026-06-24",
-  "artifacts": [
-    {
-      "kind": "report_json",
-      "path": "reports-reviewed/2026/06/24/report.json"
-    },
-    {
-      "kind": "review_notes",
-      "path": "reports-reviewed/2026/06/24/review.md"
-    }
-  ],
-  "delivery": {
-    "telegram": {
-      "enabled": false,
-      "status": "skipped"
-    }
-  },
-  "warnings": [
-    "DRAFT ONLY",
-    "NOT REVIEWED",
-    "NOT PUBLISHED",
-    "NO HISTORICAL CONTENT MIGRATED YET",
-    "SOURCE REVIEW REQUIRED",
-    "CLAIM REVIEW REQUIRED"
-  ],
-  "errors": []
+    "schema_version":  "1.0.0",
+    "run_id":  "2026-06-24T04-00-00+08-00-reviewed-candidate-draft",
+    "started_at":  "2026-06-24T04:00:00+08:00",
+    "ended_at":  "2026-06-24T04:01:00+08:00",
+    "timezone":  "Asia/Kuala_Lumpur",
+    "status":  "dry_run",
+    "mode":  "manual",
+    "environment":  "local",
+    "report_id":  "2026-06-24-reviewed-candidate-draft",
+    "report_date":  "2026-06-24",
+    "artifacts":  [
+                      {
+                          "kind":  "report_json",
+                          "path":  "reports-reviewed/2026/06/24/report.json"
+                      },
+                      {
+                          "kind":  "review_notes",
+                          "path":  "reports-reviewed/2026/06/24/review.md"
+                      }
+                  ],
+    "delivery":  {
+                     "telegram":  {
+                                      "enabled":  false,
+                                      "status":  "skipped"
+                                  }
+                 },
+    "warnings":  [
+                     "candidate_draft",
+                     "manual_review_required",
+                     "source_review_required",
+                     "claim_review_required",
+                     "not_published",
+                     "no_telegram_sent",
+                     "no_image_generated",
+                     "historical_source_used_for_reference_only"
+                 ],
+    "errors":  [
+
+               ]
 }
