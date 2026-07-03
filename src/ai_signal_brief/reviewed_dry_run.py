@@ -113,10 +113,12 @@ def dry_run_reviewed_report(
     if not quality_gate_result.ok:
         raise ReviewedDryRunError("quality gate failed: " + ", ".join(quality_gate_result.failed_checks))
 
-    archive_result = build_archive(paths.report_path, paths.run_path, paths.sources_path, paths.archive_out, repo_root=root)
+    archive_out_arg = _relative_repo_path(paths.archive_out, root)
+    site_out_arg = _relative_repo_path(paths.site_out, root)
+    archive_result = build_archive(paths.report_path, paths.run_path, paths.sources_path, archive_out_arg, repo_root=root)
     site_result = None
     if not no_site:
-        site_result = build_site(paths.archive_out, paths.site_out, repo_root=root)
+        site_result = build_site(archive_out_arg, site_out_arg, repo_root=root)
 
     public_readiness_result = audit_public_readiness(root)
     if not public_readiness_result.ok:
@@ -318,6 +320,10 @@ def _iter_string_values(value: Any, path: str = "$") -> list[tuple[str, str]]:
         for index, child in enumerate(value):
             items.extend(_iter_string_values(child, f"{path}[{index}]"))
     return items
+
+
+def _relative_repo_path(path: Path, repo_root: Path) -> Path:
+    return Path(path.resolve().relative_to(repo_root.resolve()))
 
 
 def _relative_or_text(path: Path, repo_root: Path) -> str:
