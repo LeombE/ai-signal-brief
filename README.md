@@ -29,7 +29,7 @@ Implemented so far:
 - public readiness audit for tracked files
 - GitHub Actions CI definition for offline checks
 - manual GitHub Pages Preview workflow for sample data only
-- publication, Pages planning, production Pages readiness, reviewed report staging, and release checklist documentation
+- publication, Pages planning, production Pages readiness, reviewed report staging, reviewed report dry-run helper command, and release checklist documentation
 
 Not implemented yet:
 
@@ -175,7 +175,7 @@ python -m ai_signal_brief render-markdown examples/report.example.json --out out
 python -m ai_signal_brief render-telegram examples/report.example.json --out outputs/telegram.example.txt
 python -m ai_signal_brief create-run-record --report examples/report.example.json --out outputs/run.example.generated.json --artifact markdown=outputs/report.example.md --artifact telegram_preview=outputs/telegram.example.txt --started-at 2026-06-24T04:00:00+08:00 --ended-at 2026-06-24T04:01:00+08:00 --timezone Asia/Kuala_Lumpur
 python -m ai_signal_brief validate-run outputs/run.example.generated.json
-```
+python -m ai_signal_brief dry-run-reviewed-report --date YYYY-MM-DD --report reports-reviewed/YYYY/MM/DD/report.json --run reports-reviewed/YYYY/MM/DD/run.json --sources config/sources.example.json --archive-out outputs/reviewed-dry-run/YYYY/MM/DD --site-out outputs/reviewed-site-dry-run/YYYY/MM/DD --strict```
 
 No package installation is required for the current offline workflow.
 

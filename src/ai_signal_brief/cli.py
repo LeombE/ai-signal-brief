@@ -10,6 +10,7 @@ from .archive import ArchiveError, build_archive
 from .public_readiness import PublicReadinessResult, audit_public_readiness
 from .quality_gate import QualityGateResult, run_quality_gate
 from .rendering import RenderError, render_markdown_from_path, render_telegram_from_path, write_text_output
+from .reviewed_dry_run import ReviewedDryRunError, dry_run_reviewed_report
 from .run_metadata import RunMetadataError, create_run_record, write_run_record
 from .site import SiteBuildError, build_site
 from .validation import (
@@ -168,6 +169,47 @@ def build_site_command(archive_path: str, output_path: str) -> int:
     return 0
 
 
+
+def reviewed_dry_run_command(
+    date: str,
+    report_path: str | None,
+    run_path: str | None,
+    sources_path: str | None,
+    archive_out: str | None,
+    site_out: str | None,
+    strict: bool,
+    no_site: bool,
+) -> int:
+    try:
+        result = dry_run_reviewed_report(
+            date=date,
+            report_path=report_path,
+            run_path=run_path,
+            sources_path=sources_path,
+            archive_out=archive_out,
+            site_out=site_out,
+            strict=strict,
+            no_site=no_site,
+            repo_root=project_root(),
+        )
+    except (ReviewedDryRunError, ArchiveError, SiteBuildError) as exc:
+        print("Reviewed report dry-run FAIL")
+        print(f"Reason: {exc}")
+        return 1
+
+    print("Reviewed report dry-run PASS")
+    print(f"Report: {result.report_path}")
+    print(f"Run: {result.run_path}")
+    print(f"Review: {result.review_path}")
+    print(f"Sources: {result.sources_path}")
+    print(f"Archive root: {result.archive_result.archive_root}")
+    if result.site_result is None:
+        print("Site build: skipped")
+    else:
+        print(f"Site root: {result.site_result.site_root}")
+    print(f"Public readiness tracked files: {result.public_readiness_result.checked_file_count}")
+    return 0
+
 def render_markdown_command(path: str, output_path: str) -> int:
     try:
         rendered = render_markdown_from_path(path)
@@ -275,6 +317,19 @@ def build_parser() -> argparse.ArgumentParser:
     markdown_parser.add_argument("path", help="Path to report JSON.")
     markdown_parser.add_argument("--out", required=True, help="Output Markdown path.")
 
+
+    dry_run_parser = subparsers.add_parser(
+        "dry-run-reviewed-report",
+        help="Run a local offline dry-run for a manually reviewed report candidate.",
+    )
+    dry_run_parser.add_argument("--date", required=True, help="Reviewed report date in YYYY-MM-DD format.")
+    dry_run_parser.add_argument("--report", default=None, help="Optional reviewed report JSON path.")
+    dry_run_parser.add_argument("--run", default=None, help="Optional reviewed run metadata JSON path.")
+    dry_run_parser.add_argument("--sources", default=None, help="Optional source registry JSON path.")
+    dry_run_parser.add_argument("--archive-out", default=None, help="Optional archive preview output path under outputs/.")
+    dry_run_parser.add_argument("--site-out", default=None, help="Optional static site preview output path under outputs/.")
+    dry_run_parser.add_argument("--strict", action="store_true", help="Fail on incomplete review checklist evidence.")
+    dry_run_parser.add_argument("--no-site", action="store_true", help="Skip static site preview generation.")
     telegram_parser = subparsers.add_parser("render-telegram", help="Render a Telegram text preview without sending it.")
     telegram_parser.add_argument("path", help="Path to report JSON.")
     telegram_parser.add_argument("--out", required=True, help="Output text path.")
@@ -330,6 +385,18 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "render-markdown":
         return render_markdown_command(args.path, args.out)
 
+
+    if args.command == "dry-run-reviewed-report":
+        return reviewed_dry_run_command(
+            args.date,
+            args.report,
+            args.run,
+            args.sources,
+            args.archive_out,
+            args.site_out,
+            args.strict,
+            args.no_site,
+        )
     if args.command == "render-telegram":
         return render_telegram_command(args.path, args.out)
 

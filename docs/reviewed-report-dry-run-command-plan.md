@@ -1,10 +1,10 @@
 # Reviewed Report Dry-Run Helper Command Plan
 
-This document plans a future helper command for local dry-runs of manually reviewed canonical reports. It is a design document only. The command is not implemented in this phase.
+This document records the reviewed report dry-run helper command design. The initial offline-only command was implemented in Phase 21.
 
 The current repository remains offline-first. The sample GitHub Pages preview is live at `https://leombe.github.io/ai-signal-brief/`, but it uses sample/example data only. No production daily automation is active.
 
-## Proposed Command Shape
+## Command Shape
 
 Primary future command:
 
@@ -24,7 +24,7 @@ Site-skipping form:
 python -m ai_signal_brief dry-run-reviewed-report --date YYYY-MM-DD --no-site
 ```
 
-## Proposed Arguments
+## Arguments
 
 - `--date YYYY-MM-DD`: required date for the reviewed report candidate.
 - `--report reports-reviewed/YYYY/MM/DD/report.json`: optional explicit report path. Defaults from `--date`.
@@ -35,7 +35,7 @@ python -m ai_signal_brief dry-run-reviewed-report --date YYYY-MM-DD --no-site
 - `--strict`: planned mode that fails on warnings, incomplete review evidence, or missing optional review fields.
 - `--no-site`: planned mode that validates and builds archive output but skips static site generation.
 
-## Planned Local Steps
+## Local Steps
 
 The helper command should perform only local offline validation and local output generation:
 
@@ -70,7 +70,7 @@ python -m ai_signal_brief public-readiness
 
 ## Non-Goals
 
-The planned helper command must not:
+The helper command must not:
 
 - deploy GitHub Pages
 - send Telegram messages
@@ -86,7 +86,7 @@ The planned helper command must not:
 
 ## Safety Rules
 
-The planned helper must reject or fail when it detects:
+The helper must reject or fail when it detects:
 
 - private legacy daily-report paths
 - secret-like values
@@ -102,7 +102,7 @@ The planned helper must reject or fail when it detects:
 - missing or incomplete `review.md`
 - unsafe output paths outside the repository or outside approved ignored output storage
 
-The planned helper should require English canonical report content, public attributable sources, resolved claim/source IDs, reviewed story status and importance, reviewed run metadata, and completed manual review notes before reporting dry-run success.
+The helper requires English canonical report content, public attributable sources, resolved claim/source IDs, reviewed story status and importance, reviewed run metadata, and review notes before reporting dry-run success.
 
 ## Future Review.md Completion Rules
 
@@ -147,4 +147,4 @@ Exit codes can be revised during implementation, but failures must be explicit a
 
 ## Implementation Boundary
 
-Do not implement this command until a later approved phase. Phase 20 only documents the planned interface, safety rules, local behavior, and future tests.
+Implementation boundary after Phase 21: keep the command offline-only. Future phases may improve strict review parsing, but must not add deployment, Telegram delivery, OpenAI calls, image generation, DOCX generation, scheduling, or workflow trigger changes without separate approval.
