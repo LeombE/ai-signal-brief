@@ -66,6 +66,7 @@ Publication planning docs:
 - `docs/reviewed-report-staging.md`
 - `docs/reviewed-report-dry-run.md`
 - `docs/reviewed-report-dry-run-command-plan.md`
+- `docs/first-reviewed-report-candidate-plan.md`
 - `docs/release-checklist.md`
 
 ## CI Overview
@@ -121,7 +122,7 @@ Canonical and offline-preview outputs:
 - Static site: offline HTML/CSS generated from an archive
 - GitHub Pages Preview: manual sample static-site deployment from example JSON files only
 
-Telegram delivery, DOCX, generated image assets, production Pages deployment, and historical report migration may be added in later approved phases. Production Pages requirements are documented in `docs/production-pages-readiness.md`; future reviewed report staging rules are documented in `docs/reviewed-report-staging.md`, and local dry-run rules are documented in `docs/reviewed-report-dry-run.md`; a future helper command plan is documented in `docs/reviewed-report-dry-run-command-plan.md`.
+Telegram delivery, DOCX, generated image assets, production Pages deployment, and historical report migration may be added in later approved phases. Production Pages requirements are documented in `docs/production-pages-readiness.md`; future reviewed report staging rules are documented in `docs/reviewed-report-staging.md`, and local dry-run rules are documented in `docs/reviewed-report-dry-run.md`; a dry-run helper command plan is documented in `docs/reviewed-report-dry-run-command-plan.md`, and first-candidate selection rules are documented in `docs/first-reviewed-report-candidate-plan.md`.
 
 ## Canonical Data Model
 
@@ -147,6 +148,7 @@ Readable documentation lives in:
 - `docs/reviewed-report-staging.md`
 - `docs/reviewed-report-dry-run.md`
 - `docs/reviewed-report-dry-run-command-plan.md`
+- `docs/first-reviewed-report-candidate-plan.md`
 - `docs/release-checklist.md`
 
 ## Local Verification
@@ -175,7 +177,8 @@ python -m ai_signal_brief render-markdown examples/report.example.json --out out
 python -m ai_signal_brief render-telegram examples/report.example.json --out outputs/telegram.example.txt
 python -m ai_signal_brief create-run-record --report examples/report.example.json --out outputs/run.example.generated.json --artifact markdown=outputs/report.example.md --artifact telegram_preview=outputs/telegram.example.txt --started-at 2026-06-24T04:00:00+08:00 --ended-at 2026-06-24T04:01:00+08:00 --timezone Asia/Kuala_Lumpur
 python -m ai_signal_brief validate-run outputs/run.example.generated.json
-python -m ai_signal_brief dry-run-reviewed-report --date YYYY-MM-DD --report reports-reviewed/YYYY/MM/DD/report.json --run reports-reviewed/YYYY/MM/DD/run.json --sources config/sources.example.json --archive-out outputs/reviewed-dry-run/YYYY/MM/DD --site-out outputs/reviewed-site-dry-run/YYYY/MM/DD --strict```
+python -m ai_signal_brief dry-run-reviewed-report --date YYYY-MM-DD --report reports-reviewed/YYYY/MM/DD/report.json --run reports-reviewed/YYYY/MM/DD/run.json --sources config/sources.example.json --archive-out outputs/reviewed-dry-run/YYYY/MM/DD --site-out outputs/reviewed-site-dry-run/YYYY/MM/DD --strict
+```
 
 No package installation is required for the current offline workflow.
 
