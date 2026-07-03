@@ -99,4 +99,4 @@ The run did not:
 
 ## Future Scheduling Boundary
 
-A scheduled topic scan should be considered only in a later approved phase after the manual preview workflow has been reviewed and accepted. Any future scheduled workflow must keep the same no-secrets, no-private-data, and public-source policy boundaries.
+A scheduled topic scan should be considered only in a later approved phase after the manual preview workflow has been reviewed and accepted. Any future scheduled workflow must keep the same no-secrets, no-private-data, and public-source policy boundaries. Live-source discovery readiness and safety gates are documented in `docs/live-source-discovery-readiness.md`.

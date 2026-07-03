@@ -20,7 +20,7 @@ These files are public-safe examples. They do not implement collectors, schedule
 
 The registry includes `schema_version`, `source_policy`, `allowed_source_types`, `categories`, `sources`, `priority`, `reliability_tier`, `expected_update_frequency`, `allowed_fetch_mode`, attribution requirements, and safety notes.
 
-All example sources are disabled by default. A later implementation phase must explicitly decide which sources can be observed and how.
+All example sources are disabled by default. A later implementation phase must explicitly decide which sources can be observed and how. Live-source eligibility, fetch policy, caching, and artifact-only test requirements are documented in `docs/live-source-discovery-readiness.md`.
 
 ## Source Categories
 
@@ -168,7 +168,7 @@ The mock discovery command reads local placeholder observation fixtures only. It
 
 ## Future Work
 
-Live source discovery, readiness checks, scheduled scans, and publication are still unimplemented. Planned future commands remain separate from the current validators, mock discovery, and ranker:
+Live source discovery, readiness checks, scheduled scans, and publication are still unimplemented. Future live-source planning is documented in `docs/live-source-discovery-readiness.md`. Planned future commands remain separate from the current validators, mock discovery, and ranker:
 
 ```powershell
 python -m ai_signal_brief topic-scan-readiness
