@@ -1,0 +1,67 @@
+{
+  "schema_version": "1.0.0",
+  "report_id": "2026-06-24-reviewed-candidate-shell",
+  "report_date": "2026-06-24",
+  "generated_at": "2026-06-24T04:00:00+08:00",
+  "timezone": "Asia/Kuala_Lumpur",
+  "language": "en",
+  "title": "AI Signal Brief - 2026-06-24 Reviewed Candidate Shell",
+  "summary": {
+    "top_stories": [
+      {
+        "story_id": "story-draft-shell-001",
+        "rank": 1,
+        "headline": "DRAFT ONLY placeholder for the first reviewed report candidate",
+        "why_it_matters": "NOT REVIEWED. NOT PUBLISHED. NO HISTORICAL CONTENT MIGRATED YET. SOURCE REVIEW REQUIRED. CLAIM REVIEW REQUIRED."
+      }
+    ]
+  },
+  "stories": [
+    {
+      "id": "story-draft-shell-001",
+      "rank": 1,
+      "title": "DRAFT ONLY placeholder story for candidate workspace validation",
+      "status": "new",
+      "importance": {
+        "score": 1,
+        "rationale": "Draft placeholder score only. SOURCE REVIEW REQUIRED and CLAIM REVIEW REQUIRED before any publication decision."
+      },
+      "companies": ["Review Required"],
+      "models": ["Review Required"],
+      "regions": ["Global"],
+      "claims": [
+        {
+          "id": "claim-draft-shell-001",
+          "text": "DRAFT ONLY placeholder claim. NOT REVIEWED. NOT PUBLISHED. NO HISTORICAL CONTENT MIGRATED YET.",
+          "source_ids": ["source-draft-shell-001"],
+          "verification_status": "unverified",
+          "confidence": "low"
+        }
+      ],
+      "source_ids": ["source-draft-shell-001"],
+      "analysis": "DRAFT ONLY workspace shell for validation. NOT REVIEWED. NOT PUBLISHED. NO HISTORICAL CONTENT MIGRATED YET. Replace only after manual English rewrite, SOURCE REVIEW REQUIRED, and CLAIM REVIEW REQUIRED."
+    }
+  ],
+  "sources": [
+    {
+      "id": "source-draft-shell-001",
+      "title": "DRAFT ONLY placeholder public source record",
+      "publisher": "Review Required",
+      "url": "https://example.com/2026-06-24-reviewed-candidate-placeholder",
+      "source_type": "other",
+      "published_at": "2026-06-24T00:00:00+08:00",
+      "retrieved_at": "2026-06-24T04:00:00+08:00"
+    }
+  ],
+  "assets": [],
+  "provenance": {
+    "candidate_status": "DRAFT ONLY",
+    "review_status": "NOT REVIEWED",
+    "publication_status": "NOT PUBLISHED",
+    "historical_content_status": "NO HISTORICAL CONTENT MIGRATED YET",
+    "source_review": "SOURCE REVIEW REQUIRED",
+    "claim_review": "CLAIM REVIEW REQUIRED",
+    "template_shell_only": true,
+    "generated_content_disclosure": "This is a draft placeholder shell for local validation only. It contains no migrated historical report prose."
+  }
+}
