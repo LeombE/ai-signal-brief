@@ -12,6 +12,8 @@ GitHub Actions CI for commit `43d2344 Remove urllib imports from validation help
 
 GitHub Actions CI for commit `aa173c9 Add no-network live source dry-run` was manually confirmed green in the GitHub UI. That result verifies the `discover-topics-live-dry-run` path: it reads disabled live registry metadata only, requires artifact-only and metadata-only flags, writes unresolved review-required topic candidates under `outputs/`, and does not add `discover-topics-live`, live HTTP fetching, workflow changes, scheduling, deployment, Telegram, OpenAI API usage, image generation, DOCX generation, or production Pages deployment.
 
+GitHub Actions CI for commit `637b424 Document no-network live dry-run CI result` was manually confirmed green in the GitHub UI. That documentation-only result confirms the recorded no-network live dry-run status without adding `discover-topics-live`, live HTTP fetching, workflow changes, scheduling, deployment, Telegram, OpenAI API usage, image generation, DOCX generation, or production Pages deployment.
+
 No schedule, live fetching, Telegram delivery, OpenAI API usage, image generation, DOCX generation, production Pages deployment, or automatic report publication is active. `discover-topics-live` does not exist; the current dry-run command is `discover-topics-live-dry-run` and remains no-network.
 
 ## Objective

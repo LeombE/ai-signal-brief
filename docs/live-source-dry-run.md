@@ -6,6 +6,8 @@ It does not fetch web pages, publish reports, deploy Pages, send Telegram messag
 
 GitHub Actions CI for commit `aa173c9 Add no-network live source dry-run` was manually confirmed green in the GitHub UI. That confirmation did not trigger deployment, production Pages publication, Telegram delivery, OpenAI API usage, image generation, DOCX generation, or scheduling.
 
+GitHub Actions CI for commit `637b424 Document no-network live dry-run CI result` was manually confirmed green in the GitHub UI. That documentation-only confirmation did not change workflows, enable scheduling, trigger deployment, publish production Pages, send Telegram, call OpenAI APIs, generate images, create DOCX files, or enable live HTTP fetching.
+
 ## Command
 
 ```powershell
