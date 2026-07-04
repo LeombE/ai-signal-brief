@@ -6,6 +6,8 @@ This document began as a planning artifact. The project now includes a replay-on
 
 GitHub Actions CI for commit `85ec975 Add replay-only fetch adapter skeleton` was manually confirmed green in the GitHub UI. The implemented `fetch-source-replay` command reads local JSON replay fixtures only; no `discover-topics-live` CLI exists yet, and live fetching remains future work that requires separate approval.
 
+GitHub Actions CI for commit `43d2344 Remove urllib imports from validation helpers` was manually confirmed green in the GitHub UI. The no-urllib safety fix removed `urllib.parse` imports from validation helpers while preserving local HTTPS/source validation. No live HTTP fetch adapter, `discover-topics-live` command, workflow, or schedule was added.
+
 The current project remains offline-first. The disabled live source registry example at `config/topic_sources.live.example.json` validates offline, and every live source entry remains disabled by default.
 
 ## Future Adapter Objective

@@ -12,6 +12,8 @@ python -m ai_signal_brief discover-topics-from-replay --date 2026-06-24 --source
 
 The replay directory must contain valid replay fixture JSON files only. The shared `tests/fixtures/fetch_replay/` directory intentionally contains invalid fixtures for failure tests, so passing that mixed directory to the command should fail.
 
+GitHub Actions CI for commit `43d2344 Remove urllib imports from validation helpers` was manually confirmed green in the GitHub UI. The no-urllib safety fix removed `urllib.parse` imports from validation helpers while preserving local HTTPS/source validation. Replay topic discovery remains replay-only, local-fixture-only, unresolved, and manually reviewable.
+
 ## Pipeline
 
 The replay pipeline:

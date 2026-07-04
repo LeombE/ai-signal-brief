@@ -8,6 +8,8 @@ The current project supports offline topic source validation, offline topic cand
 
 GitHub Actions CI for commit `85ec975 Add replay-only fetch adapter skeleton` was manually confirmed green in the GitHub UI. That result verifies the replay-only adapter path and local fixture checks; it does not enable live discovery, live HTTP fetching, scheduling, deployment, Telegram, OpenAI API usage, image generation, or DOCX generation.
 
+GitHub Actions CI for commit `43d2344 Remove urllib imports from validation helpers` was manually confirmed green in the GitHub UI. That result verifies the no-urllib validation-helper safety fix: `urllib.parse` imports were removed while local HTTPS/source validation remains available. It does not enable live discovery, live HTTP fetching, scheduling, deployment, Telegram, OpenAI API usage, image generation, DOCX generation, or production Pages deployment.
+
 No schedule, live fetching, Telegram delivery, OpenAI API usage, image generation, DOCX generation, or automatic report publication is active.
 
 ## Objective

@@ -6,6 +6,8 @@ Fetch replay fixtures are local, public-safe test inputs for the replay-only fet
 
 GitHub Actions CI for commit `85ec975 Add replay-only fetch adapter skeleton` was manually confirmed green in the GitHub UI. The confirmation covers replay-only fixture parsing and validation; it does not make the adapter a live web fetcher and does not activate scheduling, Telegram, OpenAI API usage, image generation, DOCX generation, Pages deployment, or report publication.
 
+GitHub Actions CI for commit `43d2344 Remove urllib imports from validation helpers` was manually confirmed green in the GitHub UI. The no-urllib safety fix removed `urllib.parse` imports from validation helpers while preserving local HTTPS/source validation. `fetch-source-replay` still reads local JSON replay fixtures only and does not enable live HTTP fetching, scheduling, Telegram, OpenAI API usage, image generation, DOCX generation, Pages deployment, or report publication.
+
 The current replay command reads local JSON only:
 
 ```powershell
