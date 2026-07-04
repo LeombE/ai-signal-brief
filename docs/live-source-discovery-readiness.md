@@ -10,7 +10,9 @@ GitHub Actions CI for commit `85ec975 Add replay-only fetch adapter skeleton` wa
 
 GitHub Actions CI for commit `43d2344 Remove urllib imports from validation helpers` was manually confirmed green in the GitHub UI. That result verifies the no-urllib validation-helper safety fix: `urllib.parse` imports were removed while local HTTPS/source validation remains available. It does not enable live discovery, live HTTP fetching, scheduling, deployment, Telegram, OpenAI API usage, image generation, DOCX generation, or production Pages deployment.
 
-No schedule, live fetching, Telegram delivery, OpenAI API usage, image generation, DOCX generation, or automatic report publication is active.
+GitHub Actions CI for commit `aa173c9 Add no-network live source dry-run` was manually confirmed green in the GitHub UI. That result verifies the `discover-topics-live-dry-run` path: it reads disabled live registry metadata only, requires artifact-only and metadata-only flags, writes unresolved review-required topic candidates under `outputs/`, and does not add `discover-topics-live`, live HTTP fetching, workflow changes, scheduling, deployment, Telegram, OpenAI API usage, image generation, DOCX generation, or production Pages deployment.
+
+No schedule, live fetching, Telegram delivery, OpenAI API usage, image generation, DOCX generation, production Pages deployment, or automatic report publication is active. `discover-topics-live` does not exist; the current dry-run command is `discover-topics-live-dry-run` and remains no-network.
 
 ## Objective
 
@@ -209,7 +211,7 @@ Expected behavior:
 Future CLI command, not implemented:
 
 ```powershell
-python -m ai_signal_brief discover-topics-live --date YYYY-MM-DD --sources config/topic_sources.example.json --out outputs/topic-candidates-live/YYYY-MM-DD.json --dry-run
+python -m ai_signal_brief discover-topics-live-dry-run --date YYYY-MM-DD --sources config/topic_sources.live.example.json --out outputs/topic-candidates-live-dry-run/YYYY-MM-DD.json --artifact-only --metadata-only
 ```
 
 Expected future arguments:
@@ -235,8 +237,8 @@ Future phases should be explicit and separately approved:
 3. Add HTTP timeout, user-agent, response-size, and error-handling policy.
 4. Add cache layer under ignored `outputs/cache/`.
 5. Add fetch fixtures and replay tests with no network requirement.
-6. Add `discover-topics-live --dry-run` behind strict validation.
-7. Add manual `workflow_dispatch` live-source dry run that uploads artifacts only.
+6. Keep `discover-topics-live-dry-run` as the no-network metadata-only validation path; do not add `discover-topics-live` without separate approval.
+7. Only after separate approval, consider a manual `workflow_dispatch` live-source dry run that uploads artifacts only.
 8. Review artifacts manually.
 9. Only later consider schedule.
 10. Only after reviewed reports and Pages URLs are verified, consider delivery integrations.

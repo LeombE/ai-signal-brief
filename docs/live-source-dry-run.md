@@ -4,6 +4,8 @@ Live source dry-run is a no-network readiness check for future live source disco
 
 It does not fetch web pages, publish reports, deploy Pages, send Telegram messages, call OpenAI APIs, generate images, create DOCX files, or enable scheduled automation.
 
+GitHub Actions CI for commit `aa173c9 Add no-network live source dry-run` was manually confirmed green in the GitHub UI. That confirmation did not trigger deployment, production Pages publication, Telegram delivery, OpenAI API usage, image generation, DOCX generation, or scheduling.
+
 ## Command
 
 ```powershell
@@ -45,7 +47,7 @@ The command first validates the topic source registry, then enforces live dry-ru
 - output must stay under `outputs/`
 - private paths, secret-like values, token/chat identifier/API key markers, raw HTML content, legacy builders, and private migration markers are rejected through existing validation gates
 
-The command does not support a network flag and does not implement `discover-topics-live`.
+The command does not support a network flag and does not implement `discover-topics-live`. The only live-source dry-run command is `discover-topics-live-dry-run`, and it reads disabled registry metadata only.
 
 ## Review Boundary
 

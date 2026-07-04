@@ -18,6 +18,8 @@ GitHub Actions CI for commit `85ec975 Add replay-only fetch adapter skeleton` wa
 
 GitHub Actions CI for commit `43d2344 Remove urllib imports from validation helpers` was manually confirmed green in the GitHub UI. That no-urllib safety milestone removed `urllib.parse` imports from validation helpers while preserving local HTTPS/source validation, and it did not enable live fetching, scheduling, deployment, Telegram delivery, OpenAI API usage, image generation, DOCX generation, or production Pages deployment.
 
+GitHub Actions CI for commit `aa173c9 Add no-network live source dry-run` was manually confirmed green in the GitHub UI. That live dry-run milestone adds `discover-topics-live-dry-run` for disabled live registry metadata only; it remains no-network, artifact-only, metadata-only, unresolved, and manually reviewable, and it did not add live HTTP fetching, workflows, schedules, deployment, Telegram delivery, OpenAI API usage, image generation, DOCX generation, or production Pages deployment.
+
 The project is still offline-first: no live ingestion, delivery, scheduled automation, external API usage, image generation, DOCX generation, historical migration, production daily Pages automation, or Telegram delivery is active. GitHub Pages sample preview is live at `https://leombe.github.io/ai-signal-brief/` and currently uses sample/example data only.
 
 Implemented so far:
@@ -60,6 +62,7 @@ Current publication boundary:
 - latest GitHub Actions CI is passing
 - replay-only fetch adapter CI for commit `85ec975` was manually confirmed green; no schedule, deployment, Telegram, OpenAI API, image generation, or DOCX step was triggered
 - no-urllib safety fix CI for commit `43d2344` was manually confirmed green; validation helpers keep local HTTPS/source validation without adding live HTTP fetching
+- no-network live dry-run CI for commit `aa173c9` was manually confirmed green; `discover-topics-live-dry-run` reads disabled live registry metadata only and keeps generated topics unresolved and review-required
 - GitHub Pages sample preview is live: `https://leombe.github.io/ai-signal-brief/`
 - manual Pages Preview workflow exists and publishes sample data only when run manually
 - manual Topic Scan Preview workflow exists and uploads mock topic candidates as a short-lived artifact only
@@ -237,7 +240,7 @@ python -m ai_signal_brief dry-run-reviewed-report --date YYYY-MM-DD --report rep
 
 No package installation is required for the current offline workflow.
 
-Validation checks required fields, duplicate IDs, source references, ISO-8601 timestamps with timezones, English-language report output, source registry priority rules, official-source-first policy, topic source registry rules, topic candidate references, artifact shape, cross-file report/run/source consistency, and secret-like values in report/run/source/topic JSON. Offline mock topic discovery reads local observation fixtures, validates the topic source registry, writes candidate JSON under `outputs/`, validates generated candidates, and can run ranking without network access. Replay topic discovery reads local replay fixtures only, keeps generated topics unresolved and manually reviewable, validates generated candidates, and can run ranking without network access. Live-source dry-run validates disabled live registry metadata only, writes unresolved review artifacts under `outputs/`, and does not fetch web pages. Offline topic ranking validates candidates first, applies deterministic score normalization, preserves dedup evidence, and refuses unsafe output paths. Rendering, run metadata generation, quality gates, archive building, static site building, and public readiness auditing refuse invalid inputs.
+Validation checks required fields, duplicate IDs, source references, ISO-8601 timestamps with timezones, English-language report output, source registry priority rules, official-source-first policy, topic source registry rules, topic candidate references, artifact shape, cross-file report/run/source consistency, and secret-like values in report/run/source/topic JSON. Offline mock topic discovery reads local observation fixtures, validates the topic source registry, writes candidate JSON under `outputs/`, validates generated candidates, and can run ranking without network access. Replay topic discovery reads local replay fixtures only, keeps generated topics unresolved and manually reviewable, validates generated candidates, and can run ranking without network access. Live-source dry-run validates disabled live registry metadata only, writes unresolved review artifacts under `outputs/`, and does not fetch web pages; GitHub Actions CI for commit `aa173c9` was manually confirmed green for that no-network milestone. Offline topic ranking validates candidates first, applies deterministic score normalization, preserves dedup evidence, and refuses unsafe output paths. Rendering, run metadata generation, quality gates, archive building, static site building, and public readiness auditing refuse invalid inputs.
 
 ## Example Files
 
