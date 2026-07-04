@@ -1,11 +1,10 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from dataclasses import dataclass
 import json
 import re
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlparse
 
 
 ISO_8601_WITH_TIMEZONE = re.compile(
@@ -546,8 +545,31 @@ def _validate_source_entry(source: Any, index: int, category_ids: set[str], cate
 def _url_has_private_location(value: str) -> bool:
     if WINDOWS_PATH.search(value):
         return True
-    parsed = urlparse(value)
-    if parsed.scheme != "https":
+    host = _public_https_host(value)
+    if host is None:
         return True
-    host = parsed.hostname or ""
     return bool(PRIVATE_HOST.search(host))
+
+
+def _public_https_host(value: str) -> str | None:
+    if not value.startswith("https://"):
+        return None
+    authority = value[len("https://"):].split("/", 1)[0].split("?", 1)[0].split("#", 1)[0]
+    if not authority or "@" in authority:
+        return None
+    if authority.startswith("["):
+        end = authority.find("]")
+        if end == -1:
+            return None
+        host = authority[1:end]
+    else:
+        host = authority.split(":", 1)[0]
+    return host.lower().rstrip(".") or None
+
+
+def _url_has_credentials_query_or_fragment(value: str) -> bool:
+    if not value.startswith("https://"):
+        return False
+    without_scheme = value[len("https://"):]
+    authority = without_scheme.split("/", 1)[0].split("?", 1)[0].split("#", 1)[0]
+    return "@" in authority or "?" in value or "#" in value

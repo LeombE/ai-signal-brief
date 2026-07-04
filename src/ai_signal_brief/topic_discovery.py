@@ -7,7 +7,6 @@ import json
 from pathlib import Path, PurePosixPath
 import re
 from typing import Any
-from urllib.parse import urlparse
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from .topic_ranking import TopicRankingError, rank_topics_from_path, render_topic_ranking_summary
@@ -615,10 +614,25 @@ def _require_public_https_url(obj: dict[str, Any], field: str, path: str) -> Non
     value = obj.get(field)
     if not isinstance(value, str) or not value:
         raise TopicDiscoveryError(f"{path}.{field} must be a non-empty string")
-    parsed = urlparse(value)
-    if parsed.scheme != "https" or not parsed.netloc or parsed.hostname in {"localhost", "127.0.0.1", "0.0.0.0"}:
+    host = _public_https_host(value)
+    if host is None or host in {"localhost", "127.0.0.1", "0.0.0.0"}:
         raise TopicDiscoveryError(f"{path}.{field} must be public HTTPS")
 
+
+def _public_https_host(value: str) -> str | None:
+    if not value.startswith("https://"):
+        return None
+    authority = value[len("https://"):].split("/", 1)[0].split("?", 1)[0].split("#", 1)[0]
+    if not authority or "@" in authority:
+        return None
+    if authority.startswith("["):
+        end = authority.find("]")
+        if end == -1:
+            return None
+        host = authority[1:end]
+    else:
+        host = authority.split(":", 1)[0]
+    return host.lower().rstrip(".") or None
 
 def _resolve_safe_outputs_path(output_path: str | Path, repo_root: Path) -> Path:
     raw_output = str(output_path)

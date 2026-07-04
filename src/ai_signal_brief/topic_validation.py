@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlparse
 
 from .validation import (
     DATE_ONLY,
@@ -10,7 +9,9 @@ from .validation import (
     SOURCE_TYPES,
     ValidationResult,
     _load_json,
+    _public_https_host,
     _require_fields,
+    _url_has_credentials_query_or_fragment,
     _url_has_private_location,
     find_public_safety_issues,
     find_secret_like_values,
@@ -497,10 +498,8 @@ def _require_live_url_boundary(obj: dict[str, Any], field: str, path: str, error
     value = obj.get(field)
     if not isinstance(value, str):
         return
-    parsed = urlparse(value)
-    if parsed.username or parsed.password or parsed.query or parsed.fragment:
+    if _url_has_credentials_query_or_fragment(value):
         errors.append(f"{path}.{field} must not contain credentials, query strings, or fragments")
-
 
 def _validate_live_source_markers(source: dict[str, Any], path: str, errors: list[str]) -> None:
     marker_fields = ("url", "title", "publisher", "robots_policy_note", "rate_limit_note", "safety_notes")
@@ -588,6 +587,5 @@ def _require_public_https_url(obj: dict[str, Any], field: str, path: str, errors
         return
     if _url_has_private_location(value):
         errors.append(f"{path}.{field} must be public HTTPS and not local/private")
-    parsed = urlparse(value)
-    if parsed.scheme != "https" or not parsed.netloc:
+    if _public_https_host(value) is None:
         errors.append(f"{path}.{field} must be public HTTPS")
