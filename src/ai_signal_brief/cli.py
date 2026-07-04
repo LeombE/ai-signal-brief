@@ -8,6 +8,7 @@ from pathlib import Path
 from . import __version__
 from .archive import ArchiveError, build_archive
 from .fetch_adapter import FetchAdapterError, replay_fixture_to_observation, render_observation_json
+from .live_dry_run import LiveDryRunError, discover_topics_live_dry_run
 from .public_readiness import PublicReadinessResult, audit_public_readiness
 from .quality_gate import QualityGateResult, run_quality_gate
 from .rendering import RenderError, render_markdown_from_path, render_telegram_from_path, write_text_output
@@ -29,7 +30,7 @@ from .topic_ranking import (
     render_topic_ranking_summary,
     write_ranked_topics_output,
 )
-from .topic_discovery import TopicDiscoveryError, discover_topics_from_mock, render_discovery_summary
+from .topic_discovery import TopicDiscoveryError, TopicDiscoveryResult, discover_topics_from_mock, render_discovery_summary
 from .replay_discovery import ReplayDiscoveryError, discover_topics_from_replay
 
 
@@ -151,6 +152,32 @@ def discover_topics_from_replay_command(
         return 1
     print(render_discovery_summary(result))
     return 0
+
+
+def discover_topics_live_dry_run_command(
+    scan_date: str,
+    sources_path: str,
+    output_path: str,
+    artifact_only: bool,
+    metadata_only: bool,
+    timezone_name: str,
+) -> int:
+    try:
+        result = discover_topics_live_dry_run(
+            scan_date=scan_date,
+            sources_path=sources_path,
+            output_path=output_path,
+            artifact_only=artifact_only,
+            metadata_only=metadata_only,
+            timezone_name=timezone_name,
+            repo_root=project_root(),
+        )
+    except LiveDryRunError as exc:
+        print(f"Live source dry-run failed: {exc}")
+        return 1
+    print(render_discovery_summary(TopicDiscoveryResult(output_path=result.output_path, candidates=result.candidates)))
+    return 0
+
 
 def rank_topics_command(
     path: str,
@@ -402,6 +429,17 @@ def build_parser() -> argparse.ArgumentParser:
     replay_topics_parser.add_argument("--out", required=True, help="Topic candidate output path under outputs/.")
     replay_topics_parser.add_argument("--rank", action="store_true", help="Run offline ranking after generation.")
     replay_topics_parser.add_argument("--timezone", default="Asia/Kuala_Lumpur", help="IANA timezone name for deterministic generated_at.")
+
+    live_dry_run_parser = subparsers.add_parser(
+        "discover-topics-live-dry-run",
+        help="Create metadata-only live-source dry-run topic candidates without network access.",
+    )
+    live_dry_run_parser.add_argument("--date", required=True, help="Scan date in YYYY-MM-DD format.")
+    live_dry_run_parser.add_argument("--sources", required=True, help="Path to disabled live topic source registry JSON.")
+    live_dry_run_parser.add_argument("--out", required=True, help="Topic candidate output path under outputs/.")
+    live_dry_run_parser.add_argument("--artifact-only", action="store_true", help="Required safety flag: write artifact only.")
+    live_dry_run_parser.add_argument("--metadata-only", action="store_true", help="Required safety flag: use metadata only.")
+    live_dry_run_parser.add_argument("--timezone", default="Asia/Kuala_Lumpur", help="IANA timezone name for deterministic generated_at.")
     fetch_replay_parser = subparsers.add_parser(
         "fetch-source-replay",
         help="Convert a safe local replay fixture into a source observation without network access.",
@@ -520,6 +558,15 @@ def main(argv: list[str] | None = None) -> int:
             args.replay_dir,
             args.out,
             args.rank,
+            args.timezone,
+        )
+    if args.command == "discover-topics-live-dry-run":
+        return discover_topics_live_dry_run_command(
+            args.date,
+            args.sources,
+            args.out,
+            args.artifact_only,
+            args.metadata_only,
             args.timezone,
         )
     if args.command == "fetch-source-replay":
