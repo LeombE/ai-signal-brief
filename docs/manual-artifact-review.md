@@ -188,6 +188,68 @@ Local validation passed for the rehearsal:
 - `git ls-files outputs`
 
 This second rehearsal adds repeatability evidence for the manual artifact review process. It is not evidence of live fetching, source publication timing, report readiness, Telegram delivery, OpenAI usage, image generation, DOCX generation, or Pages production deployment.
+
+## Third Rehearsal Result: 2026-07-07
+
+The third manual no-network artifact review rehearsal was run for `2026-07-07`.
+
+Generated artifact:
+
+```text
+outputs/topic-candidates-live-dry-run/2026-07-07.json
+```
+
+Artifact summary:
+
+- topics: 9
+- source observations: 9
+- unresolved items: 9
+- all topics had `candidate_status: unresolved`
+- all topics had `review_required: true`
+- all topics had `source_ids` and `primary_source_ids`
+- confidence fields existed on all 9 topics; all candidates were low confidence
+- uncertainty or review fields existed on all 9 topics
+- dedup groups: 9
+- multi-topic dedup groups: 0
+- duplicate or related evidence existed through deterministic `dedup_key`
+- `provenance.live_fetching` was `false`
+- `provenance.publication_status` was `not_published`
+- Telegram delivery, OpenAI API usage, image generation, DOCX generation, and production Pages deployment remained not configured
+- output stayed under `outputs/`
+- `git ls-files outputs` returned no tracked files
+- `git status --short` was clean after the rehearsal
+
+Comparison with earlier rehearsals:
+
+- `2026-07-07` matched the `2026-07-05` and `2026-07-06` metadata-only no-network pattern
+- all three rehearsals produced 9 topics, 9 source observations, and 9 unresolved items
+- all three rehearsals kept all candidates unresolved and review-required
+- all three rehearsals had `live_fetching: false`
+- all three rehearsals had `publication_status: not_published`
+- all three rehearsals had no generated output tracked by Git
+- no workflow, schedule, live-fetching, Telegram, OpenAI API, image generation, DOCX generation, Pages production deployment, or report publication behavior was introduced
+
+Manual classification:
+
+- strong candidates: none
+- weak candidates: all 9 candidates, because live fetching was disabled and only source-readiness metadata existed
+- duplicate or related candidates: none requiring merge; each candidate had a unique deterministic `dedup_key` and empty `related_topic_ids`
+- unsafe candidates: none detected by validation
+- ready for promotion: no
+
+Local validation passed for the rehearsal:
+
+- `compileall`
+- `validate-topic-sources` for the example registry
+- `validate-topic-sources` for the disabled live registry
+- `discover-topics-live-dry-run 2026-07-07`
+- `validate generated topics`
+- `public-readiness`
+- `unittest`: 174 tests OK
+- `git diff --check`
+- `git ls-files outputs`
+
+This third rehearsal strengthens repeatability evidence for the manual artifact review process. It is still not evidence of live fetching, source publication timing, report readiness, Telegram delivery, OpenAI usage, image generation, DOCX generation, or Pages production deployment.
 ## Reviewer Checklist
 
 Use this checklist before treating a dry-run artifact as schedule-readiness evidence:

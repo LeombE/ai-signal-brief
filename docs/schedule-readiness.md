@@ -96,6 +96,36 @@ Schedule-readiness impact:
 - scheduling remains blocked because several successful manual artifact reviews are still required
 - the live source registry must remain disabled until separately approved
 - future schedule work still requires a separate approval phase
+
+## Third Manual Rehearsal Evidence
+
+The third manual artifact review rehearsal was completed for `2026-07-07` using `discover-topics-live-dry-run`.
+
+Evidence recorded:
+
+- artifact path: `outputs/topic-candidates-live-dry-run/2026-07-07.json`
+- topics: 9
+- source observations: 9
+- unresolved items: 9
+- all topics remained unresolved and review-required
+- all candidates were classified as weak by design
+- no strong candidates were identified
+- no unsafe candidates were detected by validation
+- no candidate was ready for promotion
+- the result matched the `2026-07-05` and `2026-07-06` metadata-only no-network pattern
+- no live fetching occurred
+- no workflow was changed
+- no schedule was added
+- no Telegram, OpenAI API, image generation, DOCX generation, production Pages deployment, or report publication occurred
+- generated output remained under `outputs/`
+- generated output was not tracked by Git
+
+Schedule-readiness impact:
+
+- this counts as the third successful manual dry-run rehearsal
+- scheduling remains blocked until a separate schedule-approval phase explicitly approves it
+- the live source registry must remain disabled until separately approved
+- future schedule work still requires workflow diff review, public-readiness, artifact review evidence, and explicit approval
 ## Schedule-Readiness Review Checklist
 
 Before proposing any schedule, record evidence for:
