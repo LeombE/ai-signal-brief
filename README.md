@@ -183,7 +183,7 @@ Canonical and offline-preview outputs:
 - Static site: offline HTML/CSS generated from an archive
 - GitHub Pages Preview: manual sample static-site deployment from example JSON files only
 
-Telegram delivery, DOCX, generated image assets, production Pages deployment, and historical report migration may be added in later approved phases. Production Pages requirements are documented in `docs/production-pages-readiness.md`; future reviewed report staging rules are documented in `docs/reviewed-report-staging.md`, and local dry-run rules are documented in `docs/reviewed-report-dry-run.md`; a dry-run helper command plan is documented in `docs/reviewed-report-dry-run-command-plan.md`, first-candidate selection rules are documented in `docs/first-reviewed-report-candidate-plan.md`, future daily topic discovery architecture is documented in `docs/daily-topic-discovery-architecture.md`, offline mock topic discovery is documented in `docs/offline-mock-topic-discovery.md`, and live-source readiness is documented in `docs/live-source-discovery-readiness.md`.
+Telegram delivery, DOCX, generated image assets, production Pages deployment, and historical report migration may be added in later approved phases. Production Pages requirements are documented in `docs/production-pages-readiness.md`; future reviewed report staging rules are documented in `docs/reviewed-report-staging.md`, and local dry-run rules are documented in `docs/reviewed-report-dry-run.md`; a dry-run helper command plan is documented in `docs/reviewed-report-dry-run-command-plan.md`, first-candidate selection rules are documented in `docs/first-reviewed-report-candidate-plan.md`, future daily topic discovery architecture is documented in `docs/daily-topic-discovery-architecture.md`, offline mock topic discovery is documented in `docs/offline-mock-topic-discovery.md`, live-source readiness is documented in `docs/live-source-discovery-readiness.md`, manual artifact review is documented in `docs/manual-artifact-review.md`, and schedule-readiness gates are documented in `docs/schedule-readiness.md`.
 
 The first manual `Topic Scan Preview` run on `main` completed successfully. It uploaded one short-lived `topic-candidates-preview` artifact containing `topic-candidates.json`, and the artifact was manually inspected as mock placeholder output only. Live-source discovery remains unimplemented; future requirements and safety gates are documented in `docs/live-source-discovery-readiness.md`, future registry extension fields are documented in `docs/live-source-registry-extension-plan.md`, the fetch adapter interface plan is documented in `docs/live-fetch-adapter-interface-plan.md`, and the disabled-by-default example registry lives at `config/topic_sources.live.example.json`.
 
@@ -218,6 +218,8 @@ Readable documentation lives in:
 - `docs/offline-mock-topic-discovery.md`
 - `docs/topic-scan-preview-workflow.md`
 - `docs/fetch-replay-fixtures.md`
+- `docs/manual-artifact-review.md`
+- `docs/schedule-readiness.md`
 - `docs/release-checklist.md`
 
 ## Local Verification
