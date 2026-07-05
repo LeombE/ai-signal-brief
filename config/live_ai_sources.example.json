@@ -13,11 +13,12 @@
       "reliability_tier": "primary",
       "fetch_mode": "html_metadata",
       "enabled": true,
-      "max_items": 1,
+      "max_items": 4,
       "timeout_seconds": 15,
       "source_confidence": "high",
       "attribution_required": true,
-      "manual_review_required": true
+      "manual_review_required": true,
+      "feed_url": "https://openai.com/news/rss.xml"
     },
     {
       "id": "anthropic-news",
@@ -29,7 +30,7 @@
       "reliability_tier": "primary",
       "fetch_mode": "html_metadata",
       "enabled": true,
-      "max_items": 1,
+      "max_items": 3,
       "timeout_seconds": 15,
       "source_confidence": "high",
       "attribution_required": true,
@@ -45,11 +46,12 @@
       "reliability_tier": "primary",
       "fetch_mode": "html_metadata",
       "enabled": true,
-      "max_items": 1,
+      "max_items": 4,
       "timeout_seconds": 15,
       "source_confidence": "high",
       "attribution_required": true,
-      "manual_review_required": true
+      "manual_review_required": true,
+      "feed_url": "https://blog.google/technology/ai/rss/"
     },
     {
       "id": "google-deepmind-blog",
@@ -61,7 +63,7 @@
       "reliability_tier": "primary",
       "fetch_mode": "html_metadata",
       "enabled": true,
-      "max_items": 1,
+      "max_items": 3,
       "timeout_seconds": 15,
       "source_confidence": "high",
       "attribution_required": true,
@@ -77,7 +79,7 @@
       "reliability_tier": "primary",
       "fetch_mode": "html_metadata",
       "enabled": true,
-      "max_items": 1,
+      "max_items": 3,
       "timeout_seconds": 15,
       "source_confidence": "high",
       "attribution_required": true,
@@ -93,7 +95,7 @@
       "reliability_tier": "primary",
       "fetch_mode": "html_metadata",
       "enabled": true,
-      "max_items": 1,
+      "max_items": 3,
       "timeout_seconds": 15,
       "source_confidence": "high",
       "attribution_required": true,
@@ -109,7 +111,7 @@
       "reliability_tier": "primary",
       "fetch_mode": "html_metadata",
       "enabled": true,
-      "max_items": 1,
+      "max_items": 3,
       "timeout_seconds": 15,
       "source_confidence": "high",
       "attribution_required": true,
@@ -125,7 +127,7 @@
       "reliability_tier": "primary",
       "fetch_mode": "html_metadata",
       "enabled": true,
-      "max_items": 1,
+      "max_items": 3,
       "timeout_seconds": 15,
       "source_confidence": "high",
       "attribution_required": true,
@@ -141,11 +143,12 @@
       "reliability_tier": "primary_or_context",
       "fetch_mode": "html_metadata",
       "enabled": true,
-      "max_items": 1,
+      "max_items": 4,
       "timeout_seconds": 15,
       "source_confidence": "medium",
       "attribution_required": true,
-      "manual_review_required": true
+      "manual_review_required": true,
+      "feed_url": "https://huggingface.co/blog/feed.xml"
     }
   ]
 }

@@ -1,0 +1,9 @@
+<!doctype html>
+<html><head><title>AI Lab News</title></head><body>
+<nav><a href="/privacy">Privacy</a><a href="/news">All news</a></nav>
+<main>
+  <article><a href="/news/2026/07/05/claude-agent-release">Anthropic releases Claude agent tooling for developers</a></article>
+  <article><a href="/blog/2026/07/05/gemini-api-update">Google updates Gemini API availability for enterprise teams</a></article>
+  <article><a href="/pricing">Pricing</a></article>
+</main>
+</body></html>

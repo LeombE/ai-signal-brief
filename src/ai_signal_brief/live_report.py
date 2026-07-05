@@ -109,10 +109,11 @@ def _rank_candidates(observations: list[dict[str, Any]], *, max_items: int) -> l
     candidates = [_candidate_from_observation(observation) for observation in observations]
     candidates.sort(
         key=lambda item: (
+            1 if item.get("signal_level") == "article" else 0,
             int(item["importance_score"]),
             int(item["source_quality_score"]),
             int(item["novelty_score"]),
-            str(item.get("published_at") or ""),
+            str(item.get("published_at") or item.get("updated_at") or ""),
             str(item["title"]),
         ),
         reverse=True,
@@ -136,10 +137,12 @@ def _candidate_from_observation(observation: dict[str, Any]) -> dict[str, Any]:
     company_model = _company_model(observation)
     topic_type = str(observation.get("topic_type") or "other")
     source_type = str(observation.get("source_type") or "other")
-    importance = _importance_score(title, summary, topic_type, source_type)
-    novelty = _novelty_score(title, summary)
+    signal_level = str(observation.get("signal_level") or "source_homepage_fallback")
+    is_homepage_fallback = bool(observation.get("is_homepage_fallback") or signal_level != "article")
+    importance = _importance_score(title, summary, topic_type, source_type, is_homepage_fallback=is_homepage_fallback)
+    novelty = _novelty_score(title, summary, is_homepage_fallback=is_homepage_fallback)
     source_quality = _source_quality(source_type, str(observation.get("source_confidence") or "medium"))
-    confidence = _confidence(observation, source_quality)
+    confidence = _confidence(observation, source_quality, is_homepage_fallback=is_homepage_fallback)
     topic_id = _topic_id(observation)
     return {
         "topic_id": topic_id,
@@ -154,7 +157,10 @@ def _candidate_from_observation(observation: dict[str, Any]) -> dict[str, Any]:
         "source_quality_score": source_quality,
         "confidence": confidence,
         "published_at": observation.get("published_at"),
+        "updated_at": observation.get("updated_at"),
         "retrieved_at": observation.get("retrieved_at"),
+        "signal_level": signal_level,
+        "is_homepage_fallback": is_homepage_fallback,
         "sources": [
             {
                 "source_id": observation.get("source_id"),
@@ -162,11 +168,12 @@ def _candidate_from_observation(observation: dict[str, Any]) -> dict[str, Any]:
                 "publisher": observation.get("publisher"),
                 "url": observation.get("url"),
                 "source_type": source_type,
+                "signal_level": signal_level,
             }
         ],
         "what_changed": _sentence(summary or title),
-        "why_it_matters": _why_it_matters(topic_type, source_type),
-        "impact": _impact(topic_type),
+        "why_it_matters": _why_it_matters(topic_type, source_type, is_homepage_fallback=is_homepage_fallback),
+        "impact": _impact(topic_type, is_homepage_fallback=is_homepage_fallback),
         "boundary": _boundary(observation),
         "review_notes": list(observation.get("evidence_notes", [])),
         "dedup_key": _dedup_key(observation),
@@ -187,6 +194,8 @@ def _build_report(
     telegram_sent: bool,
 ) -> dict[str, Any]:
     top = candidates[:3]
+    article_count = _article_level_count(candidates)
+    fallback_count = sum(1 for item in candidates if item.get("is_homepage_fallback"))
     return {
         "schema_version": "1.0.0",
         "report_type": "live_ai_daily_brief_mvp",
@@ -195,11 +204,13 @@ def _build_report(
             "date": report_date,
             "timezone": timezone_name,
             "scope": "Global AI model, API, platform, safety, research, and regulatory updates from allowlisted public HTTPS sources.",
-            "source_strategy": "Official and high-signal public sources first; non-official sources are context only.",
+            "source_strategy": "Prefer RSS/Atom feeds and article-level official releases; homepage metadata is fallback-only and downranked.",
             "sources_path": sources_path,
             "lookback_hours": lookback_hours,
             "generated_at": fetched_at,
-            "generation_mode": "manual_live_public_https_mvp",
+            "generation_mode": "manual_live_public_https_article_discovery",
+            "article_level_items": article_count,
+            "homepage_fallback_items": fallback_count,
             "english_only": "true",
             "openai_used": "true" if openai_used else "false",
             "telegram_sent": "true" if telegram_sent else "false",
@@ -207,36 +218,41 @@ def _build_report(
             "pages_deploy": "not_configured",
             "image_generation": "not_configured",
         },
-        "executive_summary": _executive_summary(top, source_errors),
+        "executive_summary": _executive_summary(top, source_errors, article_count=article_count),
         "ranked_updates": candidates,
-        "key_judgments": _key_judgments(candidates, source_errors),
+        "key_judgments": _key_judgments(candidates, source_errors, article_count=article_count, fallback_count=fallback_count),
         "company_model_watchlist": _watchlist(candidates),
-        "follow_up_checklist": _followups(candidates, source_errors),
+        "follow_up_checklist": _followups(candidates, source_errors, fallback_count=fallback_count),
         "source_errors": source_errors,
-        "conclusion": _conclusion(candidates),
+        "conclusion": _conclusion(candidates, article_count=article_count),
     }
 
 
-def _executive_summary(candidates: list[dict[str, Any]], source_errors: list[dict[str, str]]) -> list[str]:
+def _executive_summary(candidates: list[dict[str, Any]], source_errors: list[dict[str, str]], *, article_count: int) -> list[str]:
     if not candidates:
         return [
             "No high-confidence public AI update was captured in this run.",
             "Treat the artifact as a fetch-status record and inspect source errors before retrying.",
         ]
-    summary = [f"Top signal: {item['title']} ({item['confidence']} confidence)." for item in candidates]
+    summary = [f"Top signal: {item['title']} ({item['confidence']} confidence, {item.get('signal_level', 'unknown')})." for item in candidates]
+    if article_count < 3:
+        summary.append("Article-level coverage was limited in this run; homepage fallback or source troubleshooting may still be required.")
     if source_errors:
         summary.append(f"{len(source_errors)} allowlisted sources returned fetch or parse errors and need follow-up.")
     return summary
 
 
-def _key_judgments(candidates: list[dict[str, Any]], source_errors: list[dict[str, str]]) -> list[str]:
+def _key_judgments(candidates: list[dict[str, Any]], source_errors: list[dict[str, str]], *, article_count: int, fallback_count: int) -> list[str]:
     judgments = [
         "Only public HTTPS sources were used.",
         "Every ranked item needs human source review before publication, Telegram delivery, or downstream automation.",
+        f"{article_count} ranked items are article-level candidates; {fallback_count} ranked items are homepage fallback candidates.",
     ]
     if candidates:
         official_count = sum(1 for item in candidates if item["sources"][0].get("source_type") == "official")
         judgments.append(f"{official_count} ranked items came from official source types.")
+    if article_count < 3:
+        judgments.append("Because fewer than 3 article-level items were captured, treat the report as limited coverage rather than comprehensive news coverage.")
     if source_errors:
         judgments.append("Some source fetches failed; absence from the report must not be interpreted as absence of news.")
     return judgments
@@ -245,6 +261,8 @@ def _key_judgments(candidates: list[dict[str, Any]], source_errors: list[dict[st
 def _watchlist(candidates: list[dict[str, Any]]) -> list[str]:
     values: list[str] = []
     for item in candidates:
+        if item.get("is_homepage_fallback"):
+            continue
         companies = item.get("company_entities") or []
         models = item.get("models") or []
         label = item["company_model"] if item["company_model"] != "Unspecified" else item["title"]
@@ -253,23 +271,27 @@ def _watchlist(candidates: list[dict[str, Any]]) -> list[str]:
     return sorted(set(values))[:10]
 
 
-def _followups(candidates: list[dict[str, Any]], source_errors: list[dict[str, str]]) -> list[str]:
+def _followups(candidates: list[dict[str, Any]], source_errors: list[dict[str, str]], *, fallback_count: int) -> list[str]:
     followups = [
         "Open every source URL and confirm publication date, claim scope, and product availability.",
         "Check whether any ranked item duplicates another item from the same vendor or source category.",
         "Keep generated outputs under outputs/ and do not commit them.",
     ]
+    if fallback_count:
+        followups.append("Review homepage fallback items separately; they are monitoring signals, not strong news claims.")
     if source_errors:
         followups.append("Retry failed sources or replace unstable feeds with more reliable official URLs.")
     if candidates:
-        followups.append("Promote only manually reviewed items into a canonical report candidate.")
+        followups.append("Promote only manually reviewed article-level items into a canonical report candidate.")
     return followups
 
 
-def _conclusion(candidates: list[dict[str, Any]]) -> str:
+def _conclusion(candidates: list[dict[str, Any]], *, article_count: int) -> str:
     if not candidates:
         return "This run produced no promotable AI news item. The next step is source troubleshooting, not publication."
-    return "This run produced local English report artifacts from allowlisted public sources. Manual review remains required before publication, scheduling, or delivery."
+    if article_count < 3:
+        return "This run produced limited article-level coverage from allowlisted public sources. Manual review and source troubleshooting remain required before publication, scheduling, or delivery."
+    return "This run produced local English article-level report artifacts from allowlisted public sources. Manual review remains required before publication, scheduling, or delivery."
 
 
 def _send_telegram(message: str, recipient: str | None, *, telegram_sender: TelegramSender | None) -> None:
@@ -292,7 +314,7 @@ def _send_telegram_http(bot_value: str, recipient_value: str, message: str) -> N
 def _telegram_message(report: dict[str, Any], markdown_path: str | None) -> str:
     lines = [report["title"], f"Date: {report['metadata']['date']}", ""]
     for item in report.get("ranked_updates", [])[:3]:
-        lines.append(f"{item['rank']}. {item['title']} ({item['confidence']})")
+        lines.append(f"{item['rank']}. {item['title']} ({item['confidence']}, {item.get('signal_level')})")
     if markdown_path:
         lines.append("")
         lines.append(f"Local Markdown: {markdown_path}")
@@ -313,7 +335,11 @@ def _company_model(observation: dict[str, Any]) -> str:
     return " / ".join(parts) if parts else "Unspecified"
 
 
-def _importance_score(title: str, summary: str, topic_type: str, source_type: str) -> int:
+def _article_level_count(candidates: list[dict[str, Any]]) -> int:
+    return sum(1 for item in candidates if item.get("signal_level") == "article" and not item.get("is_homepage_fallback"))
+
+
+def _importance_score(title: str, summary: str, topic_type: str, source_type: str, *, is_homepage_fallback: bool) -> int:
     text = (title + " " + summary).lower()
     score = 2
     if source_type == "official":
@@ -322,11 +348,15 @@ def _importance_score(title: str, summary: str, topic_type: str, source_type: st
         score += 1
     if any(word in text for word in ("launch", "release", "available", "api", "pricing", "deprecation", "security", "safety", "frontier")):
         score += 1
+    if is_homepage_fallback:
+        return max(1, min(score, 2))
     return max(1, min(score, 5))
 
 
-def _novelty_score(title: str, summary: str) -> int:
+def _novelty_score(title: str, summary: str, *, is_homepage_fallback: bool) -> int:
     text = (title + " " + summary).lower()
+    if is_homepage_fallback:
+        return 1
     if any(word in text for word in ("new", "introducing", "launch", "release", "now available")):
         return 4
     if any(word in text for word in ("update", "improve", "expand")):
@@ -343,7 +373,9 @@ def _source_quality(source_type: str, source_confidence: str) -> int:
     return max(1, min(base, 5))
 
 
-def _confidence(observation: dict[str, Any], source_quality: int) -> str:
+def _confidence(observation: dict[str, Any], source_quality: int, *, is_homepage_fallback: bool) -> str:
+    if is_homepage_fallback:
+        return "low"
     if source_quality >= 4 and observation.get("published_at"):
         return "high"
     if source_quality >= 3:
@@ -351,7 +383,9 @@ def _confidence(observation: dict[str, Any], source_quality: int) -> str:
     return "low"
 
 
-def _why_it_matters(topic_type: str, source_type: str) -> str:
+def _why_it_matters(topic_type: str, source_type: str, *, is_homepage_fallback: bool) -> str:
+    if is_homepage_fallback:
+        return "This is a source-monitoring fallback, not a confirmed article-level news item; use it only to guide manual review."
     if topic_type == "model_release":
         return "Model releases can change developer choices, product roadmaps, and competitive positioning."
     if topic_type == "developer_tooling":
@@ -365,7 +399,9 @@ def _why_it_matters(topic_type: str, source_type: str) -> str:
     return "The item may be useful context, but it needs primary-source confirmation before action."
 
 
-def _impact(topic_type: str) -> str:
+def _impact(topic_type: str, *, is_homepage_fallback: bool) -> str:
+    if is_homepage_fallback:
+        return "Monitoring impact only; no operational action should be taken from homepage metadata alone."
     if topic_type == "model_release":
         return "Potential impact on model selection, benchmark expectations, and product capability planning."
     if topic_type == "developer_tooling":
@@ -379,6 +415,8 @@ def _impact(topic_type: str) -> str:
 
 def _boundary(observation: dict[str, Any]) -> str:
     notes = list(observation.get("evidence_notes", []))
+    if observation.get("is_homepage_fallback"):
+        return "Homepage fallback only. Manual review must find an article-level source before this becomes a factual news claim."
     if notes:
         return " ".join(str(note) for note in notes[:2])
     return "Manual review is required before using this item as a factual claim."
@@ -392,14 +430,20 @@ def _sentence(value: str) -> str:
 
 
 def _topic_id(observation: dict[str, Any]) -> str:
-    seed = f"{observation.get('source_id')}|{observation.get('url')}|{observation.get('title')}|{observation.get('published_at')}"
+    seed = f"{observation.get('source_id')}|{observation.get('url')}|{observation.get('title')}|{observation.get('published_at')}|{observation.get('signal_level')}"
     return "live-ai-" + hashlib.sha1(seed.encode("utf-8")).hexdigest()[:12]
 
 
 def _dedup_key(observation: dict[str, Any]) -> str:
-    company = "-".join(str(item).lower() for item in observation.get("company_entities", [])[:2]) or str(observation.get("source_id", "source"))
+    url = _canonical_url(str(observation.get("url", "")))
     title = re.sub(r"[^a-z0-9]+", "-", str(observation.get("title", "")).lower()).strip("-")
-    return f"{company}:{title[:80]}"
+    return f"{url}:{title[:100]}"
+
+
+def _canonical_url(value: str) -> str:
+    parsed = parse.urlsplit(value)
+    path = re.sub(r"/+$", "", parsed.path or "/") or "/"
+    return parse.urlunsplit((parsed.scheme.lower(), parsed.netloc.lower(), path, "", ""))
 
 
 def _validate_date(value: str) -> None:

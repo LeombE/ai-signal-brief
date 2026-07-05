@@ -63,6 +63,120 @@ class LiveReportTests(unittest.TestCase):
         self.assertEqual(first["source_confidence"], "high")
         self.assertRegex(first["content_hash"], r"^[a-f0-9]{64}$")
 
+
+    def test_feed_discovery_prefers_article_entries_over_homepage_metadata(self) -> None:
+        config_path = _write_source_config(
+            "feed-discovery",
+            url="https://example.com/news",
+            extra={"fetch_mode": "html_metadata", "max_items": 5},
+        )
+
+        result = fetch_live_observations(
+            sources_path=config_path,
+            report_date="2026-07-05",
+            timezone_name="Asia/Kuala_Lumpur",
+            max_items=5,
+            lookback_hours=72,
+            reader=_feed_discovery_reader,
+            retrieved_at="2026-07-05T12:00:00+08:00",
+        )
+
+        self.assertEqual(len(result.observations), 2)
+        self.assertTrue(all(item["signal_level"] == "article" for item in result.observations))
+        self.assertNotIn("Example AI News", [item["title"] for item in result.observations])
+        self.assertTrue(all(item.get("published_at") for item in result.observations))
+
+    def test_html_article_cards_are_used_when_feed_missing(self) -> None:
+        config_path = _write_source_config(
+            "article-cards",
+            url="https://example.com/news",
+            extra={"fetch_mode": "html_metadata", "max_items": 5},
+        )
+
+        result = fetch_live_observations(
+            sources_path=config_path,
+            report_date="2026-07-05",
+            timezone_name="Asia/Kuala_Lumpur",
+            max_items=5,
+            lookback_hours=72,
+            reader=_article_cards_reader,
+            retrieved_at="2026-07-05T12:00:00+08:00",
+        )
+
+        titles = [item["title"] for item in result.observations]
+        self.assertIn("Anthropic releases Claude agent tooling for developers", titles)
+        self.assertIn("Google updates Gemini API availability for enterprise teams", titles)
+        self.assertNotIn("Pricing", titles)
+        self.assertTrue(all(item["signal_level"] == "article" for item in result.observations))
+
+    def test_mojibake_homepage_fallback_is_repaired_and_low_confidence(self) -> None:
+        config_path = _write_source_config(
+            "mojibake",
+            url="https://example.com/news",
+            extra={"fetch_mode": "html_metadata"},
+        )
+
+        result = fetch_live_observations(
+            sources_path=config_path,
+            report_date="2026-07-05",
+            timezone_name="Asia/Kuala_Lumpur",
+            max_items=5,
+            lookback_hours=72,
+            reader=_mojibake_reader,
+            retrieved_at="2026-07-05T12:00:00+08:00",
+        )
+
+        self.assertEqual(len(result.observations), 1)
+        item = result.observations[0]
+        self.assertEqual(item["signal_level"], "source_homepage_fallback")
+        self.assertEqual(item["source_confidence"], "low")
+        self.assertNotIn(chr(0x00C3), item["title"])
+        self.assertNotIn(chr(0x00E2), item["title"])
+        self.assertIn("Google DeepMind", item["title"])
+
+    def test_homepage_fallback_is_downranked_and_limited_coverage_reported(self) -> None:
+        config_path = _write_source_config(
+            "fallback-report",
+            url="https://example.com/news",
+            extra={"fetch_mode": "html_metadata"},
+        )
+
+        result = build_daily_ai_report(
+            report_date="2026-07-05",
+            timezone_name="Asia/Kuala_Lumpur",
+            output_dir="outputs/test-live-report/fallback-report",
+            formats="json",
+            sources_path=config_path,
+            max_items=5,
+            lookback_hours=72,
+            english_only=True,
+            no_openai=True,
+            repo_root=ROOT,
+            fetch_reader=_mojibake_reader,
+        )
+
+        item = result.report["ranked_updates"][0]
+        self.assertTrue(item["is_homepage_fallback"])
+        self.assertEqual(item["confidence"], "low")
+        self.assertLessEqual(item["importance_score"], 2)
+        self.assertIn("Article-level coverage was limited", " ".join(result.report["executive_summary"]))
+
+    def test_duplicate_feed_items_are_deduped_by_url_and_title(self) -> None:
+        config_path = _write_source_config("duplicate-feed")
+
+        result = fetch_live_observations(
+            sources_path=config_path,
+            report_date="2026-07-05",
+            timezone_name="Asia/Kuala_Lumpur",
+            max_items=5,
+            lookback_hours=72,
+            reader=_duplicate_feed_reader,
+            retrieved_at="2026-07-05T12:00:00+08:00",
+        )
+
+        self.assertEqual(len(result.observations), 1)
+        self.assertEqual(result.observations[0]["title"], "OpenAI releases model routing controls for API developers")
+
     def test_daily_brief_writes_json_markdown_and_docx(self) -> None:
         config_path = _write_source_config("write-report")
         result = build_daily_ai_report(
@@ -242,6 +356,24 @@ class LiveReportTests(unittest.TestCase):
         self.assertNotRegex(workflow, r"(?m)^\s*push\s*:")
         self.assertNotRegex(workflow, r"(?m)^\s*pull_request\s*:")
 
+
+
+def _feed_discovery_reader(url: str, timeout_seconds: int) -> bytes:
+    if url == "https://example.com/feed.xml":
+        return (FIXTURES / "official_feed.xml").read_bytes()
+    return (FIXTURES / "source_with_feed.fixture").read_bytes()
+
+
+def _article_cards_reader(url: str, timeout_seconds: int) -> bytes:
+    return (FIXTURES / "article_cards.fixture").read_bytes()
+
+
+def _mojibake_reader(url: str, timeout_seconds: int) -> bytes:
+    return (FIXTURES / "homepage_mojibake.fixture").read_bytes()
+
+
+def _duplicate_feed_reader(url: str, timeout_seconds: int) -> bytes:
+    return (FIXTURES / "duplicate_feed.xml").read_bytes()
 
 def _write_source_config(name: str, *, url: str = "https://example.com/openai.xml", extra: dict[str, object] | None = None) -> Path:
     source = {

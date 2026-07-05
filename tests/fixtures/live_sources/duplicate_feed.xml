@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel><title>Duplicate Feed</title>
+<item><title>OpenAI releases model routing controls for API developers</title><link>https://example.com/openai/model-routing</link><pubDate>Sun, 05 Jul 2026 04:00:00 GMT</pubDate><description>OpenAI released model routing controls for API developers.</description></item>
+<item><title>OpenAI releases model routing controls for API developers</title><link>https://example.com/openai/model-routing?utm=feed</link><pubDate>Sun, 05 Jul 2026 04:05:00 GMT</pubDate><description>Duplicate syndicated item with tracking URL.</description></item>
+<item><title>Old OpenAI research note outside lookback</title><link>https://example.com/openai/old-research-note</link><pubDate>Mon, 01 Jun 2026 04:00:00 GMT</pubDate><description>Old item should be filtered by lookback.</description></item>
+</channel></rss>

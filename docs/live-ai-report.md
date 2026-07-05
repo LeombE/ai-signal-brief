@@ -14,7 +14,7 @@ Default behavior:
 
 - writes local files only under `outputs/`
 - generates English output only
-- includes source URLs and source notes
+- includes source URLs, source notes, and signal-level labels
 - does not send Telegram
 - does not call OpenAI
 - does not add schedule
@@ -38,7 +38,23 @@ Source rules:
 - no raw full-page HTML committed to Git
 - every item must retain source attribution
 
-The MVP starts with official or high-signal sources for OpenAI, Anthropic, Google AI, Google DeepMind, Meta AI, Mistral, Cohere, xAI, and Hugging Face context.
+The MVP starts with official or high-signal sources for OpenAI, Anthropic, Google AI, Google DeepMind, Meta AI, Mistral, Cohere, xAI, and Hugging Face context. Where supported, the allowlist may include a public HTTPS `feed_url` so RSS/Atom entries are preferred over homepage metadata.
+
+
+## Source Parsing Quality
+
+The live report parser now prefers article-level evidence in this order:
+
+1. RSS or Atom feed entries from the source URL or an allowlisted `feed_url`
+2. `rel=alternate` RSS/Atom feeds discovered from the source homepage
+3. article-card links discovered on the source homepage
+4. homepage metadata fallback only when no article-level item is available
+
+Homepage fallback items are deliberately downranked. They are marked with `signal_level: source_homepage_fallback`, low confidence, low novelty, and explicit review notes. They should be treated as monitoring evidence only, not as strong news claims.
+
+Feed entries preserve title, link, published or updated time when available, summary, and author metadata when present. The parser repairs common mojibake in titles such as malformed dash characters and rejects common navigation, tag, category, privacy, login, pricing-only, and index pages.
+
+If fewer than three article-level candidates are found, the report states that article-level coverage was limited. That is a quality warning, not evidence that no AI news exists.
 
 ## Output Files
 
@@ -108,7 +124,7 @@ Before treating a generated daily report as review evidence, confirm:
 ## Manual Smoke Command
 
 ```powershell
-python -m ai_signal_brief build-daily-ai-report --date 2026-07-05 --timezone Asia/Kuala_Lumpur --out outputs/daily-reports/2026-07-05 --format markdown,json,docx --english-only --no-openai --sources config/live_ai_sources.example.json
+python -m ai_signal_brief build-daily-ai-report --date 2026-07-05 --timezone Asia/Kuala_Lumpur --out outputs/daily-reports/2026-07-05-v2 --format markdown,json,docx --english-only --no-openai --max-items 10 --lookback-hours 72 --sources config/live_ai_sources.example.json
 ```
 
 If one or more live sources fail, inspect `source_errors` in `report.json`. A fetch failure is not evidence that no news exists.

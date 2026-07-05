@@ -55,7 +55,7 @@ def render_markdown(report: dict[str, Any]) -> str:
     lines.append("")
     lines.append("| Field | Value |")
     lines.append("| --- | --- |")
-    for key in ("date", "timezone", "scope", "source_strategy", "generation_mode", "openai_used", "telegram_sent"):
+    for key in ("date", "timezone", "scope", "source_strategy", "lookback_hours", "generation_mode", "article_level_items", "homepage_fallback_items", "openai_used", "telegram_sent"):
         lines.append(f"| {_label(key)} | {_escape_pipe(str(metadata.get(key, '')))} |")
     lines.append("")
     lines.append("## Executive Summary")
@@ -70,12 +70,12 @@ def render_markdown(report: dict[str, Any]) -> str:
     lines.append("## Top Updates Ranked by Importance")
     lines.append("")
     if items:
-        lines.append("| Rank | Update | Company / Model | Score | Confidence | Sources |")
-        lines.append("| --- | --- | --- | --- | --- | --- |")
+        lines.append("| Rank | Update | Signal | Company / Model | Score | Confidence | Sources |")
+        lines.append("| --- | --- | --- | --- | --- | --- | --- |")
         for item in items:
             sources = ", ".join(f"[{source['source_id']}]({source['url']})" for source in item.get("sources", []))
             lines.append(
-                f"| {item.get('rank')} | {_escape_pipe(item.get('title', ''))} | {_escape_pipe(item.get('company_model', ''))} | {item.get('importance_score')} | {item.get('confidence')} | {sources} |"
+                f"| {item.get('rank')} | {_escape_pipe(item.get('title', ''))} | {_escape_pipe(str(item.get('signal_level', 'unknown')))} | {_escape_pipe(item.get('company_model', ''))} | {item.get('importance_score')} | {item.get('confidence')} | {sources} |"
             )
     else:
         lines.append("No ranked update passed the MVP fetch and review gates.")
@@ -96,6 +96,7 @@ def render_markdown(report: dict[str, Any]) -> str:
             lines.append(f"### {item.get('rank')}. {item.get('title')}")
             lines.append("")
             lines.append(f"- Date: {item.get('published_at') or metadata.get('date')}")
+            lines.append(f"- Signal level: {item.get('signal_level', 'unknown')}")
             lines.append(f"- Type: {item.get('topic_type')}")
             lines.append(f"- Source: {', '.join(source['source_name'] for source in item.get('sources', []))}")
             lines.append(f"- Confidence: {item.get('confidence')}")
