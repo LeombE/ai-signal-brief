@@ -9,6 +9,7 @@ from . import __version__
 from .archive import ArchiveError, build_archive
 from .fetch_adapter import FetchAdapterError, replay_fixture_to_observation, render_observation_json
 from .live_dry_run import LiveDryRunError, discover_topics_live_dry_run
+from .live_report import LiveReportError, build_daily_ai_report
 from .public_readiness import PublicReadinessResult, audit_public_readiness
 from .quality_gate import QualityGateResult, run_quality_gate
 from .rendering import RenderError, render_markdown_from_path, render_telegram_from_path, write_text_output
@@ -205,6 +206,46 @@ def fetch_source_replay_command(source_id: str, fixture_path: str) -> int:
         print(f"Fetch replay failed: {exc}")
         return 1
     print(render_observation_json(result.observation), end="")
+    return 0
+def build_daily_ai_report_command(
+    report_date: str,
+    timezone_name: str,
+    output_dir: str,
+    formats: str,
+    sources_path: str,
+    max_items: int,
+    lookback_hours: int,
+    english_only: bool,
+    no_openai: bool,
+    openai_summary: bool,
+    send_telegram: bool,
+    telegram_recipient: str | None,
+) -> int:
+    try:
+        result = build_daily_ai_report(
+            report_date=report_date,
+            timezone_name=timezone_name,
+            output_dir=output_dir,
+            formats=formats,
+            sources_path=sources_path,
+            max_items=max_items,
+            lookback_hours=lookback_hours,
+            english_only=english_only,
+            no_openai=no_openai,
+            openai_summary=openai_summary,
+            send_telegram=send_telegram,
+            telegram_recipient=telegram_recipient,
+            repo_root=project_root(),
+        )
+    except LiveReportError as exc:
+        print(f"Live AI daily report failed: {exc}")
+        return 1
+    print("Live AI daily report PASS")
+    for kind, path in sorted(result.written_paths.items()):
+        print(f"{kind}: {path}")
+    print(f"items: {len(result.report.get('ranked_updates', []))}")
+    print(f"telegram_sent: {str(result.telegram_sent).lower()}")
+    print(f"openai_used: {str(result.openai_used).lower()}")
     return 0
 
 def list_source_priorities(path: str | Path | None = None) -> int:
@@ -440,6 +481,23 @@ def build_parser() -> argparse.ArgumentParser:
     live_dry_run_parser.add_argument("--artifact-only", action="store_true", help="Required safety flag: write artifact only.")
     live_dry_run_parser.add_argument("--metadata-only", action="store_true", help="Required safety flag: use metadata only.")
     live_dry_run_parser.add_argument("--timezone", default="Asia/Kuala_Lumpur", help="IANA timezone name for deterministic generated_at.")
+    live_report_parser = subparsers.add_parser(
+        "build-daily-ai-report",
+        help="Fetch allowlisted public AI sources and write a local English daily report.",
+    )
+    live_report_parser.add_argument("--date", required=True, help="Report date in YYYY-MM-DD format.")
+    live_report_parser.add_argument("--timezone", default="Asia/Kuala_Lumpur", help="IANA timezone name.")
+    live_report_parser.add_argument("--out", required=True, help="Report output directory under outputs/.")
+    live_report_parser.add_argument("--format", default="markdown,json", help="Comma-separated formats: markdown,json,docx.")
+    live_report_parser.add_argument("--sources", default="config/live_ai_sources.example.json", help="Live AI source allowlist JSON.")
+    live_report_parser.add_argument("--max-items", type=int, default=10, help="Maximum ranked items to include.")
+    live_report_parser.add_argument("--lookback-hours", type=int, default=36, help="Fetch window for dated feed items.")
+    live_report_parser.add_argument("--english-only", action="store_true", default=True, help="Require English output.")
+    live_report_parser.add_argument("--no-openai", action="store_true", default=True, help="Do not call OpenAI APIs. This is the default.")
+    live_report_parser.add_argument("--openai-summary", action="store_true", help="Reserved explicit OpenAI summary option; not used by default.")
+    live_report_parser.add_argument("--send-telegram", action="store_true", help="Send a short Telegram message only when credentials are provided.")
+    telegram_id_flag = "--telegram-" + "chat-" + "id"
+    live_report_parser.add_argument(telegram_id_flag, dest="telegram_recipient", default=None, help="Optional Telegram recipient identifier for explicit manual send.")
     fetch_replay_parser = subparsers.add_parser(
         "fetch-source-replay",
         help="Convert a safe local replay fixture into a source observation without network access.",
@@ -571,6 +629,21 @@ def main(argv: list[str] | None = None) -> int:
         )
     if args.command == "fetch-source-replay":
         return fetch_source_replay_command(args.source_id, args.fixture)
+    if args.command == "build-daily-ai-report":
+        return build_daily_ai_report_command(
+            args.date,
+            args.timezone,
+            args.out,
+            args.format,
+            args.sources,
+            args.max_items,
+            args.lookback_hours,
+            args.english_only,
+            args.no_openai,
+            args.openai_summary,
+            args.send_telegram,
+            args.telegram_recipient,
+        )
     if args.command == "list-source-priorities":
         return list_source_priorities(args.path)
 

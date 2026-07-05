@@ -32,7 +32,7 @@ GitHub Actions CI for commit `4b4d35e Document confirmed no-network live dry-run
 
 GitHub Actions CI for commit `b2ee991 Document final no-network live dry-run CI result` was manually confirmed green in the GitHub UI. That final verified documentation milestone confirms the no-network live dry-run status; `discover-topics-live-dry-run` remains no-network, reads disabled live registry metadata only, writes metadata-only artifact-only candidates, keeps generated topics unresolved and review_required, and did not add `discover-topics-live`, live HTTP fetching, workflows, schedules, deployment, Telegram delivery, OpenAI API usage, image generation, DOCX generation, or production Pages deployment.
 
-The project is still offline-first: no live ingestion, delivery, scheduled automation, external API usage, image generation, DOCX generation, historical migration, production daily Pages automation, or Telegram delivery is active. GitHub Pages sample preview is live at `https://leombe.github.io/ai-signal-brief/` and currently uses sample/example data only.
+The project now includes a manual live AI daily report MVP through `build-daily-ai-report`. That command fetches allowlisted public HTTPS sources and writes local English report files under `outputs/`. Scheduling, automatic delivery, OpenAI usage, image generation, historical migration, and production daily Pages automation remain inactive. GitHub Pages sample preview is live at `https://leombe.github.io/ai-signal-brief/` and currently uses sample/example data only.
 
 Implemented so far:
 
@@ -51,18 +51,17 @@ Implemented so far:
 - replay-only fetch adapter skeleton for local safe fixtures only
 - replay-only topic discovery integration from local replay fixtures to reviewable topic candidate artifacts
 - no-network live-source dry-run command for disabled registry metadata readiness artifacts
+- manual live AI daily report MVP for allowlisted public HTTPS sources
 - publication, Pages planning, production Pages readiness, reviewed report staging, reviewed report dry-run helper command, daily topic discovery architecture, topic source registry and candidate schema examples, live-source discovery readiness, disabled live-source registry example, live-source registry extension planning, live fetch adapter interface planning, and release checklist documentation
 
 Not implemented yet:
 
-- live news fetching
 - model calls
 - image generation
 - Telegram delivery
 - GitHub Actions scheduling
 - production GitHub Pages deployment from real reports
 - historical report migration
-- DOCX generation
 
 ## GitHub Publication Status
 
@@ -86,7 +85,7 @@ Current publication boundary:
 - manual Topic Scan Preview workflow exists and uploads mock topic candidates as a short-lived artifact only
 - Telegram delivery is not connected
 - OpenAI Image API is not configured
-- no API keys are required for the current offline workflow
+- no API keys are required for offline workflows; the manual live report MVP does not require OpenAI credentials by default
 - no historical reports have been migrated
 - no generated ignored outputs should be tracked
 
@@ -109,6 +108,7 @@ Publication planning docs:
 - `docs/fetch-replay-fixtures.md`
 - `docs/replay-topic-discovery.md`
 - `docs/live-source-dry-run.md`
+- `docs/live-ai-report.md`
 - `config/topic_sources.live.example.json`
 - `docs/release-checklist.md`
 
@@ -173,7 +173,7 @@ Every material story should include source IDs and every important claim should 
 
 ## Output Formats
 
-Canonical and offline-preview outputs:
+Canonical, offline-preview, and manual live-report outputs:
 
 - `report.json`: source-backed public report data
 - `run.json`: execution metadata, artifact list, warnings, and delivery status
@@ -182,8 +182,9 @@ Canonical and offline-preview outputs:
 - Archive layout: date-based public archive generated from validated report and run data
 - Static site: offline HTML/CSS generated from an archive
 - GitHub Pages Preview: manual sample static-site deployment from example JSON files only
+- Live AI daily report MVP: local English Markdown, JSON, and DOCX artifacts under `outputs/daily-reports/`
 
-Telegram delivery, DOCX, generated image assets, production Pages deployment, and historical report migration may be added in later approved phases. Production Pages requirements are documented in `docs/production-pages-readiness.md`; future reviewed report staging rules are documented in `docs/reviewed-report-staging.md`, and local dry-run rules are documented in `docs/reviewed-report-dry-run.md`; a dry-run helper command plan is documented in `docs/reviewed-report-dry-run-command-plan.md`, first-candidate selection rules are documented in `docs/first-reviewed-report-candidate-plan.md`, future daily topic discovery architecture is documented in `docs/daily-topic-discovery-architecture.md`, offline mock topic discovery is documented in `docs/offline-mock-topic-discovery.md`, live-source readiness is documented in `docs/live-source-discovery-readiness.md`, manual artifact review is documented in `docs/manual-artifact-review.md`, and schedule-readiness gates are documented in `docs/schedule-readiness.md`.
+Telegram delivery, DOCX, generated image assets, production Pages deployment, and historical report migration may be added in later approved phases. Production Pages requirements are documented in `docs/production-pages-readiness.md`; future reviewed report staging rules are documented in `docs/reviewed-report-staging.md`, and local dry-run rules are documented in `docs/reviewed-report-dry-run.md`; a dry-run helper command plan is documented in `docs/reviewed-report-dry-run-command-plan.md`, first-candidate selection rules are documented in `docs/first-reviewed-report-candidate-plan.md`, future daily topic discovery architecture is documented in `docs/daily-topic-discovery-architecture.md`, offline mock topic discovery is documented in `docs/offline-mock-topic-discovery.md`, live-source readiness is documented in `docs/live-source-discovery-readiness.md`, manual artifact review is documented in `docs/manual-artifact-review.md`, schedule-readiness gates are documented in `docs/schedule-readiness.md`, and the manual live AI report MVP is documented in `docs/live-ai-report.md`.
 
 The first manual `Topic Scan Preview` run on `main` completed successfully. It uploaded one short-lived `topic-candidates-preview` artifact containing `topic-candidates.json`, and the artifact was manually inspected as mock placeholder output only. Live-source discovery remains unimplemented; future requirements and safety gates are documented in `docs/live-source-discovery-readiness.md`, future registry extension fields are documented in `docs/live-source-registry-extension-plan.md`, the fetch adapter interface plan is documented in `docs/live-fetch-adapter-interface-plan.md`, and the disabled-by-default example registry lives at `config/topic_sources.live.example.json`.
 
@@ -220,6 +221,7 @@ Readable documentation lives in:
 - `docs/fetch-replay-fixtures.md`
 - `docs/manual-artifact-review.md`
 - `docs/schedule-readiness.md`
+- `docs/live-ai-report.md`
 - `docs/release-checklist.md`
 
 ## Local Verification
@@ -241,6 +243,7 @@ python -m ai_signal_brief rank-topics examples/topic-candidates.example.json --e
 python -m ai_signal_brief fetch-source-replay --source-id openai-news --fixture tests/fixtures/fetch_replay/example_official_release.json
 python -m ai_signal_brief discover-topics --date 2026-06-24 --sources config/topic_sources.example.json --mock-observations tests/fixtures/topic_observations.valid.json --out outputs/topic-candidates/2026-06-24.json --rank
 python -m ai_signal_brief discover-topics-live-dry-run --date 2026-06-24 --sources config/topic_sources.live.example.json --out outputs/topic-candidates-live-dry-run/2026-06-24.json --artifact-only --metadata-only
+python -m ai_signal_brief build-daily-ai-report --date 2026-07-05 --timezone Asia/Kuala_Lumpur --out outputs/daily-reports/2026-07-05 --format markdown,json,docx --english-only --no-openai --sources config/live_ai_sources.example.json
 python -m ai_signal_brief quality-gate --report examples/report.example.json --run examples/run.example.json --sources config/sources.example.json
 python -m ai_signal_brief archive-report --report examples/report.example.json --run examples/run.example.json --sources config/sources.example.json --out outputs/archive-example
 python -m ai_signal_brief build-site --archive outputs/archive-example --out outputs/site-example
@@ -258,9 +261,9 @@ python -m ai_signal_brief validate-run outputs/run.example.generated.json
 python -m ai_signal_brief dry-run-reviewed-report --date YYYY-MM-DD --report reports-reviewed/YYYY/MM/DD/report.json --run reports-reviewed/YYYY/MM/DD/run.json --sources config/sources.example.json --archive-out outputs/reviewed-dry-run/YYYY/MM/DD --site-out outputs/reviewed-site-dry-run/YYYY/MM/DD --strict
 ```
 
-No package installation is required for the current offline workflow.
+No package installation is required for offline workflows or the manual live AI report MVP.
 
-Validation checks required fields, duplicate IDs, source references, ISO-8601 timestamps with timezones, English-language report output, source registry priority rules, official-source-first policy, topic source registry rules, topic candidate references, artifact shape, cross-file report/run/source consistency, and secret-like values in report/run/source/topic JSON. Offline mock topic discovery reads local observation fixtures, validates the topic source registry, writes candidate JSON under `outputs/`, validates generated candidates, and can run ranking without network access. Replay topic discovery reads local replay fixtures only, keeps generated topics unresolved and manually reviewable, validates generated candidates, and can run ranking without network access. Live-source dry-run validates disabled live registry metadata only, writes unresolved review artifacts under `outputs/`, and does not fetch web pages; GitHub Actions CI for commit `aa173c9` was manually confirmed green for that no-network milestone, and documentation-only commits `637b424`, `01d0113`, `fe11764`, `cc5fcd0`, `4b4d35e`, and `b2ee991` were also manually confirmed green without adding workflow, schedule, live fetching, Telegram, OpenAI, image, DOCX, or production Pages behavior. Offline topic ranking validates candidates first, applies deterministic score normalization, preserves dedup evidence, and refuses unsafe output paths. Rendering, run metadata generation, quality gates, archive building, static site building, and public readiness auditing refuse invalid inputs.
+Validation checks required fields, duplicate IDs, source references, ISO-8601 timestamps with timezones, English-language report output, source registry priority rules, official-source-first policy, topic source registry rules, topic candidate references, artifact shape, cross-file report/run/source consistency, and secret-like values in report/run/source/topic JSON. Offline mock topic discovery reads local observation fixtures, validates the topic source registry, writes candidate JSON under `outputs/`, validates generated candidates, and can run ranking without network access. Replay topic discovery reads local replay fixtures only, keeps generated topics unresolved and manually reviewable, validates generated candidates, and can run ranking without network access. Live-source dry-run validates disabled live registry metadata only, writes unresolved review artifacts under `outputs/`, and does not fetch web pages. The separate `build-daily-ai-report` command is the approved manual live-fetch exception and writes English local report artifacts only; GitHub Actions CI for commit `aa173c9` was manually confirmed green for that no-network milestone, and documentation-only commits `637b424`, `01d0113`, `fe11764`, `cc5fcd0`, `4b4d35e`, and `b2ee991` were also manually confirmed green without adding workflow, schedule, live fetching, Telegram, OpenAI, image, DOCX, or production Pages behavior. Offline topic ranking validates candidates first, applies deterministic score normalization, preserves dedup evidence, and refuses unsafe output paths. Rendering, run metadata generation, quality gates, archive building, static site building, and public readiness auditing refuse invalid inputs.
 
 ## Example Files
 
@@ -280,11 +283,11 @@ Near-term phases:
 
 1. Keep CI passing and documentation aligned with the public repository state.
 2. Keep Pages sample preview limited to sample/example data until production publication is approved.
-3. Keep topic source validation, topic candidate validation, mock topic discovery, topic ranking, and live fetch adapter planning offline; add live daily topic discovery only after separate approval.
+3. Keep topic source validation, topic candidate validation, mock topic discovery, topic ranking, replay, and dry-run paths offline; evolve the manual live daily report MVP only through reviewed phases.
 4. Extend reviewed-report promotion from ranked topic candidates only after manual review.
 5. Stage future manually reviewed English canonical reports under `reports-reviewed/` only after review.
 6. Use `docs/production-pages-readiness.md` before approving production GitHub Pages deployment.
-7. Add Telegram delivery using GitHub Secrets after verification.
+7. Keep Telegram delivery manual and explicit; do not add automated delivery without separate approval.
 8. Add generated visual assets using a dedicated API key stored only as a secret.
 
 ## Security And Secrets

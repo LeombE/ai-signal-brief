@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Example AI Official Updates</title>
+    <item>
+      <title>OpenAI launches a new API capability for enterprise agents</title>
+      <link>https://example.com/openai/enterprise-agents-api</link>
+      <pubDate>Sun, 05 Jul 2026 04:00:00 GMT</pubDate>
+      <description>OpenAI introduced an API update for enterprise agent workflows with new developer controls.</description>
+    </item>
+    <item>
+      <title>OpenAI updates model availability for developers</title>
+      <link>https://example.com/openai/model-availability</link>
+      <pubDate>Sun, 05 Jul 2026 02:00:00 GMT</pubDate>
+      <description>OpenAI expanded model availability and documented migration notes for API users.</description>
+    </item>
+  </channel>
+</rss>
