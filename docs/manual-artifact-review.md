@@ -71,6 +71,57 @@ For each review run, confirm:
 - no Telegram, OpenAI API, image generation, DOCX generation, Pages production deployment, or report publication occurred
 - generated outputs were not staged or committed
 
+
+## First Rehearsal Result: 2026-07-05
+
+The first manual no-network artifact review rehearsal was run for `2026-07-05`.
+
+Generated artifact:
+
+```text
+outputs/topic-candidates-live-dry-run/2026-07-05.json
+```
+
+Artifact summary:
+
+- topics: 9
+- source observations: 9
+- unresolved items: 9
+- all topics had `candidate_status: unresolved`
+- all topics had `review_required: true`
+- all topics had `source_ids` and `primary_source_ids`
+- confidence fields existed; all candidates were low confidence
+- uncertainty fields existed on all candidates
+- each candidate had a deterministic `dedup_key`
+- no duplicate group required merging
+- `provenance.live_fetching` was `false`
+- `provenance.publication_status` was `not_published`
+- Telegram delivery, OpenAI API usage, image generation, DOCX generation, and production Pages deployment remained not configured
+- output stayed under `outputs/`
+- `git ls-files outputs` returned no tracked files
+- `git status --short` was clean after the rehearsal
+
+Manual classification:
+
+- strong candidates: none
+- weak candidates: all 9 candidates, because live fetching was disabled and source timing/review was incomplete
+- duplicate or related candidates: none requiring merge; each candidate had a unique deterministic `dedup_key`
+- unsafe candidates: none detected by validation
+- ready for promotion: no
+
+Local validation passed for the rehearsal:
+
+- `compileall`
+- `validate-topic-sources` for the example registry
+- `validate-topic-sources` for the disabled live registry
+- `discover-topics-live-dry-run 2026-07-05`
+- `validate generated topics`
+- `public-readiness`
+- `unittest`: 174 tests OK
+- `git diff --check`
+- `git ls-files outputs`
+
+This rehearsal is schedule-readiness evidence only. It is not evidence of live fetching, source publication timing, report readiness, Telegram delivery, OpenAI usage, image generation, DOCX generation, or Pages production deployment.
 ## Reviewer Checklist
 
 Use this checklist before treating a dry-run artifact as schedule-readiness evidence:
