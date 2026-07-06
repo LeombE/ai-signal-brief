@@ -3,7 +3,7 @@ name: Daily AI Report
 on:
   workflow_dispatch:
   schedule:
-    - cron: "30 0 * * *"
+    - cron: "0 21 * * *"
 
 permissions:
   contents: read

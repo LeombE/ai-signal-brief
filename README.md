@@ -169,7 +169,7 @@ The Topic Scan Preview workflow:
 
 The daily Telegram workflow lives at `.github/workflows/daily-ai-report.yml`.
 
-It supports both `workflow_dispatch` and a daily schedule at `00:30 UTC`, which is `08:30 Asia/Kuala_Lumpur`. It uses Python 3.11, runs compile/unit/public-readiness smoke checks before delivery, derives the report date from the Malaysia timezone, and writes artifacts under `outputs/daily-reports/<date>-live/`.
+It supports both `workflow_dispatch` and a daily schedule at `21:00 UTC`, which is `05:00 Asia/Kuala_Lumpur`. It uses Python 3.11, runs compile/unit/public-readiness smoke checks before delivery, derives the report date from the Malaysia timezone, and writes artifacts under `outputs/daily-reports/<date>-live/`.
 
 Required GitHub repository secrets:
 

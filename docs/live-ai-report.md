@@ -125,8 +125,8 @@ The approved daily workflow is `.github/workflows/daily-ai-report.yml`.
 
 Schedule:
 
-- `30 0 * * *` UTC
-- `08:30 Asia/Kuala_Lumpur`
+- `0 21 * * *` UTC
+- `05:00 Asia/Kuala_Lumpur`
 - manual `workflow_dispatch` is also available for testing
 
 Required GitHub repository secrets:

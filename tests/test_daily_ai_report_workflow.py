@@ -12,7 +12,7 @@ class DailyAIReportWorkflowTests(unittest.TestCase):
         workflow = WORKFLOW.read_text(encoding="utf-8")
 
         self.assertIn("workflow_dispatch:", workflow)
-        self.assertIn('cron: "30 0 * * *"', workflow)
+        self.assertIn('cron: "0 21 * * *"', workflow)
         self.assertIn("runs-on: ubuntu-latest", workflow)
         self.assertIn('python-version: "3.11"', workflow)
         self.assertIn("permissions:\n  contents: read", workflow)
