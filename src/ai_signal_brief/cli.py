@@ -215,6 +215,8 @@ def build_daily_ai_report_command(
     sources_path: str,
     max_items: int,
     lookback_hours: int,
+    allow_stale: bool,
+    min_fresh_items: int,
     english_only: bool,
     no_openai: bool,
     openai_summary: bool,
@@ -230,6 +232,8 @@ def build_daily_ai_report_command(
             sources_path=sources_path,
             max_items=max_items,
             lookback_hours=lookback_hours,
+            allow_stale=allow_stale,
+            min_fresh_items=min_fresh_items,
             english_only=english_only,
             no_openai=no_openai,
             openai_summary=openai_summary,
@@ -240,10 +244,16 @@ def build_daily_ai_report_command(
     except LiveReportError as exc:
         print(f"Live AI daily report failed: {exc}")
         return 1
+    metadata = result.report.get("metadata", {})
     print("Live AI daily report PASS")
     for kind, path in sorted(result.written_paths.items()):
         print(f"{kind}: {path}")
     print(f"items: {len(result.report.get('ranked_updates', []))}")
+    print(f"fresh_article_level_items: {metadata.get('fresh_article_level_items')}")
+    print(f"stale_items: {metadata.get('stale_items')}")
+    print(f"date_missing_items: {metadata.get('date_missing_items')}")
+    print(f"telegram_ready: {str(metadata.get('telegram_ready')).lower()}")
+    print(f"telegram_readiness_reason: {metadata.get('telegram_readiness_reason')}")
     print(f"telegram_sent: {str(result.telegram_sent).lower()}")
     print(f"openai_used: {str(result.openai_used).lower()}")
     return 0
@@ -491,7 +501,9 @@ def build_parser() -> argparse.ArgumentParser:
     live_report_parser.add_argument("--format", default="markdown,json", help="Comma-separated formats: markdown,json,docx.")
     live_report_parser.add_argument("--sources", default="config/live_ai_sources.example.json", help="Live AI source allowlist JSON.")
     live_report_parser.add_argument("--max-items", type=int, default=10, help="Maximum ranked items to include.")
-    live_report_parser.add_argument("--lookback-hours", type=int, default=36, help="Fetch window for dated feed items.")
+    live_report_parser.add_argument("--lookback-hours", type=int, default=72, help="Freshness window for main ranked updates.")
+    live_report_parser.add_argument("--allow-stale", action="store_true", help="Allow stale items into Top Updates; default keeps them in watchlist only.")
+    live_report_parser.add_argument("--min-fresh-items", type=int, default=3, help="Minimum fresh article-level items required for Telegram readiness.")
     live_report_parser.add_argument("--english-only", action="store_true", default=True, help="Require English output.")
     live_report_parser.add_argument("--no-openai", action="store_true", default=True, help="Do not call OpenAI APIs. This is the default.")
     live_report_parser.add_argument("--openai-summary", action="store_true", help="Reserved explicit OpenAI summary option; not used by default.")
@@ -638,6 +650,8 @@ def main(argv: list[str] | None = None) -> int:
             args.sources,
             args.max_items,
             args.lookback_hours,
+            args.allow_stale,
+            args.min_fresh_items,
             args.english_only,
             args.no_openai,
             args.openai_summary,

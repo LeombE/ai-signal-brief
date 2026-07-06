@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Old AI Official Updates</title>
+    <item>
+      <title>OpenAI releases model routing controls for API developers</title>
+      <link>https://example.com/openai/model-routing-controls</link>
+      <pubDate>Mon, 01 Jun 2026 04:00:00 GMT</pubDate>
+      <description>OpenAI documented model routing controls for API developers.</description>
+    </item>
+  </channel>
+</rss>

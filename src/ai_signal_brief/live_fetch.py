@@ -73,21 +73,14 @@ GENERIC_TITLE_RE = re.compile(
     re.IGNORECASE,
 )
 MOJIBAKE_REPLACEMENTS = {
-    "????????": "-",
-    "????????": "-",
-    "????????": "-",
-    "????????": "'",
-    "???????": "'",
-    "???????": '"',
-    "???????": '"',
-    "???": "-",
-    "???": "-",
-    "???": "'",
-    "???": "'",
-    "???": '"',
-    "???": '"',
-    "? ": " ",
-    "?": "",
+    "\u00e2\u20ac\u2122": "'",
+    "\u00e2\u20ac\u02dc": "'",
+    "\u00e2\u20ac\u0153": '"',
+    "\u00e2\u20ac\u009d": '"',
+    "\u00e2\u20ac\u201c": "-",
+    "\u00e2\u20ac\u201d": "-",
+    "\u00e2\u20ac\u00a6": "...",
+    "\u00c2\u00a0": " ",
 }
 
 
@@ -304,7 +297,7 @@ def _parse_source_payload(source: LiveSource, text: str, retrieved_at: str, cuto
         if observations:
             return observations
 
-    article_observations = _parse_html_article_cards(source, parser, retrieved_at, cutoff)
+    article_observations = _parse_html_article_cards(source, parser, retrieved_at, cutoff, reader)
     if article_observations:
         return article_observations
     return _parse_html_metadata(source, parser, retrieved_at)
@@ -355,10 +348,9 @@ def _parse_feed(source: LiveSource, text: str, retrieved_at: str, cutoff: dateti
         author = _xml_text(entry, ("author", "dc:creator", "{http://www.w3.org/2005/Atom}author"))
         published_raw = _xml_text(entry, ("pubDate", "published", "{http://www.w3.org/2005/Atom}published"))
         updated_raw = _xml_text(entry, ("updated", "{http://www.w3.org/2005/Atom}updated"))
-        published_at = _parse_datetime(published_raw) or _parse_datetime(updated_raw)
+        published_at = _parse_datetime(published_raw)
         updated_at = _parse_datetime(updated_raw)
-        if published_at is not None and published_at < cutoff:
-            continue
+        effective_date = published_at or updated_at
         if not title or _is_generic_title(title) or _is_navigation_or_index_url(link, source.url):
             continue
         observations.append(
@@ -366,7 +358,7 @@ def _parse_feed(source: LiveSource, text: str, retrieved_at: str, cutoff: dateti
                 source,
                 title,
                 link,
-                published_at,
+                effective_date,
                 updated_at,
                 retrieved_at,
                 summary,
@@ -379,7 +371,7 @@ def _parse_feed(source: LiveSource, text: str, retrieved_at: str, cutoff: dateti
     return observations
 
 
-def _parse_html_article_cards(source: LiveSource, parser: _MetadataParser, retrieved_at: str, cutoff: datetime) -> list[dict[str, Any]]:
+def _parse_html_article_cards(source: LiveSource, parser: _MetadataParser, retrieved_at: str, cutoff: datetime, reader: Reader) -> list[dict[str, Any]]:
     observations: list[dict[str, Any]] = []
     seen_urls: set[str] = set()
     for index, link in enumerate(parser.article_links):
@@ -395,17 +387,26 @@ def _parse_html_article_cards(source: LiveSource, parser: _MetadataParser, retri
         if not _looks_like_article_url(url, source.url):
             continue
         published_at = _parse_date_from_text(raw_title)
-        if published_at is not None and published_at < cutoff:
-            continue
-        seen_urls.add(url)
+        updated_at = None
         summary = f"Article-level link discovered on {source.publisher} source page. Manual review is required to confirm publication date and claim scope."
+        article_title = title
+        article_parser = _fetch_article_metadata(source, url, reader)
+        if article_parser is not None:
+            page_published, page_updated = _extract_dates_from_parser(article_parser)
+            published_at = page_published or published_at
+            updated_at = page_updated
+            if article_parser.description:
+                summary = article_parser.description
+            if article_parser.title and not _is_generic_title(article_parser.title):
+                article_title = _article_title(article_parser.title)
+        seen_urls.add(url)
         observations.append(
             _observation(
                 source,
-                title,
+                article_title,
                 url,
                 published_at,
-                None,
+                updated_at,
                 retrieved_at,
                 summary,
                 index,
@@ -418,6 +419,73 @@ def _parse_html_article_cards(source: LiveSource, parser: _MetadataParser, retri
             break
     return observations
 
+
+
+def _fetch_article_metadata(source: LiveSource, url: str, reader: Reader) -> _MetadataParser | None:
+    try:
+        payload = reader(url, source.timeout_seconds)
+        article_text = payload.decode("utf-8", errors="replace")
+    except Exception:
+        return None
+    parser = _MetadataParser(base_url=url)
+    parser.feed(article_text[:MAX_HTML_PARSE_BYTES])
+    return parser
+
+
+def _extract_dates_from_parser(parser: _MetadataParser) -> tuple[datetime | None, datetime | None]:
+    published_candidates: list[datetime] = []
+    updated_candidates: list[datetime] = []
+    for key, value in parser.date_values:
+        parsed = _parse_datetime(value) or _parse_date_from_text(value)
+        if parsed is None:
+            continue
+        lowered = key.lower()
+        if any(marker in lowered for marker in ("modified", "updated")):
+            updated_candidates.append(parsed)
+        else:
+            published_candidates.append(parsed)
+    for block in parser.json_ld_blocks:
+        published, updated = _json_ld_dates(block)
+        if published:
+            published_candidates.append(published)
+        if updated:
+            updated_candidates.append(updated)
+    published_at = max(published_candidates) if published_candidates else None
+    updated_at = max(updated_candidates) if updated_candidates else None
+    return published_at, updated_at
+
+
+def _json_ld_dates(block: str) -> tuple[datetime | None, datetime | None]:
+    try:
+        data = json.loads(block)
+    except json.JSONDecodeError:
+        return None, None
+    published: list[datetime] = []
+    updated: list[datetime] = []
+    for key, value in _iter_json_items(data):
+        if not isinstance(value, str):
+            continue
+        parsed = _parse_datetime(value) or _parse_date_from_text(value)
+        if parsed is None:
+            continue
+        lowered = key.lower()
+        if lowered.endswith("datemodified") or lowered.endswith("dateupdated"):
+            updated.append(parsed)
+        if lowered.endswith("datepublished") or lowered == "pubdate":
+            published.append(parsed)
+    return (max(published) if published else None, max(updated) if updated else None)
+
+
+def _iter_json_items(value: Any) -> list[tuple[str, Any]]:
+    items: list[tuple[str, Any]] = []
+    if isinstance(value, dict):
+        for key, child in value.items():
+            items.append((str(key), child))
+            items.extend(_iter_json_items(child))
+    elif isinstance(value, list):
+        for child in value:
+            items.extend(_iter_json_items(child))
+    return items
 
 def _parse_html_metadata(source: LiveSource, parser: _MetadataParser, retrieved_at: str) -> list[dict[str, Any]]:
     title = parser.title or source.source_name
@@ -482,7 +550,8 @@ def _observation(
         "content_hash": hashlib.sha256(seed.encode("utf-8")).hexdigest(),
         "source_confidence": _fallback_confidence(source.source_confidence, signal_level),
         "source_priority": source.priority,
-        "evidence_notes": _evidence_notes(source, published_at, signal_level),
+        "date_missing": published_at is None and updated_at is None,
+        "evidence_notes": _evidence_notes(source, published_at, updated_at, signal_level),
         "raw_signal_type": raw_signal_type,
         "topic_type": topic_type,
         "signal_level": signal_level,
@@ -563,17 +632,18 @@ def _repair_mojibake(value: str) -> str:
     text = value or ""
     for bad, good in MOJIBAKE_REPLACEMENTS.items():
         text = text.replace(bad, good)
-    if any(marker in text for marker in ("?", "?", "??")):
-        try:
-            repaired = text.encode("latin-1", errors="ignore").decode("utf-8", errors="ignore")
-        except UnicodeError:
-            repaired = ""
-        if repaired and len(repaired) >= max(8, int(len(text) * 0.55)):
-            text = repaired
-            for bad, good in MOJIBAKE_REPLACEMENTS.items():
-                text = text.replace(bad, good)
+    if any(marker in text for marker in ("\u00c3", "\u00c2", "\u00e2\u20ac", "\ufffd")):
+        for encoding in ("cp1252", "latin-1"):
+            try:
+                repaired = text.encode(encoding, errors="ignore").decode("utf-8", errors="ignore")
+            except UnicodeError:
+                continue
+            if repaired and len(repaired) >= max(8, int(len(text) * 0.5)):
+                text = repaired
+                break
+        for bad, good in MOJIBAKE_REPLACEMENTS.items():
+            text = text.replace(bad, good)
     return text
-
 
 def _detect_companies(text: str) -> list[str]:
     patterns = (
@@ -622,14 +692,14 @@ def _fallback_confidence(source_confidence: str, signal_level: str) -> str:
     return source_confidence
 
 
-def _evidence_notes(source: LiveSource, published_at: datetime | None, signal_level: str) -> list[str]:
+def _evidence_notes(source: LiveSource, published_at: datetime | None, updated_at: datetime | None, signal_level: str) -> list[str]:
     notes = [f"Fetched from allowlisted public HTTPS source: {source.publisher}."]
     if signal_level == "source_homepage_fallback":
         notes.append("Homepage metadata fallback only; do not treat as an article-level news item without manual source review.")
-    elif signal_level == "article" and published_at is None:
-        notes.append("Article-level link was detected, but published time was not available or could not be parsed; manual timing review is required.")
-    if published_at is None and signal_level != "source_homepage_fallback":
-        notes.append("Published time was not available or could not be parsed; manual timing review is required.")
+    elif signal_level == "article" and published_at is None and updated_at is None:
+        notes.append("Article-level link was detected, but published or updated time was not available or could not be parsed; manual timing review is required.")
+    if published_at is None and updated_at is None and signal_level != "source_homepage_fallback":
+        notes.append("Published or updated time was not available or could not be parsed; manual timing review is required.")
     if source.source_type != "official":
         notes.append("Non-official source; use as context unless corroborated by primary evidence.")
     return notes
@@ -824,8 +894,12 @@ class _MetadataParser(HTMLParser):
         self.description = ""
         self.feed_links: list[str] = []
         self.article_links: list[_ArticleLink] = []
+        self.date_values: list[tuple[str, str]] = []
+        self.json_ld_blocks: list[str] = []
         self._current_href: str | None = None
         self._current_label_parts: list[str] = []
+        self._in_json_ld = False
+        self._json_ld_parts: list[str] = []
 
     @property
     def title(self) -> str:
@@ -836,10 +910,30 @@ class _MetadataParser(HTMLParser):
         attrs_dict = {key.lower(): value or "" for key, value in attrs}
         if lowered == "title":
             self._in_title = True
+        if lowered == "script" and "ld+json" in attrs_dict.get("type", "").lower():
+            self._in_json_ld = True
+            self._json_ld_parts = []
         if lowered == "meta":
-            name = attrs_dict.get("name", "").lower() or attrs_dict.get("property", "").lower()
-            if name in {"description", "og:description"} and attrs_dict.get("content") and not self.description:
-                self.description = _clean_text(attrs_dict["content"], limit=600)
+            name = attrs_dict.get("name", "").lower() or attrs_dict.get("property", "").lower() or attrs_dict.get("itemprop", "").lower()
+            content = attrs_dict.get("content", "")
+            if name in {"description", "og:description"} and content and not self.description:
+                self.description = _clean_text(content, limit=600)
+            if name in {
+                "article:published_time",
+                "article:modified_time",
+                "og:updated_time",
+                "datepublished",
+                "datemodified",
+                "pubdate",
+                "dc.date",
+                "date",
+            } and content:
+                self.date_values.append((name, content))
+        if lowered == "time":
+            itemprop = attrs_dict.get("itemprop", "").lower()
+            datetime_value = attrs_dict.get("datetime") or attrs_dict.get("content")
+            if datetime_value and (not itemprop or itemprop in {"datepublished", "datemodified", "pubdate", "date"}):
+                self.date_values.append((itemprop or "time", datetime_value))
         if lowered == "link":
             rel = attrs_dict.get("rel", "").lower()
             link_type = attrs_dict.get("type", "").lower()
@@ -860,6 +954,12 @@ class _MetadataParser(HTMLParser):
         lowered = tag.lower()
         if lowered == "title":
             self._in_title = False
+        if lowered == "script" and self._in_json_ld:
+            block = _clean_text(" ".join(self._json_ld_parts), limit=20000)
+            if block:
+                self.json_ld_blocks.append(block)
+            self._in_json_ld = False
+            self._json_ld_parts = []
         if lowered == "a" and self._current_href:
             label = _clean_text(" ".join(self._current_label_parts), limit=220)
             if label:
@@ -870,5 +970,7 @@ class _MetadataParser(HTMLParser):
     def handle_data(self, data: str) -> None:
         if self._in_title:
             self._title_parts.append(data)
+        if self._in_json_ld:
+            self._json_ld_parts.append(data)
         if self._current_href:
             self._current_label_parts.append(data)

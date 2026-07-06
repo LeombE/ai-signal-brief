@@ -109,6 +109,180 @@ class LiveReportTests(unittest.TestCase):
         self.assertNotIn("Pricing", titles)
         self.assertTrue(all(item["signal_level"] == "article" for item in result.observations))
 
+    def test_atom_date_parsing_preserves_published_and_updated(self) -> None:
+        config_path = _write_source_config("atom-date", url="https://example.com/atom.xml", extra={"fetch_mode": "atom"})
+
+        result = fetch_live_observations(
+            sources_path=config_path,
+            report_date="2026-07-05",
+            timezone_name="Asia/Kuala_Lumpur",
+            max_items=5,
+            lookback_hours=72,
+            reader=_atom_feed_reader,
+            retrieved_at="2026-07-05T12:00:00+08:00",
+        )
+
+        self.assertEqual(len(result.observations), 1)
+        self.assertEqual(result.observations[0]["published_at"], "2026-07-05T05:30:00+00:00")
+        self.assertEqual(result.observations[0]["updated_at"], "2026-07-05T06:00:00+00:00")
+        self.assertFalse(result.observations[0]["date_missing"])
+
+    def test_html_article_meta_date_parsing(self) -> None:
+        config_path = _write_source_config(
+            "html-meta-date",
+            url="https://example.com/news",
+            extra={"fetch_mode": "html_metadata", "max_items": 5},
+        )
+
+        result = fetch_live_observations(
+            sources_path=config_path,
+            report_date="2026-07-05",
+            timezone_name="Asia/Kuala_Lumpur",
+            max_items=5,
+            lookback_hours=72,
+            reader=_article_cards_reader,
+            retrieved_at="2026-07-05T12:00:00+08:00",
+        )
+
+        item = next(item for item in result.observations if "Anthropic" in item["title"])
+        self.assertEqual(item["published_at"], "2026-07-05T03:00:00+00:00")
+        self.assertEqual(item["updated_at"], "2026-07-05T04:00:00+00:00")
+        self.assertFalse(item["date_missing"])
+
+    def test_json_ld_date_parsing(self) -> None:
+        config_path = _write_source_config(
+            "jsonld-date",
+            url="https://example.com/news",
+            extra={"fetch_mode": "html_metadata", "max_items": 5},
+        )
+
+        result = fetch_live_observations(
+            sources_path=config_path,
+            report_date="2026-07-05",
+            timezone_name="Asia/Kuala_Lumpur",
+            max_items=5,
+            lookback_hours=72,
+            reader=_article_cards_reader,
+            retrieved_at="2026-07-05T12:00:00+08:00",
+        )
+
+        item = next(item for item in result.observations if "Google" in item["title"])
+        self.assertEqual(item["published_at"], "2026-07-05T01:30:00+00:00")
+        self.assertEqual(item["updated_at"], "2026-07-05T02:00:00+00:00")
+        self.assertFalse(item["date_missing"])
+
+    def test_stale_items_are_excluded_from_ranked_updates_by_default(self) -> None:
+        config_path = _write_source_config("stale-default")
+
+        result = build_daily_ai_report(
+            report_date="2026-07-05",
+            timezone_name="Asia/Kuala_Lumpur",
+            output_dir="outputs/test-live-report/stale-default",
+            formats="json",
+            sources_path=config_path,
+            max_items=5,
+            lookback_hours=72,
+            english_only=True,
+            no_openai=True,
+            repo_root=ROOT,
+            fetch_reader=_stale_feed_reader,
+        )
+
+        self.assertEqual(result.report["ranked_updates"], [])
+        self.assertEqual(len(result.report["watchlist_updates"]), 1)
+        self.assertEqual(result.report["watchlist_updates"][0]["freshness_status"], "stale")
+        self.assertFalse(result.report["metadata"]["telegram_ready"])
+        self.assertEqual(result.report["metadata"]["stale_items"], 1)
+        self.assertIn("Not enough fresh article-level AI updates found", result.report["metadata"]["telegram_readiness_reason"])
+
+    def test_date_missing_items_are_downranked_into_watchlist(self) -> None:
+        config_path = _write_source_config(
+            "date-missing",
+            url="https://example.com/news",
+            extra={"fetch_mode": "html_metadata", "max_items": 5},
+        )
+
+        result = build_daily_ai_report(
+            report_date="2026-07-05",
+            timezone_name="Asia/Kuala_Lumpur",
+            output_dir="outputs/test-live-report/date-missing",
+            formats="json",
+            sources_path=config_path,
+            max_items=5,
+            lookback_hours=72,
+            english_only=True,
+            no_openai=True,
+            repo_root=ROOT,
+            fetch_reader=_article_cards_missing_date_reader,
+        )
+
+        self.assertEqual(result.report["ranked_updates"], [])
+        self.assertGreaterEqual(len(result.report["watchlist_updates"]), 1)
+        self.assertTrue(all(item["freshness_status"] == "date_missing" for item in result.report["watchlist_updates"]))
+        self.assertTrue(all(item["fresh_enough_for_daily"] is False for item in result.report["watchlist_updates"]))
+        self.assertTrue(all(item["importance_score"] <= 2 for item in result.report["watchlist_updates"]))
+        self.assertFalse(result.report["metadata"]["telegram_ready"])
+
+    def test_allow_stale_can_include_stale_items_in_ranked_updates(self) -> None:
+        config_path = _write_source_config("stale-allowed")
+
+        result = build_daily_ai_report(
+            report_date="2026-07-05",
+            timezone_name="Asia/Kuala_Lumpur",
+            output_dir="outputs/test-live-report/stale-allowed",
+            formats="json",
+            sources_path=config_path,
+            max_items=5,
+            lookback_hours=72,
+            allow_stale=True,
+            english_only=True,
+            no_openai=True,
+            repo_root=ROOT,
+            fetch_reader=_stale_feed_reader,
+        )
+
+        self.assertEqual(len(result.report["ranked_updates"]), 1)
+        self.assertEqual(result.report["ranked_updates"][0]["freshness_status"], "stale")
+        self.assertFalse(result.report["ranked_updates"][0]["fresh_enough_for_daily"])
+        self.assertFalse(result.report["metadata"]["telegram_ready"])
+
+    def test_min_fresh_items_controls_telegram_readiness(self) -> None:
+        config_path = _write_source_config("min-fresh")
+
+        not_ready = build_daily_ai_report(
+            report_date="2026-07-05",
+            timezone_name="Asia/Kuala_Lumpur",
+            output_dir="outputs/test-live-report/min-fresh/not-ready",
+            formats="json",
+            sources_path=config_path,
+            max_items=5,
+            lookback_hours=72,
+            min_fresh_items=3,
+            english_only=True,
+            no_openai=True,
+            repo_root=ROOT,
+            fetch_reader=_fixture_reader,
+        )
+        ready = build_daily_ai_report(
+            report_date="2026-07-05",
+            timezone_name="Asia/Kuala_Lumpur",
+            output_dir="outputs/test-live-report/min-fresh/ready",
+            formats="json",
+            sources_path=config_path,
+            max_items=5,
+            lookback_hours=72,
+            min_fresh_items=2,
+            english_only=True,
+            no_openai=True,
+            repo_root=ROOT,
+            fetch_reader=_fixture_reader,
+        )
+
+        self.assertEqual(not_ready.report["metadata"]["fresh_article_level_items"], 2)
+        self.assertFalse(not_ready.report["metadata"]["telegram_ready"])
+        self.assertTrue(ready.report["metadata"]["telegram_ready"])
+        self.assertEqual(ready.report["metadata"]["telegram_readiness_reason"], "ready")
+
     def test_mojibake_homepage_fallback_is_repaired_and_low_confidence(self) -> None:
         config_path = _write_source_config(
             "mojibake",
@@ -155,11 +329,14 @@ class LiveReportTests(unittest.TestCase):
             fetch_reader=_mojibake_reader,
         )
 
-        item = result.report["ranked_updates"][0]
+        self.assertEqual(result.report["ranked_updates"], [])
+        item = result.report["watchlist_updates"][0]
         self.assertTrue(item["is_homepage_fallback"])
+        self.assertEqual(item["freshness_status"], "date_missing")
         self.assertEqual(item["confidence"], "low")
         self.assertLessEqual(item["importance_score"], 2)
-        self.assertIn("Article-level coverage was limited", " ".join(result.report["executive_summary"]))
+        self.assertFalse(result.report["metadata"]["telegram_ready"])
+        self.assertIn("Not enough fresh article-level AI updates found", " ".join(result.report["executive_summary"]))
 
     def test_duplicate_feed_items_are_deduped_by_url_and_title(self) -> None:
         config_path = _write_source_config("duplicate-feed")
@@ -174,8 +351,9 @@ class LiveReportTests(unittest.TestCase):
             retrieved_at="2026-07-05T12:00:00+08:00",
         )
 
-        self.assertEqual(len(result.observations), 1)
-        self.assertEqual(result.observations[0]["title"], "OpenAI releases model routing controls for API developers")
+        titles = [item["title"] for item in result.observations]
+        self.assertEqual(titles.count("OpenAI releases model routing controls for API developers"), 1)
+        self.assertIn("Old OpenAI research note outside lookback", titles)
 
     def test_daily_brief_writes_json_markdown_and_docx(self) -> None:
         config_path = _write_source_config("write-report")
@@ -365,7 +543,25 @@ def _feed_discovery_reader(url: str, timeout_seconds: int) -> bytes:
 
 
 def _article_cards_reader(url: str, timeout_seconds: int) -> bytes:
+    if url.endswith("/news/2026/07/05/claude-agent-release"):
+        return (FIXTURES / "article_page_anthropic_meta.fixture").read_bytes()
+    if url.endswith("/blog/2026/07/05/gemini-api-update"):
+        return (FIXTURES / "article_page_google_jsonld.fixture").read_bytes()
     return (FIXTURES / "article_cards.fixture").read_bytes()
+
+
+def _article_cards_missing_date_reader(url: str, timeout_seconds: int) -> bytes:
+    if url.endswith("/news/2026/07/05/claude-agent-release") or url.endswith("/blog/2026/07/05/gemini-api-update"):
+        return (FIXTURES / "article_page_no_date.fixture").read_bytes()
+    return (FIXTURES / "article_cards.fixture").read_bytes()
+
+
+def _atom_feed_reader(url: str, timeout_seconds: int) -> bytes:
+    return (FIXTURES / "atom_feed.xml").read_bytes()
+
+
+def _stale_feed_reader(url: str, timeout_seconds: int) -> bytes:
+    return (FIXTURES / "stale_feed.xml").read_bytes()
 
 
 def _mojibake_reader(url: str, timeout_seconds: int) -> bytes:

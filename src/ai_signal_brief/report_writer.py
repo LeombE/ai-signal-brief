@@ -45,7 +45,8 @@ def parse_formats(value: str) -> set[str]:
 def render_markdown(report: dict[str, Any]) -> str:
     metadata = report.get("metadata", {})
     items = list(report.get("ranked_updates", []))
-    watchlist = list(report.get("company_model_watchlist", []))
+    company_watchlist = list(report.get("company_model_watchlist", []))
+    stale_watchlist = list(report.get("watchlist_updates", []))
     followups = list(report.get("follow_up_checklist", []))
     source_errors = list(report.get("source_errors", []))
     lines: list[str] = []
@@ -55,7 +56,25 @@ def render_markdown(report: dict[str, Any]) -> str:
     lines.append("")
     lines.append("| Field | Value |")
     lines.append("| --- | --- |")
-    for key in ("date", "timezone", "scope", "source_strategy", "lookback_hours", "generation_mode", "article_level_items", "homepage_fallback_items", "openai_used", "telegram_sent"):
+    for key in (
+        "date",
+        "timezone",
+        "scope",
+        "source_strategy",
+        "lookback_hours",
+        "allow_stale",
+        "min_fresh_items",
+        "generation_mode",
+        "article_level_items",
+        "fresh_article_level_items",
+        "stale_items",
+        "date_missing_items",
+        "homepage_fallback_items",
+        "telegram_ready",
+        "telegram_readiness_reason",
+        "openai_used",
+        "telegram_sent",
+    ):
         lines.append(f"| {_label(key)} | {_escape_pipe(str(metadata.get(key, '')))} |")
     lines.append("")
     lines.append("## Executive Summary")
@@ -70,15 +89,29 @@ def render_markdown(report: dict[str, Any]) -> str:
     lines.append("## Top Updates Ranked by Importance")
     lines.append("")
     if items:
-        lines.append("| Rank | Update | Signal | Company / Model | Score | Confidence | Sources |")
-        lines.append("| --- | --- | --- | --- | --- | --- | --- |")
+        lines.append("| Rank | Update | Freshness | Signal | Company / Model | Score | Confidence | Sources |")
+        lines.append("| --- | --- | --- | --- | --- | --- | --- | --- |")
         for item in items:
             sources = ", ".join(f"[{source['source_id']}]({source['url']})" for source in item.get("sources", []))
             lines.append(
-                f"| {item.get('rank')} | {_escape_pipe(item.get('title', ''))} | {_escape_pipe(str(item.get('signal_level', 'unknown')))} | {_escape_pipe(item.get('company_model', ''))} | {item.get('importance_score')} | {item.get('confidence')} | {sources} |"
+                f"| {item.get('rank')} | {_escape_pipe(item.get('title', ''))} | {_escape_pipe(str(item.get('freshness_status', 'unknown')))} | {_escape_pipe(str(item.get('signal_level', 'unknown')))} | {_escape_pipe(item.get('company_model', ''))} | {item.get('importance_score')} | {item.get('confidence')} | {sources} |"
             )
     else:
         lines.append("No ranked update passed the MVP fetch and review gates.")
+    lines.append("")
+    lines.append("## Watchlist: Stale or Date-Missing Updates")
+    lines.append("")
+    if stale_watchlist:
+        lines.append("| Status | Update | Published / Updated | Reason | Sources |")
+        lines.append("| --- | --- | --- | --- | --- |")
+        for item in stale_watchlist:
+            sources = ", ".join(f"[{source['source_id']}]({source['url']})" for source in item.get("sources", []))
+            observed_date = item.get("published_at") or item.get("updated_at") or "missing"
+            lines.append(
+                f"| {_escape_pipe(str(item.get('freshness_status', 'unknown')))} | {_escape_pipe(str(item.get('title', '')))} | {_escape_pipe(str(observed_date))} | {_escape_pipe(str(item.get('boundary', 'Manual review required.')))} | {sources} |"
+            )
+    else:
+        lines.append("No stale or date-missing item was separated into the watchlist.")
     lines.append("")
     lines.append("## Key Judgments")
     lines.append("")
@@ -95,7 +128,9 @@ def render_markdown(report: dict[str, Any]) -> str:
         for item in items:
             lines.append(f"### {item.get('rank')}. {item.get('title')}")
             lines.append("")
-            lines.append(f"- Date: {item.get('published_at') or metadata.get('date')}")
+            lines.append(f"- Published/updated: {item.get('published_at') or item.get('updated_at') or 'missing'}")
+            lines.append(f"- Freshness: {item.get('freshness_status', 'unknown')}")
+            lines.append(f"- Fresh enough for daily: {str(item.get('fresh_enough_for_daily')).lower()}")
             lines.append(f"- Signal level: {item.get('signal_level', 'unknown')}")
             lines.append(f"- Type: {item.get('topic_type')}")
             lines.append(f"- Source: {', '.join(source['source_name'] for source in item.get('sources', []))}")
@@ -110,8 +145,8 @@ def render_markdown(report: dict[str, Any]) -> str:
         lines.append("")
     lines.append("## Company and Model Watchlist")
     lines.append("")
-    if watchlist:
-        for item in watchlist:
+    if company_watchlist:
+        for item in company_watchlist:
             lines.append(f"- {item}")
     else:
         lines.append("- No company or model watchlist item was promoted from this run.")
