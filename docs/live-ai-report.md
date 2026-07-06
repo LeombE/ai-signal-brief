@@ -115,7 +115,7 @@ Every item remains subject to manual source review before publication or downstr
 
 ## Telegram Boundary
 
-Telegram delivery is off by default. The CLI only sends when `--send-telegram` is explicitly provided, the report has `telegram_ready: true`, and both a bot credential and a recipient value are available from the environment or explicit arguments.
+Telegram delivery is off by default. The CLI only sends when `--send-telegram` is explicitly provided, the report has `telegram_ready: true`, and both a bot credential and a recipient value are available from the environment or explicit arguments. The Telegram message is reader-facing: it includes the report title, date, readiness status, ranked update titles, source names, source URLs when available, and an artifact availability note without exposing local runner paths.
 
 Unit tests mock the sending path. CI must not send Telegram messages.
 

@@ -438,13 +438,41 @@ def _send_telegram_http(bot_value: str, recipient_value: str, message: str) -> N
 
 
 def _telegram_message(report: dict[str, Any], markdown_path: str | None) -> str:
-    lines = [report["title"], f"Date: {report['metadata']['date']}", f"Telegram ready: {str(report['metadata'].get('telegram_ready')).lower()}", ""]
-    for item in report.get("ranked_updates", [])[:3]:
-        lines.append(f"{item['rank']}. {item['title']} ({item['confidence']}, {item.get('freshness_status')})")
-    if markdown_path:
+    lines = [
+        report["title"],
+        f"Date: {report['metadata']['date']}",
+        f"Telegram ready: {str(report['metadata'].get('telegram_ready')).lower()}",
+        "",
+    ]
+    for item in report.get("ranked_updates", [])[:5]:
+        source = _first_source(item)
+        source_name = _source_display_name(source)
+        source_url = str(source.get("url") or "").strip()
+        confidence = str(item.get("confidence") or "unknown")
+        freshness = str(item.get("freshness_status") or "unknown")
+        lines.append(f"{item['rank']}. {item['title']} ({confidence}, {freshness})")
+        lines.append(f"Source: {source_name}")
+        if source_url:
+            lines.append(f"URL: {source_url}")
         lines.append("")
-        lines.append(f"Local Markdown: {markdown_path}")
-    return "\n".join(lines)
+    if markdown_path:
+        lines.append("Report artifact: available in the run artifacts.")
+    return "\n".join(lines).strip()
+
+
+def _first_source(item: dict[str, Any]) -> dict[str, Any]:
+    sources = item.get("sources")
+    if isinstance(sources, list) and sources and isinstance(sources[0], dict):
+        return sources[0]
+    return {}
+
+
+def _source_display_name(source: dict[str, Any]) -> str:
+    for key in ("source_name", "publisher", "source_id"):
+        value = str(source.get(key) or "").strip()
+        if value:
+            return value
+    return "Source unavailable"
 
 
 def _require_openai_explicit_value() -> None:

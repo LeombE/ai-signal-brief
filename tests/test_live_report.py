@@ -622,6 +622,54 @@ class LiveReportTests(unittest.TestCase):
         self.assertFalse(result.telegram_sent)
         sender.assert_not_called()
 
+    def test_telegram_message_uses_reader_facing_sources_without_local_paths(self) -> None:
+        messages: list[str] = []
+
+        def sender(bot_value: str, recipient_value: str, message: str) -> None:
+            messages.append(message)
+
+        config_path = _write_multi_source_config("telegram-format")
+        with patch.dict("os.environ", {"TELEGRAM_BOT_TOKEN": "unit-test-token"}, clear=False):
+            result = build_daily_ai_report(
+                report_date="2026-07-06",
+                timezone_name="Asia/Kuala_Lumpur",
+                output_dir="outputs/test-live-report/telegram-format",
+                formats="markdown,json",
+                sources_path=config_path,
+                max_items=5,
+                lookback_hours=48,
+                min_fresh_items=3,
+                english_only=True,
+                no_openai=True,
+                send_telegram=True,
+                telegram_recipient="unit-test-recipient",
+                repo_root=ROOT,
+                fetch_reader=_priority_reader,
+                telegram_sender=sender,
+            )
+
+        self.assertTrue(result.telegram_sent)
+        self.assertFalse(result.openai_used)
+        self.assertEqual(len(messages), 1)
+        message = messages[0]
+        self.assertIn("AI Daily Brief - Global and Major Model Updates", message)
+        self.assertIn("Date: 2026-07-06", message)
+        self.assertIn("Telegram ready: true", message)
+        self.assertIn("OpenAI launches GPT API tooling for enterprise developers", message)
+        self.assertIn("VentureBeat reports Mistral releases new API tooling", message)
+        self.assertIn("Source: Fixture Official Feed", message)
+        self.assertIn("Source: Fixture Reputable News Feed", message)
+        self.assertIn("URL: https://example.com/openai/gpt-agent-evaluation", message)
+        self.assertIn("URL: https://example.com/news/mistral-api-tooling", message)
+        self.assertIn("Report artifact: available in the run artifacts.", message)
+        self.assertNotIn("Local Markdown", message)
+        self.assertNotIn("/home/runner", message)
+        self.assertNotIn("C:" + "\\" + "Users", message)
+        self.assertNotIn("outputs/", message)
+        self.assertNotIn("placeholder", message.lower())
+        self.assertNotIn("breaking", message.lower())
+        self.assertNotIn("�", message)
+
     def test_telegram_requires_explicit_flag_and_values(self) -> None:
         config_path = _write_source_config("telegram-missing")
 
