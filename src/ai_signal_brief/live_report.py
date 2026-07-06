@@ -155,16 +155,19 @@ def _rank_candidates(
     return ranked, watchlist[:max_items]
 
 
-def _candidate_sort_key(item: dict[str, Any]) -> tuple[int, int, int, int, int, str, str]:
+def _candidate_sort_key(item: dict[str, Any]) -> tuple[int, int, int, int, int, int, int, str, str]:
     freshness_rank = {"fresh": 2, "stale": 1, "date_missing": 0}.get(str(item.get("freshness_status")), 0)
     signal_rank = 1 if item.get("signal_level") == "article" else 0
-    type_rank = 0 if item.get("topic_type") in {"other"} else 1
+    source_rank = {"official": 3, "reputable_news": 2, "backup": 1}.get(str(item.get("source_priority_label")), 0)
+    category_rank = _category_rank(str(item.get("topic_type") or ""), str(item.get("source_category") or ""))
     return (
         freshness_rank,
         signal_rank,
-        type_rank,
+        source_rank,
+        category_rank,
         int(item["importance_score"]),
         int(item["source_quality_score"]),
+        int(item["novelty_score"]),
         str(item.get("published_at") or item.get("updated_at") or ""),
         str(item["title"]),
     )
@@ -176,10 +179,12 @@ def _candidate_from_observation(observation: dict[str, Any], *, cutoff: datetime
     company_model = _company_model(observation)
     topic_type = str(observation.get("topic_type") or "other")
     source_type = str(observation.get("source_type") or "other")
+    source_priority_label = str(observation.get("source_priority_label") or ("official" if source_type == "official" else "reputable_news"))
+    source_category = str(observation.get("source_category") or ("official_release" if source_type == "official" else "ai_news"))
     signal_level = str(observation.get("signal_level") or "source_homepage_fallback")
     is_homepage_fallback = bool(observation.get("is_homepage_fallback") or signal_level != "article")
     freshness_status, fresh_enough = _freshness(observation, cutoff, is_homepage_fallback=is_homepage_fallback)
-    importance = _importance_score(title, summary, topic_type, source_type, is_homepage_fallback=is_homepage_fallback, freshness_status=freshness_status)
+    importance = _importance_score(title, summary, topic_type, source_type, source_category, is_homepage_fallback=is_homepage_fallback, freshness_status=freshness_status)
     novelty = _novelty_score(title, summary, is_homepage_fallback=is_homepage_fallback, freshness_status=freshness_status)
     source_quality = _source_quality(source_type, str(observation.get("source_confidence") or "medium"))
     confidence = _confidence(observation, source_quality, is_homepage_fallback=is_homepage_fallback, freshness_status=freshness_status)
@@ -192,6 +197,8 @@ def _candidate_from_observation(observation: dict[str, Any], *, cutoff: datetime
         "company_entities": list(observation.get("company_entities", [])),
         "models": list(observation.get("models", [])),
         "topic_type": topic_type,
+        "source_priority_label": source_priority_label,
+        "source_category": source_category,
         "importance_score": importance,
         "novelty_score": novelty,
         "source_quality_score": source_quality,
@@ -210,6 +217,8 @@ def _candidate_from_observation(observation: dict[str, Any], *, cutoff: datetime
                 "publisher": observation.get("publisher"),
                 "url": observation.get("url"),
                 "source_type": source_type,
+                "source_priority_label": source_priority_label,
+                "source_category": source_category,
                 "signal_level": signal_level,
             }
         ],
@@ -247,13 +256,15 @@ def _build_report(
     fallback_count = sum(1 for item in all_items if item.get("is_homepage_fallback"))
     blocking_errors = bool(source_errors and not candidates)
     content_clean = _no_mojibake(all_items) and _no_placeholder_items(all_items)
-    telegram_ready = fresh_article_count >= min_fresh_items and not blocking_errors and content_clean
+    ranked_items_are_fresh = all(item.get("freshness_status") == "fresh" for item in candidates)
+    telegram_ready = fresh_article_count >= min_fresh_items and ranked_items_are_fresh and not blocking_errors and content_clean
     readiness_reason = _telegram_readiness_reason(
         telegram_ready,
         fresh_article_count=fresh_article_count,
         min_fresh_items=min_fresh_items,
         blocking_errors=blocking_errors,
         content_clean=content_clean,
+        ranked_items_are_fresh=ranked_items_are_fresh,
     )
     return {
         "schema_version": "1.0.0",
@@ -430,23 +441,27 @@ def _freshness(observation: dict[str, Any], cutoff: datetime, *, is_homepage_fal
     return "stale", False
 
 
-def _importance_score(title: str, summary: str, topic_type: str, source_type: str, *, is_homepage_fallback: bool, freshness_status: str) -> int:
+def _importance_score(title: str, summary: str, topic_type: str, source_type: str, source_category: str, *, is_homepage_fallback: bool, freshness_status: str) -> int:
     text = (title + " " + summary).lower()
     score = 2
     if source_type == "official":
         score += 1
     if topic_type in {"model_release", "developer_tooling", "security", "policy"}:
         score += 1
+    if source_category in {"official_release", "model_release", "tooling"}:
+        score += 1
     if any(word in text for word in ("launch", "release", "available", "api", "deprecation", "security", "safety", "frontier")):
         score += 1
-    if any(word in text for word in ("series", "funding", "raises", "valuation")) and topic_type == "other":
-        score -= 1
+    if topic_type == "funding" or any(word in text for word in ("series", "funding", "raises", "valuation")):
+        score -= 2
     if is_homepage_fallback:
         score = min(score, 2)
     if freshness_status == "stale":
         score = min(score, 2)
     if freshness_status == "date_missing":
         score = min(score, 2)
+    if topic_type == "funding" and not any(word in text for word in ("openai", "anthropic", "google", "mistral", "meta", "cohere", "xai", "hugging face")):
+        score = min(score, 3)
     return max(1, min(score, 5))
 
 
@@ -482,6 +497,20 @@ def _confidence(observation: dict[str, Any], source_quality: int, *, is_homepage
     return "low"
 
 
+def _category_rank(topic_type: str, source_category: str) -> int:
+    if topic_type in {"model_release", "developer_tooling", "security", "policy"}:
+        return 4
+    if source_category in {"official_release", "model_release", "tooling"}:
+        return 4
+    if topic_type == "research" or source_category == "research":
+        return 3
+    if source_category == "ai_news":
+        return 2
+    if topic_type == "funding" or source_category == "funding":
+        return 1
+    return 1
+
+
 def _why_it_matters(topic_type: str, source_type: str, *, is_homepage_fallback: bool, freshness_status: str) -> str:
     if is_homepage_fallback:
         return "This is a source-monitoring fallback, not a confirmed article-level news item; use it only to guide manual review."
@@ -495,6 +524,8 @@ def _why_it_matters(topic_type: str, source_type: str, *, is_homepage_fallback: 
         return "Security and safety updates can require immediate review by engineering and governance teams."
     if topic_type == "policy":
         return "Policy or regulatory changes can affect deployment constraints and compliance review."
+    if topic_type == "funding":
+        return "Funding news is useful market context, but it should not outrank fresh model, API, safety, or tooling updates without manual escalation."
     if source_type == "official":
         return "Official source movement is higher-signal than secondary commentary and should be reviewed promptly."
     return "The item may be useful context, but it needs primary-source confirmation before action."
@@ -572,9 +603,8 @@ def _parse_iso_datetime(value: str) -> datetime | None:
 
 def _no_mojibake(items: list[dict[str, Any]]) -> bool:
     text = json.dumps(items, ensure_ascii=False)
-    markers = ("\ufffd", "?", "?", "??", "???", "???")
+    markers = ("\ufffd", "\u00c3", "\u00c2", "\u00e2\u20ac", "\u00ef\u00bf\u00bd")
     return not any(marker in text for marker in markers)
-
 
 def _no_placeholder_items(items: list[dict[str, Any]]) -> bool:
     text = json.dumps(items, ensure_ascii=False).lower()
@@ -589,11 +619,14 @@ def _telegram_readiness_reason(
     min_fresh_items: int,
     blocking_errors: bool,
     content_clean: bool,
+    ranked_items_are_fresh: bool,
 ) -> str:
     if telegram_ready:
         return "ready"
     if fresh_article_count < min_fresh_items:
         return "Not enough fresh article-level AI updates found for a send-ready brief."
+    if not ranked_items_are_fresh:
+        return "Top Updates include stale or date-missing items; manual Telegram delivery is blocked."
     if blocking_errors:
         return "Source errors blocked the main daily update set."
     if not content_clean:

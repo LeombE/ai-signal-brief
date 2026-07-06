@@ -89,12 +89,12 @@ def render_markdown(report: dict[str, Any]) -> str:
     lines.append("## Top Updates Ranked by Importance")
     lines.append("")
     if items:
-        lines.append("| Rank | Update | Freshness | Signal | Company / Model | Score | Confidence | Sources |")
-        lines.append("| --- | --- | --- | --- | --- | --- | --- | --- |")
+        lines.append("| Rank | Update | Freshness | Source Tier | Category | Signal | Company / Model | Score | Confidence | Sources |")
+        lines.append("| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |")
         for item in items:
             sources = ", ".join(f"[{source['source_id']}]({source['url']})" for source in item.get("sources", []))
             lines.append(
-                f"| {item.get('rank')} | {_escape_pipe(item.get('title', ''))} | {_escape_pipe(str(item.get('freshness_status', 'unknown')))} | {_escape_pipe(str(item.get('signal_level', 'unknown')))} | {_escape_pipe(item.get('company_model', ''))} | {item.get('importance_score')} | {item.get('confidence')} | {sources} |"
+                f"| {item.get('rank')} | {_escape_pipe(item.get('title', ''))} | {_escape_pipe(str(item.get('freshness_status', 'unknown')))} | {_escape_pipe(str(item.get('source_priority_label', 'unknown')))} | {_escape_pipe(str(item.get('source_category', 'unknown')))} | {_escape_pipe(str(item.get('signal_level', 'unknown')))} | {_escape_pipe(item.get('company_model', ''))} | {item.get('importance_score')} | {item.get('confidence')} | {sources} |"
             )
     else:
         lines.append("No ranked update passed the MVP fetch and review gates.")
@@ -132,6 +132,8 @@ def render_markdown(report: dict[str, Any]) -> str:
             lines.append(f"- Freshness: {item.get('freshness_status', 'unknown')}")
             lines.append(f"- Fresh enough for daily: {str(item.get('fresh_enough_for_daily')).lower()}")
             lines.append(f"- Signal level: {item.get('signal_level', 'unknown')}")
+            lines.append(f"- Source tier: {item.get('source_priority_label', 'unknown')}")
+            lines.append(f"- Source category: {item.get('source_category', 'unknown')}")
             lines.append(f"- Type: {item.get('topic_type')}")
             lines.append(f"- Source: {', '.join(source['source_name'] for source in item.get('sources', []))}")
             lines.append(f"- Confidence: {item.get('confidence')}")

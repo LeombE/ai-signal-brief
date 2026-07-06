@@ -18,7 +18,9 @@
       "source_confidence": "high",
       "attribution_required": true,
       "manual_review_required": true,
-      "feed_url": "https://openai.com/news/rss.xml"
+      "feed_url": "https://openai.com/news/rss.xml",
+      "source_priority_label": "official",
+      "source_category": "official_release"
     },
     {
       "id": "anthropic-news",
@@ -34,7 +36,9 @@
       "timeout_seconds": 15,
       "source_confidence": "high",
       "attribution_required": true,
-      "manual_review_required": true
+      "manual_review_required": true,
+      "source_priority_label": "official",
+      "source_category": "official_release"
     },
     {
       "id": "google-ai-blog",
@@ -51,7 +55,9 @@
       "source_confidence": "high",
       "attribution_required": true,
       "manual_review_required": true,
-      "feed_url": "https://blog.google/technology/ai/rss/"
+      "feed_url": "https://blog.google/technology/ai/rss/",
+      "source_priority_label": "official",
+      "source_category": "official_release"
     },
     {
       "id": "google-deepmind-blog",
@@ -67,7 +73,9 @@
       "timeout_seconds": 15,
       "source_confidence": "high",
       "attribution_required": true,
-      "manual_review_required": true
+      "manual_review_required": true,
+      "source_priority_label": "official",
+      "source_category": "research"
     },
     {
       "id": "meta-ai-blog",
@@ -83,7 +91,9 @@
       "timeout_seconds": 15,
       "source_confidence": "high",
       "attribution_required": true,
-      "manual_review_required": true
+      "manual_review_required": true,
+      "source_priority_label": "official",
+      "source_category": "research"
     },
     {
       "id": "mistral-news",
@@ -99,7 +109,9 @@
       "timeout_seconds": 15,
       "source_confidence": "high",
       "attribution_required": true,
-      "manual_review_required": true
+      "manual_review_required": true,
+      "source_priority_label": "official",
+      "source_category": "model_release"
     },
     {
       "id": "cohere-blog",
@@ -115,7 +127,9 @@
       "timeout_seconds": 15,
       "source_confidence": "high",
       "attribution_required": true,
-      "manual_review_required": true
+      "manual_review_required": true,
+      "source_priority_label": "official",
+      "source_category": "tooling"
     },
     {
       "id": "xai-news",
@@ -131,24 +145,118 @@
       "timeout_seconds": 15,
       "source_confidence": "high",
       "attribution_required": true,
-      "manual_review_required": true
+      "manual_review_required": true,
+      "source_priority_label": "official",
+      "source_category": "official_release"
     },
     {
       "id": "huggingface-blog",
       "name": "Hugging Face Blog",
       "publisher": "Hugging Face",
       "url": "https://huggingface.co/blog",
-      "source_type": "news",
+      "source_type": "official",
       "priority": 2,
       "reliability_tier": "primary_or_context",
       "fetch_mode": "html_metadata",
       "enabled": true,
       "max_items": 4,
       "timeout_seconds": 15,
-      "source_confidence": "medium",
+      "source_confidence": "high",
       "attribution_required": true,
       "manual_review_required": true,
-      "feed_url": "https://huggingface.co/blog/feed.xml"
+      "feed_url": "https://huggingface.co/blog/feed.xml",
+      "source_priority_label": "official",
+      "source_category": "research"
+    },
+    {
+      "id": "techcrunch-ai",
+      "name": "TechCrunch AI",
+      "publisher": "TechCrunch",
+      "url": "https://techcrunch.com/category/artificial-intelligence/feed/",
+      "source_type": "news",
+      "priority": 3,
+      "reliability_tier": "reputable_news",
+      "fetch_mode": "rss",
+      "enabled": true,
+      "max_items": 5,
+      "timeout_seconds": 15,
+      "source_confidence": "medium",
+      "source_priority_label": "reputable_news",
+      "source_category": "ai_news",
+      "attribution_required": true,
+      "manual_review_required": true
+    },
+    {
+      "id": "venturebeat-ai",
+      "name": "VentureBeat AI",
+      "publisher": "VentureBeat",
+      "url": "https://venturebeat.com/category/ai/feed/",
+      "source_type": "news",
+      "priority": 3,
+      "reliability_tier": "reputable_news",
+      "fetch_mode": "rss",
+      "enabled": true,
+      "max_items": 5,
+      "timeout_seconds": 15,
+      "source_confidence": "medium",
+      "source_priority_label": "reputable_news",
+      "source_category": "ai_news",
+      "attribution_required": true,
+      "manual_review_required": true
+    },
+    {
+      "id": "the-decoder-ai",
+      "name": "The Decoder AI",
+      "publisher": "The Decoder",
+      "url": "https://the-decoder.com/feed/",
+      "source_type": "news",
+      "priority": 3,
+      "reliability_tier": "reputable_news",
+      "fetch_mode": "rss",
+      "enabled": true,
+      "max_items": 5,
+      "timeout_seconds": 15,
+      "source_confidence": "medium",
+      "source_priority_label": "reputable_news",
+      "source_category": "ai_news",
+      "attribution_required": true,
+      "manual_review_required": true
+    },
+    {
+      "id": "mit-tech-review-ai",
+      "name": "MIT Technology Review AI",
+      "publisher": "MIT Technology Review",
+      "url": "https://www.technologyreview.com/topic/artificial-intelligence/feed/",
+      "source_type": "news",
+      "priority": 3,
+      "reliability_tier": "reputable_news",
+      "fetch_mode": "rss",
+      "enabled": true,
+      "max_items": 5,
+      "timeout_seconds": 15,
+      "source_confidence": "medium",
+      "source_priority_label": "reputable_news",
+      "source_category": "research",
+      "attribution_required": true,
+      "manual_review_required": true
+    },
+    {
+      "id": "the-verge-ai",
+      "name": "The Verge AI",
+      "publisher": "The Verge",
+      "url": "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml",
+      "source_type": "news",
+      "priority": 4,
+      "reliability_tier": "backup",
+      "fetch_mode": "atom",
+      "enabled": true,
+      "max_items": 4,
+      "timeout_seconds": 15,
+      "source_confidence": "medium",
+      "source_priority_label": "backup",
+      "source_category": "ai_news",
+      "attribution_required": true,
+      "manual_review_required": true
     }
   ]
 }

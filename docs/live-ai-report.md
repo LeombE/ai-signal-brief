@@ -40,6 +40,15 @@ Source rules:
 
 The MVP starts with official or high-signal sources for OpenAI, Anthropic, Google AI, Google DeepMind, Meta AI, Mistral, Cohere, xAI, and Hugging Face context. Where supported, the allowlist may include a public HTTPS `feed_url` so RSS/Atom entries are preferred over homepage metadata.
 
+When official sources do not provide enough fresh article-level updates, the allowlist can include reputable public AI/news RSS feeds as backup coverage. Current backup/reputable sources include TechCrunch AI, VentureBeat AI, The Decoder AI, MIT Technology Review AI, and The Verge AI. These sources are marked `source_priority_label: reputable_news` or `backup`, retain source attribution, and remain lower priority than official release/changelog/blog sources.
+
+Each source may declare:
+
+- `source_priority_label`: `official`, `reputable_news`, or `backup`
+- `source_category`: `official_release`, `ai_news`, `research`, `model_release`, `tooling`, `policy`, or `funding`
+- `max_items`: per-source item limit before global report ranking
+
+
 
 ## Freshness And Telegram Readiness
 
@@ -98,13 +107,14 @@ The Markdown and DOCX report follows this structure:
 
 Ranking prioritizes:
 
-1. fresh official article-level model, API, platform, or developer-tooling releases
-2. availability, pricing, migration, or deprecation changes
-3. major model capability announcements
-4. safety, security, and regulatory updates
-5. fresh research releases from official labs or strong primary sources
-6. funding or generic company news only when unusually important
-7. stale, date-missing, evergreen, lower-evidence, or repeated items are downgraded or separated into the watchlist
+1. fresh official article-level model, API, platform, changelog, or developer-tooling releases
+2. fresh reputable AI/news RSS items when official sources are quiet
+3. availability, pricing, migration, or deprecation changes
+4. major model capability announcements
+5. safety, security, and regulatory updates
+6. fresh research releases from official labs or strong primary sources
+7. funding or generic company news only when unusually important
+8. stale, date-missing, evergreen, lower-evidence, or repeated items are downgraded or separated into the watchlist
 
 Every item remains subject to manual source review before publication or downstream delivery.
 

@@ -22,6 +22,8 @@ MAX_RESPONSE_BYTES = 1_000_000
 MAX_HTML_PARSE_BYTES = 350_000
 VALID_FETCH_MODES = {"rss", "atom", "html_metadata"}
 VALID_SOURCE_TYPES = {"official", "paper", "repository", "regulatory", "news", "social", "other"}
+VALID_SOURCE_PRIORITY_LABELS = {"official", "reputable_news", "backup"}
+VALID_SOURCE_CATEGORIES = {"official_release", "ai_news", "research", "model_release", "tooling", "policy", "funding"}
 BLOCKED_SOURCE_MARKERS = (
     "login_required",
     "paywall",
@@ -102,6 +104,8 @@ class LiveSource:
     timeout_seconds: int
     source_confidence: str
     enabled: bool
+    source_priority_label: str
+    source_category: str
     feed_url: str | None = None
 
 
@@ -184,7 +188,7 @@ def fetch_live_observations(
 
     observations = _dedupe_observations(observations)
     observations.sort(key=_observation_sort_key, reverse=True)
-    return LiveFetchResult(observations=observations[:max_items], source_errors=errors, retrieved_at=retrieved)
+    return LiveFetchResult(observations=observations, source_errors=errors, retrieved_at=retrieved)
 
 
 def _validate_source(source: Any, index: int, seen: set[str], errors: list[str]) -> None:
@@ -235,6 +239,12 @@ def _validate_source(source: Any, index: int, seen: set[str], errors: list[str])
         errors.append(f"{path}.enabled must be true for this explicit live report source config")
     if source.get("source_confidence") not in {"high", "medium", "low"}:
         errors.append(f"{path}.source_confidence must be high, medium, or low")
+    priority_label = source.get("source_priority_label")
+    if priority_label is not None and priority_label not in VALID_SOURCE_PRIORITY_LABELS:
+        errors.append(f"{path}.source_priority_label must be one of: {', '.join(sorted(VALID_SOURCE_PRIORITY_LABELS))}")
+    category = source.get("source_category")
+    if category is not None and category not in VALID_SOURCE_CATEGORIES:
+        errors.append(f"{path}.source_category must be one of: {', '.join(sorted(VALID_SOURCE_CATEGORIES))}")
     _validate_blocked_markers(source, path, errors)
 
 
@@ -267,8 +277,32 @@ def _source_from_dict(source: dict[str, Any]) -> LiveSource:
         timeout_seconds=int(source["timeout_seconds"]),
         source_confidence=str(source["source_confidence"]),
         enabled=bool(source["enabled"]),
+        source_priority_label=str(source.get("source_priority_label") or _default_source_priority_label(source)),
+        source_category=str(source.get("source_category") or _default_source_category(source)),
         feed_url=str(feed_url) if isinstance(feed_url, str) and feed_url else None,
     )
+
+
+def _default_source_priority_label(source: dict[str, Any]) -> str:
+    source_type = str(source.get("source_type") or "")
+    priority = int(source.get("priority") or 99)
+    if source_type == "official" or priority <= 1:
+        return "official"
+    if source_type in {"news", "paper", "repository", "regulatory"} and priority <= 4:
+        return "reputable_news"
+    return "backup"
+
+
+def _default_source_category(source: dict[str, Any]) -> str:
+    source_type = str(source.get("source_type") or "")
+    name = (str(source.get("name") or "") + " " + str(source.get("publisher") or "")).lower()
+    if source_type == "official":
+        return "official_release"
+    if source_type == "paper" or "paper" in name or "research" in name:
+        return "research"
+    if "policy" in name or source_type == "regulatory":
+        return "policy"
+    return "ai_news"
 
 
 def _read_url(url: str, timeout_seconds: int) -> bytes:
@@ -550,6 +584,8 @@ def _observation(
         "content_hash": hashlib.sha256(seed.encode("utf-8")).hexdigest(),
         "source_confidence": _fallback_confidence(source.source_confidence, signal_level),
         "source_priority": source.priority,
+        "source_priority_label": source.source_priority_label,
+        "source_category": source.source_category,
         "date_missing": published_at is None and updated_at is None,
         "evidence_notes": _evidence_notes(source, published_at, updated_at, signal_level),
         "raw_signal_type": raw_signal_type,
@@ -673,6 +709,8 @@ def _detect_models(text: str) -> list[str]:
 
 def _topic_type(text: str) -> str:
     lowered = text.lower()
+    if any(word in lowered for word in ("funding", "raises", "raised", "series a", "series b", "series c", "valuation")):
+        return "funding"
     if any(word in lowered for word in ("model", "gpt", "claude", "gemini", "llama", "mistral", "grok")):
         return "model_release"
     if any(word in lowered for word in ("api", "developer", "sdk", "platform", "agent")):
@@ -693,7 +731,7 @@ def _fallback_confidence(source_confidence: str, signal_level: str) -> str:
 
 
 def _evidence_notes(source: LiveSource, published_at: datetime | None, updated_at: datetime | None, signal_level: str) -> list[str]:
-    notes = [f"Fetched from allowlisted public HTTPS source: {source.publisher}."]
+    notes = [f"Fetched from allowlisted public HTTPS source: {source.publisher} ({source.source_priority_label}, {source.source_category})."]
     if signal_level == "source_homepage_fallback":
         notes.append("Homepage metadata fallback only; do not treat as an article-level news item without manual source review.")
     elif signal_level == "article" and published_at is None and updated_at is None:

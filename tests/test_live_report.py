@@ -9,7 +9,7 @@ from unittest.mock import Mock, patch
 
 from ai_signal_brief.cli import main
 from ai_signal_brief.live_fetch import LiveFetchError, fetch_live_observations, load_live_sources_config
-from ai_signal_brief.live_report import LiveReportError, build_daily_ai_report
+from ai_signal_brief.live_report import LiveReportError, _no_mojibake, build_daily_ai_report
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -30,6 +30,24 @@ class LiveReportTests(unittest.TestCase):
         self.assertGreaterEqual(len(config["sources"]), 5)
         self.assertTrue(all(source["url"].startswith("https://") for source in config["sources"]))
 
+    def test_live_source_config_supports_priority_labels_and_reputable_news(self) -> None:
+        config = load_live_sources_config(ROOT / "config" / "live_ai_sources.example.json")
+
+        labels = {source.get("source_priority_label") for source in config["sources"]}
+        categories = {source.get("source_category") for source in config["sources"]}
+        ids = {source["id"] for source in config["sources"]}
+
+        self.assertIn("official", labels)
+        self.assertIn("reputable_news", labels)
+        self.assertIn("backup", labels)
+        self.assertIn("official_release", categories)
+        self.assertIn("ai_news", categories)
+        self.assertIn("techcrunch-ai", ids)
+        self.assertIn("venturebeat-ai", ids)
+        self.assertIn("the-decoder-ai", ids)
+        self.assertIn("mit-tech-review-ai", ids)
+        self.assertIn("the-verge-ai", ids)
+
     def test_non_https_source_is_rejected(self) -> None:
         config_path = _write_source_config("non-https", url="http://example.com/feed.xml")
 
@@ -41,6 +59,36 @@ class LiveReportTests(unittest.TestCase):
 
         with self.assertRaises(LiveFetchError):
             load_live_sources_config(config_path)
+
+    def test_reputable_news_feed_preserves_priority_and_category(self) -> None:
+        config_path = _write_source_config(
+            "reputable-news",
+            url="https://example.com/news.xml",
+            extra={
+                "source_type": "news",
+                "priority": 3,
+                "reliability_tier": "reputable_news",
+                "source_confidence": "medium",
+                "source_priority_label": "reputable_news",
+                "source_category": "ai_news",
+                "max_items": 5,
+            },
+        )
+
+        result = fetch_live_observations(
+            sources_path=config_path,
+            report_date="2026-07-06",
+            timezone_name="Asia/Kuala_Lumpur",
+            max_items=5,
+            lookback_hours=48,
+            reader=_reputable_news_reader,
+            retrieved_at="2026-07-06T12:00:00+08:00",
+        )
+
+        self.assertEqual(len(result.observations), 2)
+        self.assertTrue(all(item["source_priority_label"] == "reputable_news" for item in result.observations))
+        self.assertTrue(all(item["source_category"] == "ai_news" for item in result.observations))
+        self.assertTrue(all(item["signal_level"] == "article" for item in result.observations))
 
     def test_fetcher_parses_fixture_observations(self) -> None:
         config_path = _write_source_config("parse")
@@ -283,6 +331,10 @@ class LiveReportTests(unittest.TestCase):
         self.assertTrue(ready.report["metadata"]["telegram_ready"])
         self.assertEqual(ready.report["metadata"]["telegram_readiness_reason"], "ready")
 
+    def test_mojibake_gate_allows_normal_question_marks(self) -> None:
+        self.assertTrue(_no_mojibake([{"title": "What if developers use AI safely?"}]))
+        self.assertFalse(_no_mojibake([{"title": "Broken replacement marker �"}]))
+
     def test_mojibake_homepage_fallback_is_repaired_and_low_confidence(self) -> None:
         config_path = _write_source_config(
             "mojibake",
@@ -354,6 +406,51 @@ class LiveReportTests(unittest.TestCase):
         titles = [item["title"] for item in result.observations]
         self.assertEqual(titles.count("OpenAI releases model routing controls for API developers"), 1)
         self.assertIn("Old OpenAI research note outside lookback", titles)
+
+    def test_official_and_tooling_items_rank_above_funding_news(self) -> None:
+        config_path = _write_multi_source_config("priority-ranking")
+
+        result = build_daily_ai_report(
+            report_date="2026-07-06",
+            timezone_name="Asia/Kuala_Lumpur",
+            output_dir="outputs/test-live-report/priority-ranking",
+            formats="json",
+            sources_path=config_path,
+            max_items=5,
+            lookback_hours=48,
+            min_fresh_items=3,
+            english_only=True,
+            no_openai=True,
+            repo_root=ROOT,
+            fetch_reader=_priority_reader,
+        )
+
+        titles = [item["title"] for item in result.report["ranked_updates"]]
+        self.assertEqual(len(titles), 3)
+        self.assertTrue(result.report["metadata"]["telegram_ready"])
+        self.assertEqual(result.report["ranked_updates"][0]["source_priority_label"], "official")
+        self.assertLess(titles.index("VentureBeat reports Mistral releases new API tooling"), titles.index("AI infrastructure startup raises Series B funding"))
+        funding_item = next(item for item in result.report["ranked_updates"] if "funding" in item["title"].lower())
+        self.assertEqual(funding_item["topic_type"], "funding")
+        self.assertLessEqual(funding_item["importance_score"], 3)
+
+    def test_report_output_must_stay_under_outputs(self) -> None:
+        config_path = _write_source_config("unsafe-output")
+
+        with self.assertRaises(LiveReportError):
+            build_daily_ai_report(
+                report_date="2026-07-05",
+                timezone_name="Asia/Kuala_Lumpur",
+                output_dir="../unsafe-live-report",
+                formats="json",
+                sources_path=config_path,
+                max_items=5,
+                lookback_hours=48,
+                english_only=True,
+                no_openai=True,
+                repo_root=ROOT,
+                fetch_reader=_fixture_reader,
+            )
 
     def test_daily_brief_writes_json_markdown_and_docx(self) -> None:
         config_path = _write_source_config("write-report")
@@ -585,6 +682,8 @@ def _write_source_config(name: str, *, url: str = "https://example.com/openai.xm
         "max_items": 3,
         "timeout_seconds": 5,
         "source_confidence": "high",
+        "source_priority_label": "official",
+        "source_category": "official_release",
         "attribution_required": True,
         "manual_review_required": True,
     }
@@ -600,6 +699,67 @@ def _write_source_config(name: str, *, url: str = "https://example.com/openai.xm
     path.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return path
 
+
+
+def _write_multi_source_config(name: str) -> Path:
+    data = {
+        "schema_version": "1.0.0",
+        "source_policy": "official_or_high_signal_public_https_only",
+        "sources": [
+            {
+                "id": "fixture-official",
+                "name": "Fixture Official Feed",
+                "publisher": "OpenAI",
+                "url": "https://example.com/official.xml",
+                "source_type": "official",
+                "priority": 1,
+                "reliability_tier": "primary",
+                "fetch_mode": "rss",
+                "enabled": True,
+                "max_items": 3,
+                "timeout_seconds": 5,
+                "source_confidence": "high",
+                "source_priority_label": "official",
+                "source_category": "official_release",
+                "attribution_required": True,
+                "manual_review_required": True,
+            },
+            {
+                "id": "fixture-news",
+                "name": "Fixture Reputable News Feed",
+                "publisher": "VentureBeat",
+                "url": "https://example.com/news.xml",
+                "source_type": "news",
+                "priority": 3,
+                "reliability_tier": "reputable_news",
+                "fetch_mode": "rss",
+                "enabled": True,
+                "max_items": 5,
+                "timeout_seconds": 5,
+                "source_confidence": "medium",
+                "source_priority_label": "reputable_news",
+                "source_category": "ai_news",
+                "attribution_required": True,
+                "manual_review_required": True,
+            },
+        ],
+    }
+    path = OUTPUT_ROOT / "configs" / name / "live_ai_sources.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return path
+
+
+def _reputable_news_reader(url: str, timeout_seconds: int) -> bytes:
+    return (FIXTURES / "reputable_news_feed.xml").read_bytes()
+
+
+def _priority_reader(url: str, timeout_seconds: int) -> bytes:
+    if url == "https://example.com/official.xml":
+        return (FIXTURES / "official_priority_feed.xml").read_bytes()
+    if url == "https://example.com/news.xml":
+        return (FIXTURES / "reputable_news_feed.xml").read_bytes()
+    raise AssertionError(f"unexpected URL: {url}")
 
 def _fixture_reader(url: str, timeout_seconds: int) -> bytes:
     self_check = (url, timeout_seconds)
