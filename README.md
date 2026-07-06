@@ -77,7 +77,7 @@ The generated files are written under `outputs/daily-reports/YYYY-MM-DD-live/`. 
 
 ## Telegram Automation
 
-Telegram delivery bot profile: [@AIDailyReport_bot](https://t.me/AIDailyReport_bot)
+Telegram delivery bot profile: [@AIDailyReport_bot](https://t.me/AIDailyReprot_bot)
 
 This is the public bot profile used as the delivery endpoint for generated AI Daily Brief messages. Automated delivery still requires the repository owner's configured GitHub Actions secrets (`TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`). Do not publish bot tokens, chat IDs, `.env` files, or private chat details.
 
