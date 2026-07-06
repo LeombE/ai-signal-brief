@@ -271,7 +271,7 @@ class LiveReportTests(unittest.TestCase):
         self.assertTrue(all(item["importance_score"] <= 2 for item in result.report["watchlist_updates"]))
         self.assertFalse(result.report["metadata"]["telegram_ready"])
 
-    def test_allow_stale_can_include_stale_items_in_ranked_updates(self) -> None:
+    def test_allow_stale_does_not_make_stale_items_main_updates(self) -> None:
         config_path = _write_source_config("stale-allowed")
 
         result = build_daily_ai_report(
@@ -289,9 +289,10 @@ class LiveReportTests(unittest.TestCase):
             fetch_reader=_stale_feed_reader,
         )
 
-        self.assertEqual(len(result.report["ranked_updates"]), 1)
-        self.assertEqual(result.report["ranked_updates"][0]["freshness_status"], "stale")
-        self.assertFalse(result.report["ranked_updates"][0]["fresh_enough_for_daily"])
+        self.assertEqual(result.report["ranked_updates"], [])
+        self.assertEqual(len(result.report["watchlist_updates"]), 1)
+        self.assertEqual(result.report["watchlist_updates"][0]["freshness_status"], "stale")
+        self.assertFalse(result.report["watchlist_updates"][0]["fresh_enough_for_daily"])
         self.assertFalse(result.report["metadata"]["telegram_ready"])
 
     def test_min_fresh_items_controls_telegram_readiness(self) -> None:
@@ -388,7 +389,7 @@ class LiveReportTests(unittest.TestCase):
         self.assertEqual(item["confidence"], "low")
         self.assertLessEqual(item["importance_score"], 2)
         self.assertFalse(result.report["metadata"]["telegram_ready"])
-        self.assertIn("Not enough fresh article-level AI updates found", " ".join(result.report["executive_summary"]))
+        self.assertIn("Not enough fresh, source-backed, editorially relevant", " ".join(result.report["executive_summary"]))
 
     def test_duplicate_feed_items_are_deduped_by_url_and_title(self) -> None:
         config_path = _write_source_config("duplicate-feed")
@@ -428,11 +429,83 @@ class LiveReportTests(unittest.TestCase):
         titles = [item["title"] for item in result.report["ranked_updates"]]
         self.assertEqual(len(titles), 3)
         self.assertTrue(result.report["metadata"]["telegram_ready"])
+        self.assertEqual(result.report["metadata"]["editorial_ready_items"], 3)
         self.assertEqual(result.report["ranked_updates"][0]["source_priority_label"], "official")
-        self.assertLess(titles.index("VentureBeat reports Mistral releases new API tooling"), titles.index("AI infrastructure startup raises Series B funding"))
-        funding_item = next(item for item in result.report["ranked_updates"] if "funding" in item["title"].lower())
+        self.assertIn("VentureBeat reports Mistral releases new API tooling", titles)
+        self.assertTrue(all(item["telegram_editorial_ready"] for item in result.report["ranked_updates"]))
+        self.assertTrue(all(item["editorial_relevance_score"] >= 3 for item in result.report["ranked_updates"]))
+        downgraded_titles = [item["title"] for item in result.report["downgraded_updates"]]
+        self.assertIn("AI infrastructure startup raises Series B funding", downgraded_titles)
+        funding_item = next(item for item in result.report["downgraded_updates"] if "funding" in item["title"].lower())
         self.assertEqual(funding_item["topic_type"], "funding")
-        self.assertLessEqual(funding_item["importance_score"], 3)
+        self.assertFalse(funding_item["telegram_editorial_ready"])
+        self.assertLess(funding_item["editorial_relevance_score"], 3)
+
+    def test_weak_ai_adjacent_fresh_items_do_not_make_telegram_ready(self) -> None:
+        config_path = _write_source_config(
+            "weak-ai-adjacent",
+            url="https://example.com/weak.xml",
+            extra={
+                "source_type": "news",
+                "priority": 3,
+                "reliability_tier": "reputable_news",
+                "source_confidence": "medium",
+                "source_priority_label": "reputable_news",
+                "source_category": "ai_news",
+                "max_items": 5,
+            },
+        )
+
+        result = build_daily_ai_report(
+            report_date="2026-07-06",
+            timezone_name="Asia/Kuala_Lumpur",
+            output_dir="outputs/test-live-report/weak-ai-adjacent",
+            formats="json",
+            sources_path=config_path,
+            max_items=5,
+            lookback_hours=48,
+            min_fresh_items=3,
+            english_only=True,
+            no_openai=True,
+            repo_root=ROOT,
+            fetch_reader=_weak_ai_adjacent_reader,
+        )
+
+        self.assertEqual(result.report["ranked_updates"], [])
+        self.assertEqual(result.report["metadata"]["fresh_article_level_items"], 3)
+        self.assertEqual(result.report["metadata"]["editorial_ready_items"], 0)
+        self.assertEqual(len(result.report["downgraded_updates"]), 3)
+        self.assertFalse(result.report["metadata"]["telegram_ready"])
+        self.assertIn("not enough were editorially relevant", result.report["metadata"]["telegram_readiness_reason"])
+        self.assertTrue(all(not item["telegram_editorial_ready"] for item in result.report["downgraded_updates"]))
+
+    def test_report_contains_editorial_relevance_fields(self) -> None:
+        config_path = _write_multi_source_config("editorial-fields")
+
+        result = build_daily_ai_report(
+            report_date="2026-07-06",
+            timezone_name="Asia/Kuala_Lumpur",
+            output_dir="outputs/test-live-report/editorial-fields",
+            formats="json,markdown",
+            sources_path=config_path,
+            max_items=5,
+            lookback_hours=48,
+            min_fresh_items=3,
+            english_only=True,
+            no_openai=True,
+            repo_root=ROOT,
+            fetch_reader=_priority_reader,
+        )
+
+        item = result.report["ranked_updates"][0]
+        self.assertIn("editorial_category", item)
+        self.assertIn("editorial_relevance_score", item)
+        self.assertIn("telegram_editorial_ready", item)
+        self.assertIn("editorial_reason", item)
+        markdown = (ROOT / "outputs/test-live-report/editorial-fields/report.md").read_text(encoding="utf-8")
+        self.assertIn("Top AI Model / Tooling Updates", markdown)
+        self.assertIn("Downgraded or Excluded Items", markdown)
+        self.assertIn("Telegram-ready means fresh + source-backed + editorially relevant", markdown)
 
     def test_report_output_must_stay_under_outputs(self) -> None:
         config_path = _write_source_config("unsafe-output")
@@ -760,6 +833,16 @@ def _priority_reader(url: str, timeout_seconds: int) -> bytes:
     if url == "https://example.com/news.xml":
         return (FIXTURES / "reputable_news_feed.xml").read_bytes()
     raise AssertionError(f"unexpected URL: {url}")
+
+
+def _weak_ai_adjacent_reader(url: str, timeout_seconds: int) -> bytes:
+    return b'''<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel><title>Weak AI Adjacent Feed</title>
+<item><title>New Google commercial imagines a Declaration of Independence written with help from AI</title><link>https://example.com/news/google-ai-commercial</link><pubDate>Mon, 06 Jul 2026 03:00:00 GMT</pubDate><description>A culture and advertising item about a commercial using generic AI references.</description></item>
+<item><title>AI private schools sell wealthy US families on personalized learning</title><link>https://example.com/news/ai-private-schools</link><pubDate>Mon, 06 Jul 2026 02:00:00 GMT</pubDate><description>Education market story about tuition and families, not a model or tooling release.</description></item>
+<item><title>Amazon will stop accepting new customers for Mechanical Turk</title><link>https://example.com/news/mechanical-turk</link><pubDate>Mon, 06 Jul 2026 01:00:00 GMT</pubDate><description>Labor platform migration context with no AI model, API, research, or tooling update.</description></item>
+</channel></rss>
+'''
 
 def _fixture_reader(url: str, timeout_seconds: int) -> bytes:
     self_check = (url, timeout_seconds)

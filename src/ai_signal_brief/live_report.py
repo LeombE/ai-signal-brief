@@ -30,6 +30,8 @@ class BuildDailyReportResult:
 
 TelegramSender = Callable[[str, str, str], None]
 
+EDITORIAL_READY_THRESHOLD = 3
+
 
 def build_daily_ai_report(
     *,
@@ -80,7 +82,7 @@ def build_daily_ai_report(
         raise LiveReportError(str(exc)) from exc
 
     cutoff = _cutoff(report_date, timezone_name, lookback_hours)
-    candidates, watchlist = _rank_candidates(
+    candidates, watchlist, downgraded = _rank_candidates(
         fetched.observations,
         max_items=max_items,
         cutoff=cutoff,
@@ -96,6 +98,7 @@ def build_daily_ai_report(
         fetched_at=fetched.retrieved_at,
         candidates=candidates,
         watchlist=watchlist,
+        downgraded=downgraded,
         source_errors=fetched.source_errors,
         openai_used=False,
         telegram_sent=False,
@@ -126,52 +129,59 @@ def _rank_candidates(
     max_items: int,
     cutoff: datetime,
     allow_stale: bool,
-) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
     candidates = [_candidate_from_observation(observation, cutoff=cutoff) for observation in observations]
     candidates.sort(key=_candidate_sort_key, reverse=True)
 
     deduped: list[dict[str, Any]] = []
+    downgraded: list[dict[str, Any]] = []
     seen: set[str] = set()
     for item in candidates:
         key = str(item["dedup_key"])
         if key in seen:
+            duplicate = dict(item)
+            duplicate["telegram_editorial_ready"] = False
+            duplicate["editorial_relevance_score"] = min(int(duplicate.get("editorial_relevance_score") or 1), 1)
+            duplicate["editorial_reason"] = "Downgraded: duplicate or near-duplicate article detected."
+            duplicate["downgrade_reason"] = duplicate["editorial_reason"]
+            downgraded.append(duplicate)
             continue
         seen.add(key)
         deduped.append(item)
 
-    if allow_stale:
-        ranked_source = deduped
-        ranked_ids = {id(item) for item in ranked_source[:max_items]}
-        watchlist = [item for item in deduped if item.get("fresh_enough_for_daily") is not True and id(item) not in ranked_ids]
-    else:
-        ranked_source = [item for item in deduped if item.get("fresh_enough_for_daily") is True]
-        watchlist = [item for item in deduped if item.get("fresh_enough_for_daily") is not True]
+    main_source = [item for item in deduped if _is_main_update(item)]
+    watchlist = [item for item in deduped if item.get("fresh_enough_for_daily") is not True or item.get("freshness_status") != "fresh"]
+    downgraded.extend(item for item in deduped if item.get("fresh_enough_for_daily") is True and not _is_main_update(item))
 
-    ranked = ranked_source[:max_items]
+    ranked = main_source[:max_items]
     for index, item in enumerate(ranked, start=1):
         item["rank"] = index
     for index, item in enumerate(watchlist, start=1):
         item["watchlist_rank"] = index
-    return ranked, watchlist[:max_items]
+    for index, item in enumerate(downgraded, start=1):
+        item["downgraded_rank"] = index
+        item.setdefault("downgrade_reason", item.get("editorial_reason", "Downgraded by editorial relevance gate."))
+    return ranked, watchlist[:max_items], downgraded[:max_items]
 
-
-def _candidate_sort_key(item: dict[str, Any]) -> tuple[int, int, int, int, int, int, int, str, str]:
+def _candidate_sort_key(item: dict[str, Any]) -> tuple[int, int, int, int, int, int, int, int, str, str]:
     freshness_rank = {"fresh": 2, "stale": 1, "date_missing": 0}.get(str(item.get("freshness_status")), 0)
+    editorial_ready_rank = 1 if item.get("telegram_editorial_ready") is True else 0
+    editorial_rank = int(item.get("editorial_relevance_score") or 0)
     signal_rank = 1 if item.get("signal_level") == "article" else 0
     source_rank = {"official": 3, "reputable_news": 2, "backup": 1}.get(str(item.get("source_priority_label")), 0)
     category_rank = _category_rank(str(item.get("topic_type") or ""), str(item.get("source_category") or ""))
     return (
         freshness_rank,
+        editorial_ready_rank,
+        editorial_rank,
         signal_rank,
         source_rank,
         category_rank,
         int(item["importance_score"]),
         int(item["source_quality_score"]),
-        int(item["novelty_score"]),
         str(item.get("published_at") or item.get("updated_at") or ""),
         str(item["title"]),
     )
-
 
 def _candidate_from_observation(observation: dict[str, Any], *, cutoff: datetime) -> dict[str, Any]:
     title = str(observation.get("title", "Untitled AI update"))
@@ -188,6 +198,18 @@ def _candidate_from_observation(observation: dict[str, Any], *, cutoff: datetime
     novelty = _novelty_score(title, summary, is_homepage_fallback=is_homepage_fallback, freshness_status=freshness_status)
     source_quality = _source_quality(source_type, str(observation.get("source_confidence") or "medium"))
     confidence = _confidence(observation, source_quality, is_homepage_fallback=is_homepage_fallback, freshness_status=freshness_status)
+    editorial_category, editorial_score, editorial_ready, editorial_reason = _editorial_relevance(
+        title,
+        summary,
+        topic_type,
+        source_type,
+        source_category,
+        source_priority_label,
+        signal_level=signal_level,
+        freshness_status=freshness_status,
+        fresh_enough=fresh_enough,
+        is_homepage_fallback=is_homepage_fallback,
+    )
     topic_id = _topic_id(observation)
     return {
         "topic_id": topic_id,
@@ -200,6 +222,10 @@ def _candidate_from_observation(observation: dict[str, Any], *, cutoff: datetime
         "source_priority_label": source_priority_label,
         "source_category": source_category,
         "importance_score": importance,
+        "editorial_category": editorial_category,
+        "editorial_relevance_score": editorial_score,
+        "telegram_editorial_ready": editorial_ready,
+        "editorial_reason": editorial_reason,
         "novelty_score": novelty,
         "source_quality_score": source_quality,
         "confidence": confidence,
@@ -243,28 +269,39 @@ def _build_report(
     fetched_at: str,
     candidates: list[dict[str, Any]],
     watchlist: list[dict[str, Any]],
+    downgraded: list[dict[str, Any]],
     source_errors: list[dict[str, str]],
     openai_used: bool,
     telegram_sent: bool,
 ) -> dict[str, Any]:
     top = candidates[:3]
-    all_items = candidates + watchlist
+    all_items = candidates + watchlist + downgraded
     article_count = _article_level_count(all_items)
     fresh_article_count = _fresh_article_level_count(all_items)
+    editorial_ready_count = _editorial_ready_count(candidates)
     stale_count = sum(1 for item in all_items if item.get("freshness_status") == "stale")
     date_missing_count = sum(1 for item in all_items if item.get("freshness_status") == "date_missing")
     fallback_count = sum(1 for item in all_items if item.get("is_homepage_fallback"))
     blocking_errors = bool(source_errors and not candidates)
     content_clean = _no_mojibake(all_items) and _no_placeholder_items(all_items)
-    ranked_items_are_fresh = all(item.get("freshness_status") == "fresh" for item in candidates)
-    telegram_ready = fresh_article_count >= min_fresh_items and ranked_items_are_fresh and not blocking_errors and content_clean
+    ranked_items_are_fresh = all(item.get("freshness_status") == "fresh" and item.get("fresh_enough_for_daily") is True for item in candidates)
+    ranked_items_are_editorial_ready = all(item.get("telegram_editorial_ready") is True for item in candidates)
+    telegram_ready = (
+        editorial_ready_count >= min_fresh_items
+        and ranked_items_are_fresh
+        and ranked_items_are_editorial_ready
+        and not blocking_errors
+        and content_clean
+    )
     readiness_reason = _telegram_readiness_reason(
         telegram_ready,
         fresh_article_count=fresh_article_count,
+        editorial_ready_count=editorial_ready_count,
         min_fresh_items=min_fresh_items,
         blocking_errors=blocking_errors,
         content_clean=content_clean,
         ranked_items_are_fresh=ranked_items_are_fresh,
+        ranked_items_are_editorial_ready=ranked_items_are_editorial_ready,
     )
     return {
         "schema_version": "1.0.0",
@@ -276,15 +313,20 @@ def _build_report(
             "date": report_date,
             "timezone": timezone_name,
             "scope": "Global AI model, API, platform, safety, research, and regulatory updates from allowlisted public HTTPS sources.",
-            "source_strategy": "Prefer RSS/Atom feeds and article-level official releases; stale and date-missing items are separated from main updates.",
+            "source_strategy": "Prefer RSS/Atom feeds and article-level official releases; stale, weak, and AI-adjacent items are separated from main Telegram-ready updates.",
+            "editorial_policy": "Telegram-ready means fresh + source-backed + editorially relevant, not only technically fetched.",
             "sources_path": sources_path,
             "lookback_hours": lookback_hours,
             "allow_stale": "true" if allow_stale else "false",
             "min_fresh_items": min_fresh_items,
+            "editorial_ready_threshold": EDITORIAL_READY_THRESHOLD,
             "generated_at": fetched_at,
             "generation_mode": "manual_live_public_https_article_discovery",
             "article_level_items": article_count,
             "fresh_article_level_items": fresh_article_count,
+            "editorial_ready_items": editorial_ready_count,
+            "ranked_update_items": len(candidates),
+            "downgraded_items": len(downgraded),
             "stale_items": stale_count,
             "date_missing_items": date_missing_count,
             "homepage_fallback_items": fallback_count,
@@ -297,48 +339,51 @@ def _build_report(
             "pages_deploy": "not_configured",
             "image_generation": "not_configured",
         },
-        "executive_summary": _executive_summary(top, source_errors, fresh_count=fresh_article_count, min_fresh_items=min_fresh_items),
+        "executive_summary": _executive_summary(top, source_errors, fresh_count=fresh_article_count, editorial_ready_count=editorial_ready_count, min_fresh_items=min_fresh_items),
         "ranked_updates": candidates,
         "watchlist_updates": watchlist,
-        "key_judgments": _key_judgments(candidates, watchlist, source_errors, fresh_count=fresh_article_count, min_fresh_items=min_fresh_items),
+        "downgraded_updates": downgraded,
+        "key_judgments": _key_judgments(candidates, watchlist, downgraded, source_errors, fresh_count=fresh_article_count, editorial_ready_count=editorial_ready_count, min_fresh_items=min_fresh_items),
         "company_model_watchlist": _watchlist(all_items),
-        "follow_up_checklist": _followups(candidates, watchlist, source_errors),
+        "follow_up_checklist": _followups(candidates, watchlist, downgraded, source_errors),
         "source_errors": source_errors,
-        "conclusion": _conclusion(candidates, fresh_count=fresh_article_count, min_fresh_items=min_fresh_items),
+        "conclusion": _conclusion(candidates, fresh_count=fresh_article_count, editorial_ready_count=editorial_ready_count, min_fresh_items=min_fresh_items),
     }
 
-
-def _executive_summary(candidates: list[dict[str, Any]], source_errors: list[dict[str, str]], *, fresh_count: int, min_fresh_items: int) -> list[str]:
-    if fresh_count < min_fresh_items:
-        summary = ["Not enough fresh article-level AI updates found for a send-ready brief."]
+def _executive_summary(candidates: list[dict[str, Any]], source_errors: list[dict[str, str]], *, fresh_count: int, editorial_ready_count: int, min_fresh_items: int) -> list[str]:
+    if editorial_ready_count < min_fresh_items:
+        summary = ["Not enough fresh, source-backed, editorially relevant AI model/tooling/research/product updates found for a send-ready brief."]
         if candidates:
-            summary.extend([f"Fresh candidate: {item['title']} ({item['confidence']} confidence)." for item in candidates[:3]])
+            summary.extend([f"Editorial candidate: {item['title']} ({item['confidence']} confidence, relevance {item.get('editorial_relevance_score')})." for item in candidates[:3]])
+        elif fresh_count:
+            summary.append(f"{fresh_count} fresh article-level items were fetched, but they did not clear the editorial relevance gate.")
         else:
             summary.append("No item passed the freshness gate for main ranked updates.")
         if source_errors:
             summary.append(f"{len(source_errors)} allowlisted sources returned fetch or parse errors and need follow-up.")
         return summary
-    summary = [f"Top signal: {item['title']} ({item['confidence']} confidence, {item.get('freshness_status')})." for item in candidates[:3]]
+    summary = [f"Top AI signal: {item['title']} ({item['confidence']} confidence, editorial relevance {item.get('editorial_relevance_score')})." for item in candidates[:3]]
     if source_errors:
         summary.append(f"{len(source_errors)} allowlisted sources returned fetch or parse errors and need follow-up.")
     return summary
 
-
-def _key_judgments(candidates: list[dict[str, Any]], watchlist: list[dict[str, Any]], source_errors: list[dict[str, str]], *, fresh_count: int, min_fresh_items: int) -> list[str]:
+def _key_judgments(candidates: list[dict[str, Any]], watchlist: list[dict[str, Any]], downgraded: list[dict[str, Any]], source_errors: list[dict[str, str]], *, fresh_count: int, editorial_ready_count: int, min_fresh_items: int) -> list[str]:
     judgments = [
         "Only public HTTPS sources were used.",
+        "Telegram-ready means fresh, source-backed, and editorially relevant; technical fetch success alone is not enough.",
         "Every ranked item needs human source review before publication, Telegram delivery, or downstream automation.",
-        f"{fresh_count} fresh article-level items passed the freshness gate; {len(watchlist)} stale or date-missing items were separated into watchlist updates.",
+        f"{fresh_count} fresh article-level items passed the freshness gate; {editorial_ready_count} passed the editorial relevance gate; {len(downgraded)} fresh items were downgraded.",
     ]
-    if fresh_count < min_fresh_items:
-        judgments.append("Not enough fresh article-level AI updates found for a send-ready brief.")
+    if editorial_ready_count < min_fresh_items:
+        judgments.append("Not enough editorial-ready AI model/tooling/research/product updates found for a send-ready brief.")
     if candidates:
         official_count = sum(1 for item in candidates if item["sources"][0].get("source_type") == "official")
         judgments.append(f"{official_count} ranked items came from official source types.")
+    if watchlist:
+        judgments.append(f"{len(watchlist)} stale or date-missing items were separated into watchlist/context updates.")
     if source_errors:
         judgments.append("Some source fetches failed; absence from the report must not be interpreted as absence of news.")
     return judgments
-
 
 def _watchlist(items: list[dict[str, Any]]) -> list[str]:
     values: list[str] = []
@@ -354,25 +399,26 @@ def _watchlist(items: list[dict[str, Any]]) -> list[str]:
     return sorted(set(values))[:10]
 
 
-def _followups(candidates: list[dict[str, Any]], watchlist: list[dict[str, Any]], source_errors: list[dict[str, str]]) -> list[str]:
+def _followups(candidates: list[dict[str, Any]], watchlist: list[dict[str, Any]], downgraded: list[dict[str, Any]], source_errors: list[dict[str, str]]) -> list[str]:
     followups = [
         "Open every source URL and confirm publication date, claim scope, and product availability.",
         "Keep generated outputs under outputs/ and do not commit them.",
+        "Before Telegram delivery, confirm the ranked items are fresh, source-backed, and editorially relevant to AI model, tooling, research, API, safety, or product readers.",
     ]
     if watchlist:
         followups.append("Review watchlist updates separately; stale or date-missing items must not be sent as fresh daily news.")
+    if downgraded:
+        followups.append("Review downgraded items separately; weak AI-adjacent, culture, funding, labor, or broad company items must not dominate Telegram summaries.")
     if source_errors:
         followups.append("Retry failed sources or replace unstable feeds with more reliable official URLs.")
     if candidates:
         followups.append("Promote only manually reviewed fresh article-level items into a Telegram candidate.")
     return followups
 
-
-def _conclusion(candidates: list[dict[str, Any]], *, fresh_count: int, min_fresh_items: int) -> str:
-    if fresh_count < min_fresh_items:
-        return "Not enough fresh article-level AI updates found for a send-ready brief. The next step is source/date extraction improvement or a later fresh run, not Telegram delivery."
-    return "This run produced local English fresh article-level report artifacts from allowlisted public sources. Manual review remains required before publication, scheduling, or delivery."
-
+def _conclusion(candidates: list[dict[str, Any]], *, fresh_count: int, editorial_ready_count: int, min_fresh_items: int) -> str:
+    if editorial_ready_count < min_fresh_items:
+        return "Not enough editorial-ready AI model/tooling/research/product updates found for a send-ready brief. The next step is editorial source review or ranking improvement, not Telegram delivery."
+    return "This run produced local English report artifacts with fresh, source-backed, editorially relevant AI updates. Manual review remains required before publication, scheduling, or delivery."
 
 def _send_telegram(message: str, recipient: str | None, *, telegram_sender: TelegramSender | None) -> None:
     bot_value = os.environ.get("TELEGRAM_" + "BOT_" + "TOKEN")
@@ -430,6 +476,21 @@ def _fresh_article_level_count(candidates: list[dict[str, Any]]) -> int:
     )
 
 
+def _editorial_ready_count(candidates: list[dict[str, Any]]) -> int:
+    return sum(1 for item in candidates if item.get("telegram_editorial_ready") is True)
+
+
+def _is_main_update(item: dict[str, Any]) -> bool:
+    return (
+        item.get("fresh_enough_for_daily") is True
+        and item.get("freshness_status") == "fresh"
+        and item.get("signal_level") == "article"
+        and item.get("is_homepage_fallback") is not True
+        and item.get("telegram_editorial_ready") is True
+        and int(item.get("editorial_relevance_score") or 0) >= EDITORIAL_READY_THRESHOLD
+    )
+
+
 def _freshness(observation: dict[str, Any], cutoff: datetime, *, is_homepage_fallback: bool) -> tuple[str, bool]:
     if is_homepage_fallback:
         return "date_missing", False
@@ -439,6 +500,118 @@ def _freshness(observation: dict[str, Any], cutoff: datetime, *, is_homepage_fal
     if date_value >= cutoff:
         return "fresh", True
     return "stale", False
+
+
+def _editorial_relevance(
+    title: str,
+    summary: str,
+    topic_type: str,
+    source_type: str,
+    source_category: str,
+    source_priority_label: str,
+    *,
+    signal_level: str,
+    freshness_status: str,
+    fresh_enough: bool,
+    is_homepage_fallback: bool,
+) -> tuple[str, int, bool, str]:
+    text = (title + " " + summary).lower()
+    if is_homepage_fallback or signal_level != "article":
+        return "source_monitoring_fallback", 0, False, "Downgraded: not an article-level update."
+    if freshness_status != "fresh" or not fresh_enough:
+        return "not_fresh", 0, False, "Downgraded: stale or date-missing item cannot be a main Telegram update."
+
+    category = _editorial_category(text, topic_type, source_category)
+    score = 1
+    if topic_type in {"model_release", "developer_tooling", "research", "security", "policy"}:
+        score += 2
+    if source_category in {"official_release", "model_release", "tooling", "research", "policy"}:
+        score += 1
+    if source_type == "official":
+        score += 1
+    if source_priority_label == "backup":
+        score -= 1
+    if _contains_any(text, _STRONG_MODEL_TOOLING_TERMS):
+        score += 2
+    if _contains_any(text, _READER_FACING_TERMS):
+        score += 1
+    if _contains_any(text, _WEAK_AI_ADJACENT_TERMS):
+        score -= 3
+    if _contains_any(text, _ENTERTAINMENT_LEGAL_TERMS):
+        score -= 1
+    if topic_type == "funding" or source_category == "funding":
+        score -= 3
+    if category in {"advertising_culture", "education_market", "labor_platform_migration", "funding", "generic_company_strategy", "ai_adjacent_business"}:
+        score -= 1
+    if category == "entertainment_lawsuit" and _contains_any(text, ("midjourney", "ai video", "image model", "video model")):
+        score += 1
+    if category == "entertainment_lawsuit" and "seedance" in text:
+        score -= 1
+
+    score = max(0, min(score, 5))
+    ready = score >= EDITORIAL_READY_THRESHOLD and category not in _REJECT_MAIN_CATEGORIES
+    if ready:
+        return category, score, True, f"Ready: {category.replace('_', ' ')} item with sufficient model/tooling/research/product relevance."
+    return category, score, False, f"Downgraded: {category.replace('_', ' ')} item did not clear the editorial relevance gate."
+
+
+_STRONG_MODEL_TOOLING_TERMS = (
+    "model", "gpt", "chatgpt", "claude", "claude code", "gemini", "llama", "mistral", "grok", "qwen", "deepseek",
+    "kimi", "midjourney", "seedance", "ocr", "api", "sdk", "developer", "agent", "tooling", "coding", "benchmark",
+    "evaluation", "eval", "research", "paper", "release", "launch", "open source", "frontier", "inference", "context window",
+)
+_READER_FACING_TERMS = (
+    "available", "shipping", "developers", "enterprise", "migration", "controls", "platform", "product", "workflow", "source code",
+    "capability", "security", "safety", "governance", "policy",
+)
+_WEAK_AI_ADJACENT_TERMS = (
+    "commercial", "advertising", "advertisement", "founding fathers", "declaration of independence", "group project", "culture",
+    "private schools", "wealthy", "tuition", "families", "mechanical turk", "mturk", "labor", "new customers",
+    "funding", "raises", "raised", "series a", "series b", "series c",
+)
+_ENTERTAINMENT_LEGAL_TERMS = (
+    "hollywood", "studios", "lawsuit", "legal", "cease-and-desist", "movie", "actor", "brad pitt", "tom cruise",
+)
+_REJECT_MAIN_CATEGORIES = {
+    "advertising_culture",
+    "education_market",
+    "labor_platform_migration",
+    "funding",
+    "generic_company_strategy",
+    "ai_adjacent_business",
+}
+
+
+def _editorial_category(text: str, topic_type: str, source_category: str) -> str:
+    if topic_type == "funding" or source_category == "funding" or _contains_any(text, ("funding", "raises", "raised", "series a", "series b", "series c")):
+        return "funding"
+    if _contains_any(text, ("commercial", "advertising", "advertisement", "founding fathers", "declaration of independence", "group project")):
+        return "advertising_culture"
+    if _contains_any(text, ("private schools", "wealthy", "tuition", "families", "education", "classroom")):
+        return "education_market"
+    if _contains_any(text, ("mechanical turk", "mturk", "labor", "crowd work", "new customers")):
+        return "labor_platform_migration"
+    if _contains_any(text, _ENTERTAINMENT_LEGAL_TERMS):
+        return "entertainment_lawsuit"
+    if topic_type == "developer_tooling" or _contains_any(text, ("api", "sdk", "developer", "agent", "claude code", "coding", "tooling", "source code")):
+        return "developer_tooling"
+    if topic_type == "research" or source_category == "research" or _contains_any(text, ("research", "paper", "benchmark", "evaluation", "eval", "ocr")):
+        return "ai_research_with_product_relevance"
+    if topic_type == "security" or _contains_any(text, ("security", "safety", "vulnerability", "risk", "ban", "blocked", "high-risk", "governance")):
+        return "safety_policy_with_model_or_platform_impact"
+    if topic_type == "policy" or _contains_any(text, ("policy", "regulation", "regulatory", "compliance")):
+        return "safety_policy_with_model_or_platform_impact"
+    if topic_type == "model_release" or source_category in {"official_release", "model_release"} or _contains_any(text, ("model", "gpt", "claude", "gemini", "llama", "mistral", "grok", "qwen", "deepseek", "midjourney", "seedance")):
+        return "model_capability"
+    if _contains_any(text, ("strategy", "business processes", "customers", "competitors")):
+        return "generic_company_strategy"
+    if "ai" in text:
+        return "ai_adjacent_business"
+    return "other"
+
+
+def _contains_any(text: str, terms: tuple[str, ...]) -> bool:
+    return any(term in text for term in terms)
 
 
 def _importance_score(title: str, summary: str, topic_type: str, source_type: str, source_category: str, *, is_homepage_fallback: bool, freshness_status: str) -> int:
@@ -452,7 +625,7 @@ def _importance_score(title: str, summary: str, topic_type: str, source_type: st
         score += 1
     if any(word in text for word in ("launch", "release", "available", "api", "deprecation", "security", "safety", "frontier")):
         score += 1
-    if topic_type == "funding" or any(word in text for word in ("series", "funding", "raises", "valuation")):
+    if topic_type == "funding" or any(word in text for word in ("series", "funding", "raises")):
         score -= 2
     if is_homepage_fallback:
         score = min(score, 2)
@@ -616,23 +789,28 @@ def _telegram_readiness_reason(
     telegram_ready: bool,
     *,
     fresh_article_count: int,
+    editorial_ready_count: int,
     min_fresh_items: int,
     blocking_errors: bool,
     content_clean: bool,
     ranked_items_are_fresh: bool,
+    ranked_items_are_editorial_ready: bool,
 ) -> str:
     if telegram_ready:
         return "ready"
-    if fresh_article_count < min_fresh_items:
+    if editorial_ready_count < min_fresh_items:
+        if fresh_article_count >= min_fresh_items:
+            return "Fresh article-level items were found, but not enough were editorially relevant for Telegram delivery."
         return "Not enough fresh article-level AI updates found for a send-ready brief."
     if not ranked_items_are_fresh:
         return "Top Updates include stale or date-missing items; manual Telegram delivery is blocked."
+    if not ranked_items_are_editorial_ready:
+        return "Top Updates include items that did not clear the editorial relevance gate."
     if blocking_errors:
         return "Source errors blocked the main daily update set."
     if not content_clean:
         return "Generated content contains mojibake or placeholder markers."
     return "Manual review is required before Telegram delivery."
-
 
 def _validate_date(value: str) -> None:
     if not isinstance(value, str) or not DATE_ONLY.match(value):

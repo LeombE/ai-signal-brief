@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0"><channel><title>Official Priority Feed</title>
 <item><title>OpenAI launches GPT API tooling for enterprise developers</title><link>https://example.com/openai/gpt-api-tooling</link><pubDate>Mon, 06 Jul 2026 01:00:00 GMT</pubDate><description>OpenAI launched fresh API tooling for enterprise developer workflows.</description></item>
+<item><title>OpenAI releases benchmark evaluation controls for GPT agents</title><link>https://example.com/openai/gpt-agent-evaluation</link><pubDate>Mon, 06 Jul 2026 02:15:00 GMT</pubDate><description>OpenAI released benchmark and evaluation controls for GPT agent developers.</description></item>
 </channel></rss>

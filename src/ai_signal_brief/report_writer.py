@@ -47,6 +47,7 @@ def render_markdown(report: dict[str, Any]) -> str:
     items = list(report.get("ranked_updates", []))
     company_watchlist = list(report.get("company_model_watchlist", []))
     stale_watchlist = list(report.get("watchlist_updates", []))
+    downgraded = list(report.get("downgraded_updates", []))
     followups = list(report.get("follow_up_checklist", []))
     source_errors = list(report.get("source_errors", []))
     lines: list[str] = []
@@ -67,6 +68,9 @@ def render_markdown(report: dict[str, Any]) -> str:
         "generation_mode",
         "article_level_items",
         "fresh_article_level_items",
+        "editorial_ready_items",
+        "ranked_update_items",
+        "downgraded_items",
         "stale_items",
         "date_missing_items",
         "homepage_fallback_items",
@@ -79,6 +83,8 @@ def render_markdown(report: dict[str, Any]) -> str:
     lines.append("")
     lines.append("## Executive Summary")
     lines.append("")
+    lines.append("Editorial caveat: Telegram-ready means fresh + source-backed + editorially relevant, not only technically fetched.")
+    lines.append("")
     summary = report.get("executive_summary", [])
     if summary:
         for item in summary:
@@ -86,20 +92,20 @@ def render_markdown(report: dict[str, Any]) -> str:
     else:
         lines.append("- No high-confidence live AI update was captured from the allowlisted public sources for this run.")
     lines.append("")
-    lines.append("## Top Updates Ranked by Importance")
+    lines.append("## Top AI Model / Tooling Updates")
     lines.append("")
     if items:
-        lines.append("| Rank | Update | Freshness | Source Tier | Category | Signal | Company / Model | Score | Confidence | Sources |")
-        lines.append("| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |")
+        lines.append("| Rank | Update | Freshness | Source Tier | Editorial Category | Editorial Score | Telegram Editorial Ready | Confidence | Sources |")
+        lines.append("| --- | --- | --- | --- | --- | --- | --- | --- | --- |")
         for item in items:
             sources = ", ".join(f"[{source['source_id']}]({source['url']})" for source in item.get("sources", []))
             lines.append(
-                f"| {item.get('rank')} | {_escape_pipe(item.get('title', ''))} | {_escape_pipe(str(item.get('freshness_status', 'unknown')))} | {_escape_pipe(str(item.get('source_priority_label', 'unknown')))} | {_escape_pipe(str(item.get('source_category', 'unknown')))} | {_escape_pipe(str(item.get('signal_level', 'unknown')))} | {_escape_pipe(item.get('company_model', ''))} | {item.get('importance_score')} | {item.get('confidence')} | {sources} |"
+                f"| {item.get('rank')} | {_escape_pipe(item.get('title', ''))} | {_escape_pipe(str(item.get('freshness_status', 'unknown')))} | {_escape_pipe(str(item.get('source_priority_label', 'unknown')))} | {_escape_pipe(str(item.get('editorial_category', 'unknown')))} | {item.get('editorial_relevance_score')} | {str(item.get('telegram_editorial_ready')).lower()} | {item.get('confidence')} | {sources} |"
             )
     else:
-        lines.append("No ranked update passed the MVP fetch and review gates.")
+        lines.append("No ranked update passed the freshness and editorial relevance gates.")
     lines.append("")
-    lines.append("## Watchlist: Stale or Date-Missing Updates")
+    lines.append("## Watchlist / Context Items")
     lines.append("")
     if stale_watchlist:
         lines.append("| Status | Update | Published / Updated | Reason | Sources |")
@@ -112,6 +118,19 @@ def render_markdown(report: dict[str, Any]) -> str:
             )
     else:
         lines.append("No stale or date-missing item was separated into the watchlist.")
+    lines.append("")
+    lines.append("## Downgraded or Excluded Items")
+    lines.append("")
+    if downgraded:
+        lines.append("| Update | Editorial Category | Score | Reason | Sources |")
+        lines.append("| --- | --- | --- | --- | --- |")
+        for item in downgraded:
+            sources = ", ".join(f"[{source['source_id']}]({source['url']})" for source in item.get("sources", []))
+            lines.append(
+                f"| {_escape_pipe(str(item.get('title', '')))} | {_escape_pipe(str(item.get('editorial_category', 'unknown')))} | {item.get('editorial_relevance_score')} | {_escape_pipe(str(item.get('downgrade_reason') or item.get('editorial_reason', 'Manual review required.')))} | {sources} |"
+            )
+    else:
+        lines.append("No fresh article-level item was downgraded by the editorial relevance gate.")
     lines.append("")
     lines.append("## Key Judgments")
     lines.append("")
@@ -134,6 +153,10 @@ def render_markdown(report: dict[str, Any]) -> str:
             lines.append(f"- Signal level: {item.get('signal_level', 'unknown')}")
             lines.append(f"- Source tier: {item.get('source_priority_label', 'unknown')}")
             lines.append(f"- Source category: {item.get('source_category', 'unknown')}")
+            lines.append(f"- Editorial category: {item.get('editorial_category', 'unknown')}")
+            lines.append(f"- Editorial relevance score: {item.get('editorial_relevance_score')}")
+            lines.append(f"- Telegram editorial ready: {str(item.get('telegram_editorial_ready')).lower()}")
+            lines.append(f"- Editorial reason: {item.get('editorial_reason')}")
             lines.append(f"- Type: {item.get('topic_type')}")
             lines.append(f"- Source: {', '.join(source['source_name'] for source in item.get('sources', []))}")
             lines.append(f"- Confidence: {item.get('confidence')}")

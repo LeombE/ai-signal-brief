@@ -709,7 +709,7 @@ def _detect_models(text: str) -> list[str]:
 
 def _topic_type(text: str) -> str:
     lowered = text.lower()
-    if any(word in lowered for word in ("funding", "raises", "raised", "series a", "series b", "series c", "valuation")):
+    if any(word in lowered for word in ("funding", "raises", "raised", "series a", "series b", "series c")):
         return "funding"
     if any(word in lowered for word in ("model", "gpt", "claude", "gemini", "llama", "mistral", "grok")):
         return "model_release"

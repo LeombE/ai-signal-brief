@@ -57,11 +57,12 @@ The daily report is not send-ready merely because it generated files. By default
 - RSS/Atom entries use `pubDate`, `published`, or `updated` when present.
 - HTML article pages may use `article:published_time`, `article:modified_time`, `og:updated_time`, `datePublished`, `dateModified`, `pubdate`, `dc.date`, `itemprop="datePublished"`, and JSON-LD `datePublished` / `dateModified`.
 - Dates are not invented. If no parseable date exists, the item is marked `freshness_status: date_missing` and `fresh_enough_for_daily: false`.
-- Items older than `--lookback-hours` are marked `freshness_status: stale` and are excluded from Top Updates unless `--allow-stale` is explicitly used.
+- Items older than `--lookback-hours` are marked `freshness_status: stale` and are excluded from Top AI Model / Tooling Updates.
 - Stale and date-missing items are written to `watchlist_updates` for manual review.
-- `telegram_ready` is true only when at least `--min-fresh-items` fresh article-level items exist and the report passes the local safety/content checks.
+- Fresh article-level items still need to clear the editorial relevance gate before they can enter the main Telegram candidate set.
+- `telegram_ready` is true only when at least `--min-fresh-items` items are fresh, article-level, source-backed, and editorially relevant to AI model, tooling, research, API, safety, or product readers.
 
-If the report has fewer than the required fresh article-level items, the report states: `Not enough fresh article-level AI updates found for a send-ready brief.` In that state, files may still be useful for source review, but they are not ready for Telegram delivery.
+If the report has enough fresh article-level items but too few editorial-ready items, the report states that the fetched items were not editorially relevant enough for Telegram delivery. In that state, files may still be useful for source review, but they are not ready for Telegram delivery.
 
 ## Source Parsing Quality
 
@@ -95,26 +96,20 @@ The Markdown and DOCX report follows this structure:
 1. AI Daily Brief - Global and Major Model Updates
 2. Metadata table
 3. Executive Summary
-4. Top Updates Ranked by Importance
-5. Watchlist: Stale or Date-Missing Updates
-6. Key Judgments
-7. Detailed News Analysis
-8. Company and Model Watchlist
-9. Follow-up Checklist
-10. Conclusion
+4. Top AI Model / Tooling Updates
+5. Watchlist / Context Items
+6. Downgraded or Excluded Items
+7. Key Judgments
+8. Detailed News Analysis
+9. Company and Model Watchlist
+10. Follow-up Checklist
+11. Conclusion
 
 ## Ranking And Review
 
-Ranking prioritizes:
+Ranking now has a separate editorial relevance gate. Main updates require fresh article-level evidence plus an `editorial_relevance_score` at or above the configured threshold. Preferred main-report categories include model capability changes, developer tooling, AI API/platform changes, research with product relevance, safety/policy items with model or platform impact, enterprise AI tooling, and benchmark/evaluation releases with clear AI relevance.
 
-1. fresh official article-level model, API, platform, changelog, or developer-tooling releases
-2. fresh reputable AI/news RSS items when official sources are quiet
-3. availability, pricing, migration, or deprecation changes
-4. major model capability announcements
-5. safety, security, and regulatory updates
-6. fresh research releases from official labs or strong primary sources
-7. funding or generic company news only when unusually important
-8. stale, date-missing, evergreen, lower-evidence, or repeated items are downgraded or separated into the watchlist
+Lower-priority or downgraded categories include funding, generic company strategy, advertising/culture, education-market stories, labor/platform migration, broad policy without model/platform impact, entertainment/legal context, and other AI-adjacent business news. These items can remain visible in `downgraded_updates`, but they do not count toward `telegram_ready`.
 
 Every item remains subject to manual source review before publication or downstream delivery.
 
@@ -145,6 +140,8 @@ Before treating a generated daily report as review evidence, confirm:
 - no Pages deployment occurred
 - source URLs are public HTTPS and attributable
 - report language is English
+- main updates have `telegram_editorial_ready: true`
+- downgraded culture, funding, labor, education, or generic company items do not dominate the Telegram candidate set
 
 ## Manual Smoke Command
 
