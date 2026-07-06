@@ -223,7 +223,7 @@ def _openai_key_pattern() -> re.Pattern[str]:
 
 
 def _chat_reference_pattern() -> re.Pattern[str]:
-    return re.compile("(?i)\\b" + "chat" + r"[_-]?id\b")
+    return re.compile("(?i)\\b" + "chat" + r"[_-]?id\s*[:=]\s*(?!\$\{\{\s*secrets\.)[^<\s]+")
 
 
 def _secret_assignment_pattern() -> re.Pattern[str]:
@@ -236,7 +236,7 @@ def _secret_assignment_pattern() -> re.Pattern[str]:
         "secret",
         "chat" + r"[_-]?id",
     )
-    return re.compile(r"(?i)\b(?:" + "|".join(names) + r")\s*[:=]\s*[^<\s]+")
+    return re.compile(r"(?i)\b(?:" + "|".join(names) + r")\s*[:=]\s*(?!\$\{\{\s*secrets\.)[^<\s]+")
 
 
 def _test_secret_marker_pattern() -> re.Pattern[str]:

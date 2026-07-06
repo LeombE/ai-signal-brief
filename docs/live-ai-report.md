@@ -1,6 +1,6 @@
 # Live AI Daily Report MVP
 
-`build-daily-ai-report` is the first explicit live-source command in this project. It is manual-only and scoped to allowlisted public HTTPS AI sources.
+`build-daily-ai-report` is the first explicit live-source command in this project. It is scoped to allowlisted public HTTPS AI sources and can be run locally or by the approved Daily AI Report GitHub Actions workflow.
 
 This command is separate from replay and dry-run commands. Existing replay and `discover-topics-live-dry-run` paths remain no-network.
 
@@ -119,6 +119,48 @@ Telegram delivery is off by default. The CLI only sends when `--send-telegram` i
 
 Unit tests mock the sending path. CI must not send Telegram messages.
 
+## GitHub Actions Daily Telegram Workflow
+
+The approved daily workflow is `.github/workflows/daily-ai-report.yml`.
+
+Schedule:
+
+- `30 0 * * *` UTC
+- `08:30 Asia/Kuala_Lumpur`
+- manual `workflow_dispatch` is also available for testing
+
+Required GitHub repository secrets:
+
+- `TELEGRAM_BOT_TOKEN`
+- `TELEGRAM_CHAT_ID`
+
+The workflow uses Python 3.11, exposes `src` through `PYTHONPATH`, runs compile/unit/public-readiness smoke checks before delivery, derives the report date with the `Asia/Kuala_Lumpur` timezone, and writes reports to `outputs/daily-reports/<date>-live/`.
+
+The workflow command is:
+
+```bash
+python -m ai_signal_brief build-daily-ai-report \
+  --date "$REPORT_DATE" \
+  --timezone Asia/Kuala_Lumpur \
+  --out "$REPORT_OUT" \
+  --format markdown,json,docx \
+  --english-only \
+  --no-openai \
+  --max-items 10 \
+  --lookback-hours 48 \
+  --min-fresh-items 3 \
+  --send-telegram
+```
+
+Safety behavior:
+
+- GitHub Secrets are read only through the Actions `secrets` context.
+- The workflow fails safely if either Telegram secret is missing.
+- The CLI sends only when `telegram_ready` is true.
+- A per-run guard prevents multiple send attempts in the same workflow run.
+- Generated reports are uploaded as GitHub Actions artifacts from `outputs/daily-reports/<date>-live/`.
+- Generated outputs are not committed.
+- Pages deployment and OpenAI API usage remain disabled.
 ## OpenAI Boundary
 
 OpenAI usage is off by default. The MVP does not require model calls. The explicit summary option fails closed unless a later approved phase implements a reviewed OpenAI path.
@@ -132,8 +174,8 @@ Before treating a generated daily report as review evidence, confirm:
 - command was run manually
 - outputs stayed under `outputs/`
 - generated files were not staged or tracked
-- no schedule was added
-- no workflow was modified
+- no unexpected schedule was added beyond the approved Daily AI Report workflow
+- no unrelated workflow was modified
 - Telegram was not sent unless explicitly requested
 - OpenAI was not used unless explicitly requested in a later approved path
 - no images were generated

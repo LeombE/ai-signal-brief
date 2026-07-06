@@ -32,7 +32,7 @@ GitHub Actions CI for commit `4b4d35e Document confirmed no-network live dry-run
 
 GitHub Actions CI for commit `b2ee991 Document final no-network live dry-run CI result` was manually confirmed green in the GitHub UI. That final verified documentation milestone confirms the no-network live dry-run status; `discover-topics-live-dry-run` remains no-network, reads disabled live registry metadata only, writes metadata-only artifact-only candidates, keeps generated topics unresolved and review_required, and did not add `discover-topics-live`, live HTTP fetching, workflows, schedules, deployment, Telegram delivery, OpenAI API usage, image generation, DOCX generation, or production Pages deployment.
 
-The project now includes a manual live AI daily report MVP through `build-daily-ai-report`. That command fetches allowlisted public HTTPS sources, extracts source publication dates where available, applies a default freshness gate, separates stale or date-missing items into a watchlist, and writes local English report files under `outputs/`. The allowlist now combines official AI lab sources with reputable public AI/news RSS backups such as TechCrunch AI, VentureBeat AI, The Decoder AI, MIT Technology Review AI, and The Verge AI. Scheduling, automatic delivery, OpenAI usage, image generation, historical migration, and production daily Pages automation remain inactive. GitHub Pages sample preview is live at `https://leombe.github.io/ai-signal-brief/` and currently uses sample/example data only.
+The project now includes a manual live AI daily report MVP through `build-daily-ai-report`. That command fetches allowlisted public HTTPS sources, extracts source publication dates where available, applies a default freshness gate, separates stale or date-missing items into a watchlist, and writes local English report files under `outputs/`. The allowlist now combines official AI lab sources with reputable public AI/news RSS backups such as TechCrunch AI, VentureBeat AI, The Decoder AI, MIT Technology Review AI, and The Verge AI. A safe Daily AI Report GitHub Actions workflow now exists for scheduled/manual Telegram delivery with GitHub Secrets and the `telegram_ready` gate; OpenAI usage, image generation, historical migration, and production daily Pages automation remain inactive. GitHub Pages sample preview is live at `https://leombe.github.io/ai-signal-brief/` and currently uses sample/example data only.
 
 Implemented so far:
 
@@ -52,16 +52,16 @@ Implemented so far:
 - replay-only topic discovery integration from local replay fixtures to reviewable topic candidate artifacts
 - no-network live-source dry-run command for disabled registry metadata readiness artifacts
 - manual live AI daily report MVP for allowlisted public HTTPS sources
+- scheduled/manual Daily AI Report GitHub Actions workflow for Telegram delivery, gated by GitHub Secrets and `telegram_ready`
 - publication, Pages planning, production Pages readiness, reviewed report staging, reviewed report dry-run helper command, daily topic discovery architecture, topic source registry and candidate schema examples, live-source discovery readiness, disabled live-source registry example, live-source registry extension planning, live fetch adapter interface planning, and release checklist documentation
 
 Not implemented yet:
 
 - model calls
 - image generation
-- Telegram delivery
-- GitHub Actions scheduling
 - production GitHub Pages deployment from real reports
 - historical report migration
+- automation beyond the approved Daily AI Report Telegram workflow
 
 ## GitHub Publication Status
 
@@ -83,9 +83,9 @@ Current publication boundary:
 - GitHub Pages sample preview is live: `https://leombe.github.io/ai-signal-brief/`
 - manual Pages Preview workflow exists and publishes sample data only when run manually
 - manual Topic Scan Preview workflow exists and uploads mock topic candidates as a short-lived artifact only
-- Telegram delivery is not connected
+- Daily AI Report Telegram delivery is connected only through `.github/workflows/daily-ai-report.yml`, requires GitHub repository secrets, and is gated by `telegram_ready`
 - OpenAI Image API is not configured
-- no API keys are required for offline workflows; the manual live report MVP does not require OpenAI credentials by default
+- no API keys are required for offline workflows; the Daily AI Report Telegram workflow requires GitHub repository secrets `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`; the live report MVP does not require OpenAI credentials by default
 - no historical reports have been migrated
 - no generated ignored outputs should be tracked
 
@@ -165,6 +165,34 @@ The Topic Scan Preview workflow:
 - does not commit generated outputs to Git
 
 
+## Daily AI Report Telegram Workflow
+
+The daily Telegram workflow lives at `.github/workflows/daily-ai-report.yml`.
+
+It supports both `workflow_dispatch` and a daily schedule at `00:30 UTC`, which is `08:30 Asia/Kuala_Lumpur`. It uses Python 3.11, runs compile/unit/public-readiness smoke checks before delivery, derives the report date from the Malaysia timezone, and writes artifacts under `outputs/daily-reports/<date>-live/`.
+
+Required GitHub repository secrets:
+
+- `TELEGRAM_BOT_TOKEN`
+- `TELEGRAM_CHAT_ID`
+
+The workflow command is:
+
+```bash
+python -m ai_signal_brief build-daily-ai-report \
+  --date "$REPORT_DATE" \
+  --timezone Asia/Kuala_Lumpur \
+  --out "$REPORT_OUT" \
+  --format markdown,json,docx \
+  --english-only \
+  --no-openai \
+  --max-items 10 \
+  --lookback-hours 48 \
+  --min-fresh-items 3 \
+  --send-telegram
+```
+
+The send path remains fail-closed: the CLI refuses to send unless `telegram_ready` is true and Telegram credentials are available. The workflow uploads `report.json`, `report.md`, and `report.docx` as GitHub Actions artifacts and does not commit generated outputs.
 ## Public Data And Source Policy
 
 The project prioritizes official sources, primary technical sources, papers, repositories, regulatory filings, and clearly attributed public news. Reports should avoid copying private material, screenshots, proprietary assets, credentials, local machine paths, or unreviewed migration outputs.
@@ -184,7 +212,7 @@ Canonical, offline-preview, and manual live-report outputs:
 - GitHub Pages Preview: manual sample static-site deployment from example JSON files only
 - Live AI daily report MVP: local English Markdown, JSON, and DOCX artifacts under `outputs/daily-reports/`
 
-Telegram delivery, DOCX, generated image assets, production Pages deployment, and historical report migration may be added in later approved phases. Production Pages requirements are documented in `docs/production-pages-readiness.md`; future reviewed report staging rules are documented in `docs/reviewed-report-staging.md`, and local dry-run rules are documented in `docs/reviewed-report-dry-run.md`; a dry-run helper command plan is documented in `docs/reviewed-report-dry-run-command-plan.md`, first-candidate selection rules are documented in `docs/first-reviewed-report-candidate-plan.md`, future daily topic discovery architecture is documented in `docs/daily-topic-discovery-architecture.md`, offline mock topic discovery is documented in `docs/offline-mock-topic-discovery.md`, live-source readiness is documented in `docs/live-source-discovery-readiness.md`, manual artifact review is documented in `docs/manual-artifact-review.md`, schedule-readiness gates are documented in `docs/schedule-readiness.md`, and the manual live AI report MVP is documented in `docs/live-ai-report.md`.
+Generated image assets, production Pages deployment, historical report migration, and automation beyond the approved Daily AI Report Telegram workflow may be added only in later approved phases. Production Pages requirements are documented in `docs/production-pages-readiness.md`; future reviewed report staging rules are documented in `docs/reviewed-report-staging.md`, and local dry-run rules are documented in `docs/reviewed-report-dry-run.md`; a dry-run helper command plan is documented in `docs/reviewed-report-dry-run-command-plan.md`, first-candidate selection rules are documented in `docs/first-reviewed-report-candidate-plan.md`, future daily topic discovery architecture is documented in `docs/daily-topic-discovery-architecture.md`, offline mock topic discovery is documented in `docs/offline-mock-topic-discovery.md`, live-source readiness is documented in `docs/live-source-discovery-readiness.md`, manual artifact review is documented in `docs/manual-artifact-review.md`, schedule-readiness gates are documented in `docs/schedule-readiness.md`, and the manual live AI report MVP is documented in `docs/live-ai-report.md`.
 
 The first manual `Topic Scan Preview` run on `main` completed successfully. It uploaded one short-lived `topic-candidates-preview` artifact containing `topic-candidates.json`, and the artifact was manually inspected as mock placeholder output only. Live-source discovery remains unimplemented; future requirements and safety gates are documented in `docs/live-source-discovery-readiness.md`, future registry extension fields are documented in `docs/live-source-registry-extension-plan.md`, the fetch adapter interface plan is documented in `docs/live-fetch-adapter-interface-plan.md`, and the disabled-by-default example registry lives at `config/topic_sources.live.example.json`.
 
@@ -287,7 +315,7 @@ Near-term phases:
 4. Extend reviewed-report promotion from ranked topic candidates only after manual review.
 5. Stage future manually reviewed English canonical reports under `reports-reviewed/` only after review.
 6. Use `docs/production-pages-readiness.md` before approving production GitHub Pages deployment.
-7. Keep Telegram delivery manual and explicit; do not add automated delivery without separate approval.
+7. Keep the approved Daily AI Report Telegram workflow secret-gated, `telegram_ready`-gated, and artifact-only for generated outputs; any broader delivery automation still requires separate approval.
 8. Add generated visual assets using a dedicated API key stored only as a secret.
 
 ## Security And Secrets

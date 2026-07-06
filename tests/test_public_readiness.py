@@ -72,6 +72,21 @@ class PublicReadinessTests(unittest.TestCase):
         self.assertFalse(result.ok)
         self.assertIn(("required_public_doc", "SECURITY.md"), {(item.check_name, item.path) for item in result.findings})
 
+    def test_github_actions_secret_context_names_are_allowed(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root, tracked = _create_minimal_ready_tree(Path(directory))
+            _write(
+                root,
+                ".github/workflows/daily-ai-report.yml",
+                "env:\n"
+                "  TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}\n"
+                "  TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}\n",
+            )
+            tracked.append(".github/workflows/daily-ai-report.yml")
+
+            result = audit_public_readiness(root, tracked_files=tracked)
+
+        self.assertTrue(result.ok, result.findings)
     def test_cli_returns_nonzero_on_failure(self) -> None:
         failed_result = PublicReadinessResult(
             checked_file_count=1,
@@ -110,6 +125,7 @@ def _create_minimal_ready_tree(root: Path) -> tuple[Path, list[str]]:
             "validate-topics",
             "rank-topics",
             "discover-topics",
+            "fetch-source-replay",
             "quality-gate",
             "archive-report",
             "build-site",
