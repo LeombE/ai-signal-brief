@@ -1,0 +1,323 @@
+{
+  "schema_version": "1.0.0",
+  "report_id": "2026-06-24-reviewed-candidate-draft",
+  "report_date": "2026-06-24",
+  "generated_at": "2026-06-24T04:00:00+08:00",
+  "timezone": "Asia/Kuala_Lumpur",
+  "language": "en",
+  "title": "AI Signal Brief - 2026-06-24 Reviewed Candidate Draft",
+  "summary": {
+    "top_stories": [
+      {
+        "story_id": "story-anthropic-claude-tag",
+        "rank": 1,
+        "headline": "Anthropic introduced Claude Tag for team-level Slack delegation",
+        "why_it_matters": "DRAFT ONLY. Anthropic's official page supports Claude Tag as a Slack-based team delegation workflow with shared channel context, delegated work, tool/data access, and administrative controls."
+      },
+      {
+        "story_id": "story-mistral-ocr-4",
+        "rank": 2,
+        "headline": "Mistral announced OCR 4 for structured document intelligence",
+        "why_it_matters": "DRAFT ONLY. Mistral's official OCR 4 page supports the enterprise document-intelligence framing: structured extraction, confidence signals, multilingual support, and deployment paths for RAG/search workflows."
+      },
+      {
+        "story_id": "story-qwen-36-27b",
+        "rank": 3,
+        "headline": "Qwen3.6-27B appears as an open-weight Qwen model-card update",
+        "why_it_matters": "DRAFT ONLY. The Hugging Face model card supports the model-card and capability framing, but the accessible page text did not expose a stable publication date, so no same-day launch claim is made."
+      }
+    ]
+  },
+  "stories": [
+    {
+      "id": "story-anthropic-claude-tag",
+      "rank": 1,
+      "title": "Anthropic Claude Tag moves Claude toward team-level delegated work in Slack",
+      "status": "new",
+      "importance": {
+        "score": 5,
+        "rationale": "High enterprise impact if confirmed: shared channel memory, delegated asynchronous work, tool permissions, and admin controls are core adoption requirements for team agents."
+      },
+      "companies": [
+        "Anthropic"
+      ],
+      "models": [
+        "Claude"
+      ],
+      "regions": [
+        "Global"
+      ],
+      "claims": [
+        {
+          "id": "claim-anthropic-claude-tag-slack",
+          "text": "Anthropic announced Claude Tag as a Slack-based workflow where teams can mention Claude in shared channels and delegate multi-step work with shared context.",
+          "source_ids": [
+            "anthropic-claude-tag"
+          ],
+          "verification_status": "supported",
+          "confidence": "high"
+        },
+        {
+          "id": "claim-anthropic-enterprise-controls",
+          "text": "Anthropic's official page says Claude Tag is in beta for Team and Enterprise plans and describes enterprise controls including tool/data access, spend limits, and activity logs.",
+          "source_ids": [
+            "anthropic-claude-tag"
+          ],
+          "verification_status": "supported",
+          "confidence": "high"
+        }
+      ],
+      "source_ids": [
+        "anthropic-claude-tag"
+      ],
+      "analysis": "Candidate draft analysis: Claude Tag is included because the official source supports a workflow shift from individual assistant use toward persistent team delegation in shared Slack channels. Final publication still requires human editorial review, but the core source mapping is now checked."
+    },
+    {
+      "id": "story-mistral-ocr-4",
+      "rank": 2,
+      "title": "Mistral OCR 4 targets structured document intelligence for enterprise RAG",
+      "status": "new",
+      "importance": {
+        "score": 5,
+        "rationale": "High enterprise relevance: document ingestion quality, structure, citations, and cost directly affect RAG reliability and business automation."
+      },
+      "companies": [
+        "Mistral AI"
+      ],
+      "models": [
+        "Mistral OCR 4"
+      ],
+      "regions": [
+        "Global"
+      ],
+      "claims": [
+        {
+          "id": "claim-mistral-ocr-4-announced",
+          "text": "Mistral announced OCR 4 as a document-intelligence system for parsing complex documents into structured outputs with boxes, block classifications, and confidence scores.",
+          "source_ids": [
+            "mistral-ocr-4"
+          ],
+          "verification_status": "supported",
+          "confidence": "high"
+        },
+        {
+          "id": "claim-mistral-ocr-4-enterprise-paths",
+          "text": "Mistral's OCR 4 page describes multilingual document extraction and enterprise usage through API, Document AI tooling, and self-hosting paths for RAG and search workflows.",
+          "source_ids": [
+            "mistral-ocr-4"
+          ],
+          "verification_status": "supported",
+          "confidence": "high"
+        }
+      ],
+      "source_ids": [
+        "mistral-ocr-4"
+      ],
+      "analysis": "Candidate draft analysis: OCR 4 is included because the official source supports a practical enterprise AI layer for turning documents into structured, attributable inputs for RAG, search, compliance, and agent workflows. Benchmark and pricing details remain de-emphasized."
+    },
+    {
+      "id": "story-qwen-36-27b",
+      "rank": 3,
+      "title": "Qwen3.6-27B is tracked as a cautious open-weight model-card update",
+      "status": "update",
+      "importance": {
+        "score": 4,
+        "rationale": "Important for open-weight model tracking, with model-card and capability metadata supported by the public source. Release timing remains unresolved and is not used as a headline claim."
+      },
+      "companies": [
+        "Qwen"
+      ],
+      "models": [
+        "Qwen3.6-27B"
+      ],
+      "regions": [
+        "China",
+        "Global"
+      ],
+      "claims": [
+        {
+          "id": "claim-qwen-hf-model-card",
+          "text": "The public Hugging Face model card lists Qwen/Qwen3.6-27B with open repository metadata, Apache-2.0 licensing, Transformers/Safetensors support, and long-context serving notes.",
+          "source_ids": [
+            "qwen-36-27b-hf"
+          ],
+          "verification_status": "supported",
+          "confidence": "high"
+        },
+        {
+          "id": "claim-qwen-release-timing-unresolved",
+          "text": "The accessible Hugging Face model-card text did not expose a stable publication date in this review, so this candidate avoids describing Qwen3.6-27B as a verified same-day launch.",
+          "source_ids": [
+            "qwen-36-27b-hf"
+          ],
+          "verification_status": "partially_supported",
+          "confidence": "medium"
+        }
+      ],
+      "source_ids": [
+        "qwen-36-27b-hf"
+      ],
+      "analysis": "Candidate draft analysis: Qwen is included to keep open-weight model tracking visible, but the story is intentionally framed as a model-card update because the accessible source text did not expose a stable publication date."
+    },
+    {
+      "id": "story-openai-daybreak-patch",
+      "rank": 4,
+      "title": "OpenAI Daybreak and Patch the Planet expand defensive security workflows around Codex Security",
+      "status": "follow_up",
+      "importance": {
+        "score": 4,
+        "rationale": "Relevant to developers and security teams because the official sources connect model-assisted security work with validation, patching, disclosure, and maintainer workflows."
+      },
+      "companies": [
+        "OpenAI",
+        "Trail of Bits",
+        "HackerOne"
+      ],
+      "models": [
+        "Codex Security"
+      ],
+      "regions": [
+        "Global"
+      ],
+      "claims": [
+        {
+          "id": "claim-openai-daybreak-defensive-security",
+          "text": "OpenAI published Daybreak as a defensive-security initiative and describes workflows that connect frontier models, Codex Security, trusted defenders, and infrastructure operators.",
+          "source_ids": [
+            "openai-daybreak"
+          ],
+          "verification_status": "supported",
+          "confidence": "high"
+        },
+        {
+          "id": "claim-openai-patch-the-planet",
+          "text": "OpenAI described Patch the Planet as a Daybreak initiative to help open-source maintainers validate, prioritize, patch, test, and land security fixes.",
+          "source_ids": [
+            "openai-patch-the-planet"
+          ],
+          "verification_status": "supported",
+          "confidence": "high"
+        }
+      ],
+      "source_ids": [
+        "openai-daybreak",
+        "openai-patch-the-planet"
+      ],
+      "analysis": "Candidate draft analysis: This story is included as a security workflow signal rather than a new model release. Official OpenAI sources support the Daybreak and Patch the Planet framing; detailed operational metrics remain outside this candidate."
+    },
+    {
+      "id": "story-xai-grok-goal",
+      "rank": 5,
+      "title": "xAI Grok Build /goal is tracked as a long-running coding-agent workflow update",
+      "status": "follow_up",
+      "importance": {
+        "score": 3,
+        "rationale": "Medium-high relevance for coding-agent competition: the official source describes long-running task execution, checklist progress, and pause/resume-style controls."
+      },
+      "companies": [
+        "xAI"
+      ],
+      "models": [
+        "Grok Build"
+      ],
+      "regions": [
+        "Global"
+      ],
+      "claims": [
+        {
+          "id": "claim-xai-goal-command",
+          "text": "xAI announced /goal as a Grok Build feature for long-running autonomous task execution.",
+          "source_ids": [
+            "xai-goal"
+          ],
+          "verification_status": "supported",
+          "confidence": "high"
+        },
+        {
+          "id": "claim-xai-goal-state-controls",
+          "text": "xAI's /goal page describes progress checklists and task controls including status, pause, resume, and clear behavior.",
+          "source_ids": [
+            "xai-goal"
+          ],
+          "verification_status": "supported",
+          "confidence": "high"
+        }
+      ],
+      "source_ids": [
+        "xai-goal"
+      ],
+      "analysis": "Candidate draft analysis: xAI /goal is included because the official source supports long-running autonomous execution with visible task state and controls, aligning with the broader coding-agent workflow competition."
+    }
+  ],
+  "sources": [
+    {
+      "id": "anthropic-claude-tag",
+      "title": "Introducing Claude Tag",
+      "publisher": "Anthropic",
+      "url": "https://www.anthropic.com/news/introducing-claude-tag",
+      "source_type": "official",
+      "published_at": "2026-06-23T00:00:00+08:00",
+      "retrieved_at": "2026-06-24T04:00:00+08:00"
+    },
+    {
+      "id": "mistral-ocr-4",
+      "title": "Introducing OCR 4",
+      "publisher": "Mistral AI",
+      "url": "https://mistral.ai/news/ocr-4/",
+      "source_type": "official",
+      "published_at": "2026-06-23T00:00:00+08:00",
+      "retrieved_at": "2026-06-24T04:00:00+08:00"
+    },
+    {
+      "id": "qwen-36-27b-hf",
+      "title": "Qwen/Qwen3.6-27B model card",
+      "publisher": "Qwen on Hugging Face",
+      "url": "https://huggingface.co/Qwen/Qwen3.6-27B",
+      "source_type": "repository",
+      "published_at": "2026-06-24T00:00:00+08:00",
+      "retrieved_at": "2026-06-24T04:00:00+08:00"
+    },
+    {
+      "id": "openai-daybreak",
+      "title": "Daybreak: Tools for securing every organization in the world",
+      "publisher": "OpenAI",
+      "url": "https://openai.com/index/daybreak-securing-the-world/",
+      "source_type": "official",
+      "published_at": "2026-06-22T00:00:00+08:00",
+      "retrieved_at": "2026-06-24T04:00:00+08:00"
+    },
+    {
+      "id": "openai-patch-the-planet",
+      "title": "Patch the Planet: a Daybreak initiative to support open source maintainers",
+      "publisher": "OpenAI",
+      "url": "https://openai.com/index/patch-the-planet/",
+      "source_type": "official",
+      "published_at": "2026-06-22T00:00:00+08:00",
+      "retrieved_at": "2026-06-24T04:00:00+08:00"
+    },
+    {
+      "id": "xai-goal",
+      "title": "Introducing /goal",
+      "publisher": "xAI",
+      "url": "https://x.ai/news/introducing-goal",
+      "source_type": "official",
+      "published_at": "2026-06-22T00:00:00+08:00",
+      "retrieved_at": "2026-06-24T04:00:00+08:00"
+    }
+  ],
+  "assets": [],
+  "provenance": {
+    "candidate_status": "candidate_draft",
+    "review_status": "source_review_hardened_manual_review_still_required",
+    "source_review": "public_urls_checked",
+    "publication_status": "not_published",
+    "telegram_delivery": "no_telegram_sent",
+    "image_generation": "no_image_generated",
+    "historical_source_used_for_reference_only": true,
+    "raw_historical_content_copied": false,
+    "private_files_copied": false,
+    "generated_content_disclosure": "Draft English candidate manually rewritten from allowed reference notes. Public source URLs were checked and claims were conservatively hardened. This is not final publication content and still requires human editorial review.",
+    "claim_review": "claims_conservatively_hardened",
+    "source_reviewed_at": "2026-07-03T00:00:00+08:00"
+  }
+}
